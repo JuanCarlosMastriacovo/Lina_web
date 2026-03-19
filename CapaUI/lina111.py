@@ -71,8 +71,8 @@ class ClienteValidador(BaseValidador):
         n = self.normalized_data.get('cliename', '')
         if not c:
             self.field_errors['cliecodi'] = 'Código obligatorio'
-        elif len(c) > 15:
-            self.field_errors['cliecodi'] = 'Máximo 15 caracteres'
+        elif len(c) > 4:
+            self.field_errors['cliecodi'] = 'Máximo 4 caracteres'
         if not n:
             self.field_errors['cliename'] = 'Nombre obligatorio'
         elif len(n) > 40:
@@ -85,6 +85,7 @@ class ClienteValidador(BaseValidador):
             exists = LinaClie.row_get({CLIENT_KEY_FIELD: c}, conn=conn)
             if exists:
                 self.field_errors['cliecodi'] = f'El código {c} ya existe.'
+        
 
 @router.get("/", response_class=HTMLResponse)
 async def list_clients(request: Request):

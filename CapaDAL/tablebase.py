@@ -99,6 +99,84 @@ class TableBase:
                 sess_conns.release_conn(_conn)
 
     @classmethod
+    def row_exists(cls, pk_values: Dict[str, Any], conn=None) -> bool:
+        """
+        Verifica si ya existe un registro con la PK dada.
+        Uso típico: previo a una inserción, para evitar duplicados.
+
+        Returns:
+            True  → el registro YA existe   (la inserción debería abortarse)
+            False → el registro no existe   (se puede insertar)
+        """
+        pk_values = pk_values.copy()
+        _conn = conn or sess_conns.get_conn(readonly=True)
+        try:
+            if not cls._ensure_metadata(conn=_conn):
+                raise ValueError(f"No se pudo cargar metadata para {cls.TABLE_NAME}")
+            company_field = cls.get_company_field()
+            if company_field and company_field in cls.PK_FIELDS and company_field not in pk_values:
+                pk_values[company_field] = cls._get_empr()
+
+            where = " AND ".join([f"{f} = %s" for f in cls.PK_FIELDS])
+            query = f"SELECT 1 FROM {cls.TABLE_NAME} WHERE {where} LIMIT 1"
+            cur = _conn.cursor()
+            cur.execute(query, [pk_values[f] for f in cls.PK_FIELDS])
+            return cur.fetchone() is not None
+        except Exception as e:
+            print(f"CapaDAL Error (row_exists {cls.TABLE_NAME}): {e}")
+            return False
+        finally:
+            if not conn:
+                sess_conns.release_conn(_conn)
+
+    @classmethod
+    def row_got_parents(cls, data: Dict[str, Any], conn=None) -> bool:
+        """
+        Verifica que existan todos los registros padre requeridos por las FK
+        antes de insertar un registro hijo.
+        Itera sobre FOREIGN_KEYS cargadas desde metadata.
+
+        Si una columna FK no está presente en data (campo nullable/opcional),
+        esa FK se omite — no se puede verificar lo que no se conoce.
+
+        Returns:
+            True  → todos los padres existen   (se puede insertar)
+            False → al menos un padre falta    (la inserción debería abortarse)
+        """
+        data = data.copy()
+        _conn = conn or sess_conns.get_conn(readonly=True)
+        try:
+            if not cls._ensure_metadata(conn=_conn):
+                raise ValueError(f"No se pudo cargar metadata para {cls.TABLE_NAME}")
+
+            for fk in cls.FOREIGN_KEYS:
+                parent_table_name = fk["referenced_table"]
+                child_cols        = fk["columns"]            # columnas FK en esta tabla
+                parent_cols       = fk["referenced_columns"] # columnas PK en la tabla padre
+
+                # Si alguna columna FK no está en data, se omite esta FK (campo nullable/opcional)
+                if not all(col in data for col in child_cols):
+                    continue
+
+                where  = " AND ".join([f"{pc} = %s" for pc in parent_cols])
+                params = [data[cc] for cc in child_cols]
+
+                parent_model = cls._get_table_class(parent_table_name)
+                query = f"SELECT 1 FROM {parent_model.TABLE_NAME} WHERE {where} LIMIT 1"
+                cur = _conn.cursor()
+                cur.execute(query, params)
+                if cur.fetchone() is None:
+                    print(f"CapaDAL: Padre inexistente en {parent_table_name} para FK {fk['constraint_name']}")
+                    return False
+            return True
+        except Exception as e:
+            print(f"CapaDAL Error (row_got_parents {cls.TABLE_NAME}): {e}")
+            return False
+        finally:
+            if not conn:
+                sess_conns.release_conn(_conn)
+
+    @classmethod
     def update_pk(cls, old_pk: dict, new_code, conn=None) -> int:
         """Actualiza la clave primaria (PK) de un registro."""
         code_field = cls.get_business_key_field()
