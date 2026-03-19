@@ -1,0 +1,42 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Entornos virtuales
+venv/
+env/
+.env
+.venv/
+
+# Variables de entorno (credenciales)
+.env
+*.env
+
+# MyPy
+.mypy_cache/
+dmypy.json
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Distribución / packaging
+dist/
+build/
+*.egg-info/
+
+# pytest
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
