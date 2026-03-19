@@ -1,0 +1,28 @@
+<table class="table table-sm table-hover table-sticky m-0">
+	<thead>
+		<tr>
+			<th class="ps-3" style="cursor:pointer" hx-get="/rubros/list?sort=artrcodi" :hx-target="'#' + $id('wgrid')">Código</th>
+			<th style="cursor:pointer" hx-get="/rubros/list?sort=artrdesc" :hx-target="'#' + $id('wgrid')">Descripción</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for item in rubros %}
+		<tr class="grid-row detail-nav-trigger" hx-get="/rubros/detail/{{ item.artrcodi }}" :hx-target="'#' + $id('wdetail')"
+			data-detail-url="/rubros/detail/{{ item.artrcodi }}"
+			data-item-code="{{ item.artrcodi }}"
+			data-item-label="{{ item.artrdesc }}"
+			@click="selectedIndex = {{ loop.index0 }}; updateSelection()"
+			@focus="selectedIndex = {{ loop.index0 }}; updateSelection()"
+			@keydown.enter.prevent="$el.click()"
+			@keydown.numpad-enter.prevent="$el.click()"
+			tabindex="0">
+			<td class="ps-3">{{ item.artrcodi }}</td>
+			<td>{{ item.artrdesc }}</td>
+		</tr>
+		{% else %}
+		<tr class="grid-empty">
+			<td class="ps-3" colspan="2">Sin registros para mostrar.</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>

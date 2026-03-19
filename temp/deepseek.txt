@@ -1,0 +1,80 @@
+DeepSeek en VS Code - Paso a paso
+
+Objetivo
+- Usar DeepSeek como recurso adicional de IA en VS Code, sin reemplazar GitHub Copilot.
+
+Ruta recomendada (rapida): Extension compatible + API de DeepSeek
+
+1) Crear cuenta y API key
+- Entra al panel de DeepSeek y genera una API key.
+- Guarda la key en un lugar seguro.
+
+2) Instalar una extension compatible en VS Code
+- Opciones comunes: Continue, Cline u otra extension que permita proveedor OpenAI-compatible.
+- Instala solo una al principio para evitar confusiones.
+
+3) Configurar endpoint y modelo
+- Abre la configuracion de la extension elegida.
+- Carga estos datos base:
+  - Provider type: OpenAI-compatible
+  - Base URL: https://api.deepseek.com
+  - API key: tu clave
+  - Modelo sugerido (chat/codigo): deepseek-chat
+- Si la extension pide ruta de completions/chat, usa la opcion por defecto del proveedor OpenAI-compatible.
+
+4) Probar conexion
+- Abre un archivo del proyecto.
+- Pide algo corto, por ejemplo:
+  - "Explica esta funcion"
+  - "Sugiere mejora de validacion"
+- Si responde, quedo conectado.
+
+5) Mantener Copilot en paralelo
+- Deja Copilot activo para autocompletado rapido.
+- Usa la extension de DeepSeek para prompts largos o analisis.
+
+6) Privacidad y seguridad (importante)
+- Revisa en la extension si existe "exclude paths".
+- Excluye al menos:
+  - .env
+  - credenciales
+  - dumps SQL sensibles
+  - carpetas de secretos
+- No pegues claves en prompts.
+
+7) Ajustes recomendados para este repo
+- Contexto limitado por carpeta:
+  - incluir: CapaUI, CapaBRL, CapaDAL, templates, static
+  - excluir: Datos MySQL dumps grandes si no son necesarios
+- Temperatura baja para codigo (si la extension la expone): 0.1-0.3
+
+
+Ruta alternativa: DeepSeek local con Ollama (sin API externa)
+
+1) Instalar Ollama.
+2) Descargar modelo compatible (si usas uno DeepSeek/distill disponible localmente).
+3) Levantar servicio local de Ollama.
+4) En la extension, configurar provider local (Ollama) y modelo instalado.
+5) Probar como en el paso 4.
+
+
+Problemas comunes
+
+- Error 401/403:
+  - API key invalida o sin saldo/permisos.
+- Error de conexion:
+  - Base URL incorrecta.
+- Respuestas vacias o lentas:
+  - Modelo no disponible o limite de tokens.
+- Conflicto entre extensiones:
+  - Desactiva temporalmente una y prueba de nuevo.
+
+
+Checklist final
+- [ ] API key creada
+- [ ] Extension instalada
+- [ ] Base URL configurada
+- [ ] Modelo configurado
+- [ ] Prueba de prompt OK
+- [ ] Exclusiones de privacidad aplicadas
+

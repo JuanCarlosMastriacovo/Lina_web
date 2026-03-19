@@ -1,0 +1,13 @@
+<div class="selector-context-menu" x-show="contextMenu.visible" x-cloak
+     :style="`left:${contextMenu.x}px; top:${contextMenu.y}px;`">
+    <div class="selector-context-menu-title" x-text="contextMenu.title || 'Registro'"></div>
+    <button type="button" class="selector-context-menu-item" @click="openContextDetail()">
+        Editar
+    </button>
+    <button type="button" class="selector-context-menu-item" @click="invokeDetailAction('recode')">
+        Cambiar codigo
+    </button>
+    <button type="button" class="selector-context-menu-item selector-context-menu-item-danger" @click="invokeDetailAction('delete')">
+        Eliminar
+    </button>
+</div>

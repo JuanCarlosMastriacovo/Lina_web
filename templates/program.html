@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Programa {{ code }} - LINA{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-8">
+    <h4>Programa {{ code }}</h4>
+    <p class="lead">{{ desc }}</p>
+
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% else %}
+      <div class="alert alert-success">
+        Aquí iría la pantalla web que reemplaza al programa FoxPro asociado a {{ code }}.
+      </div>
+    {% endif %}
+
+    {% if permisos %}
+      <h5>Permisos del usuario</h5>
+      <ul>
+        <li>Alta: {{ 'Sí' if permisos.alta else 'No' }}</li>
+        <li>Baja: {{ 'Sí' if permisos.baja else 'No' }}</li>
+        <li>Modificación: {{ 'Sí' if permisos.modi else 'No' }}</li>
+        <li>Consulta: {{ 'Sí' if permisos.cons else 'No' }}</li>
+      </ul>
+    {% else %}
+      <p class="text-muted">No se encontraron permisos específicos en LINASAFE para este programa y usuario.</p>
+    {% endif %}
+
+    <a href="/" class="btn btn-secondary mt-3">Volver al menú</a>
+  </div>
+</div>
+{% endblock %}
+

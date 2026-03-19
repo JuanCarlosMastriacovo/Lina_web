@@ -1,0 +1,66 @@
+Estándar práctico de validaciones
+
+1. Separar siempre 3 cosas:
+   - Normalización: limpiar y convertir datos.
+   - Validación formal: requerido, tipo, longitud, rango.
+   - Validación de negocio: reglas propias del programa.
+
+2. La autoridad debe ser el backend.
+   - El HTML ayuda a la UX, pero no garantiza nada.
+
+3. No meter estas reglas en cada endpoint a mano.
+   - Definir una ficha por campo y un validador por programa.
+
+Ejemplo simple para un código de cliente:
+
+- Normalización:
+  cliecodi = trim
+  cliecodi = mayúsculas
+  si queda vacío, pasa a vacío real
+
+- Validación formal:
+  cliecodi es requerido
+  cliecodi máximo 15
+  tipopago debe estar en CONTADO o CTA
+
+- Validación de negocio:
+  en alta, cliecodi no puede existir
+  en baja, no se puede borrar si tiene movimientos
+
+Estructura práctica:
+
+- CapaDAL:
+  metadata y CRUD
+- CapaBRL:
+  normalizar, validar formal, validar negocio
+- CapaUI:
+  mostrar errores
+
+Contrato estándar de respuesta:
+
+- normalized_data
+- field_errors
+- form_errors
+- is_valid
+
+Ejemplo de salida:
+
+- field_errors:
+  cliecodi: Código obligatorio
+  tipopago: Valor inválido
+- form_errors:
+  No se puede eliminar porque tiene movimientos
+
+Regla de oro para este proyecto:
+
+- Todo lo formal reusable en BRL
+- Toda regla semántica también en BRL
+- La base queda como última barrera, no como primer validador
+
+Siguiente paso correcto:
+
+1. Crear un módulo base de validación reusable y usarlo primero en lina111 y lina131 como patrón.
+
+
+convertir ese texto en un estándar técnico más operativo
+implementarlo directamente en lina111.py y lina131.py como primer patrón real

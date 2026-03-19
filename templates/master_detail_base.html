@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% set list_title_html %}{% block list_title %}Registros{% endblock %}{% endset %}
+{% set route_new_html %}{% block route_new %}{% endblock %}{% endset %}
+{% set route_list_html %}{% block route_list %}{% endblock %}{% endset %}
+{% set grid_content_html %}{% block grid_content %}
+<!-- Aquí va la tabla/grilla -->
+{% endblock %}{% endset %}
+{% set workspace_style = "height: 400px; max-width: 692px; margin: 0.5rem 0 0.5rem 0.5rem;" %}
+{% set left_panel_style = "height: 100%; min-height: 0; position: relative;" %}
+{% set right_panel_style = "height: 100%; min-height: 0;" %}
+{% set list_title = list_title_html | trim %}
+{% set route_new = route_new_html | trim %}
+{% set route_list = route_list_html | trim %}
+{% set add_button_class = "" %}
+
+{% include "partials/master_detail_layout.html" with context %}
+
+{% endblock %}

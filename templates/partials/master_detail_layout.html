@@ -1,0 +1,59 @@
+<div class="row mt-2 md-workspace" style="{{ workspace_style }}" x-id="['wgrid', 'wdetail']">
+    <!-- PANEL IZQUIERDO: Selector (Grilla) -->
+    <div class="col-md-5 border-end d-flex flex-column p-0" style="{{ left_panel_style }}"
+         x-data="linaCreateMasterDetailSelectorModel()"
+         @keydown.window="if (isPanelActive()) { handleContextMenuKey($event); handleContextMenuNavigationKey($event); if (shouldHandleKey($event)) handleKeyDown($event); }"
+         @contextmenu="openContextMenu($event)"
+         @click.outside="hideContextMenu()"
+         @scroll.capture="hideContextMenu()"
+         @keydown.escape.window="if (!contextMenu.visible) hideContextMenu()"
+         @detail-closed.window="setFirstRowSelected()"
+         @htmx:before-request.window="hideContextMenu()"
+         @htmx:after-settle.camel="if ($event.detail.target.id === $id('wgrid')) {
+            setFirstRowSelected();
+         }">
+        <div class="p-2 bg-light border-bottom d-flex justify-content-between align-items-center" style="flex-shrink: 0;">
+            <h5 class="m-0">{{ list_title }}</h5>
+            <button class="btn btn-sm btn-success{% if add_button_class %} {{ add_button_class }}{% endif %}"
+                    hx-get="{{ route_new }}"
+                    :hx-target="'#' + $id('wdetail')"
+                    title="Crea un nuevo registro (alta)">
+                + Agregar
+            </button>
+        </div>
+
+        <div class="p-2 border-bottom" style="flex-shrink: 0;">
+            <div class="input-group input-group-sm">
+                  <input type="text" class="form-control form-control-sm lina-search-input" placeholder="Buscar..."
+                      name="search" hx-get="{{ route_list }}"
+                      hx-trigger="keyup changed delay:500ms, search-clear" :hx-target="'#' + $id('wgrid')"
+                      x-on:input="$el.nextElementSibling.style.display = $el.value ? '' : 'none'"
+                      title="Ingrese texto para buscar clientes por código o nombre">
+                <button class="btn btn-outline-secondary btn-sm" type="button" style="display:none; padding: 0 0.4rem;"
+                        title="Limpiar busqueda"
+                        x-on:click="$el.previousElementSibling.value = ''; $el.style.display = 'none'; htmx.trigger($el.previousElementSibling, 'search-clear')">&#x2715;</button>
+            </div>
+        </div>
+
+        <div class="flex-grow-1" :id="$id('wgrid')" style="overflow: scroll; min-height: 0;"
+             hx-get="{{ route_list }}"
+             hx-trigger="load, refreshList from:body"
+             hx-target="this"
+             hx-swap="innerHTML">
+            {% if grid_content_html is defined %}
+                {{ grid_content_html | safe }}
+            {% elif grid_content_template is defined %}
+                {% include grid_content_template %}
+            {% endif %}
+        </div>
+
+        {% include "partials/master_detail_context_menu.html" %}
+    </div>
+
+    <!-- PANEL DERECHO: Detalle (Formulario) -->
+    <div class="col-md-7 d-flex flex-column p-0 md-detail-panel" :id="$id('wdetail')" style="{{ right_panel_style }}">
+        <div class="flex-grow-1 d-flex align-items-center justify-content-center text-muted">
+            Seleccione un registro para ver su detalle o haga clic en "Agregar".
+        </div>
+    </div>
+</div>
