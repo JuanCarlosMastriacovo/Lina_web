@@ -1,4 +1,3 @@
-0. Implementar git
 1 .CurrEmpr
 dejemos por ahora el tema de las ventanas activas. 
     Todavia necesito definir bien el impacto de cambio de fecha y de empresa 
@@ -28,7 +27,8 @@ Qué hacer con tabs abiertos al cambiar empresa o fecha.
     ">expr" o ">=expr" limite inferior del valor
 4. Usar la barra de mensajes
 5. Forms modales de asistencia y selectores de single record
-7. Que los botones tambien presenten tool tips con su función
+6. Listados
+***OK *** Que los botones tambien presenten tool tips con su función
 ***OK *** Session date
 ***OK *** Que el botón mostrar/ocultar en pantalla login no tenga tabstop para que con enter se 
           llegue directamente a "ingresar"
@@ -43,3 +43,4 @@ Qué hacer con tabs abiertos al cambiar empresa o fecha.
 ***OK *** Con el click en la cruz del campo "buscar" que se refresque la lista y el foco al primer registro del selector
 ***OK *** ¿se pueden usar "tool tips" que se muestren al hacer hover con el mouse en los controles (tanto etiquetas como cuadros de texto)?
 NEGADO Que el menu contextual en selector de abm single record se despliegue tambien con tecla windows
+***OK *** Implementar git
