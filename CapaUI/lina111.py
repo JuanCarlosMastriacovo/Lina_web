@@ -182,12 +182,17 @@ async def save_client(request: Request, cliecodi: int = Form(...), cliename: str
     try:
         ok = False
         if action == "create":
-            ok = LinaClie.row_insert({
+            insert_data = {
                 CLIENT_KEY_FIELD: resultado['normalized_data']['cliecodi'],
                 CLIENT_LABEL_FIELD: resultado['normalized_data']['cliename'],
                 "cliesala": 0,
-                "cliefesa": '1900-01-01'
-            }, conn=conn)
+                "cliefesa": '1900-01-01',
+                CLIENT_COMPANY_FIELD: ctx_empr.get()
+            }
+            # Validación estándar: existencia de padres
+            if not LinaClie.row_got_parents(insert_data, conn=conn):
+                return HTMLResponse(content="No existen todos los registros padres requeridos para crear el cliente.", status_code=409)
+            ok = LinaClie.row_insert(insert_data, conn=conn)
         else:
             ok = LinaClie.row_update({CLIENT_KEY_FIELD: resultado['normalized_data']['cliecodi']}, {CLIENT_LABEL_FIELD: resultado['normalized_data']['cliename']}, conn=conn)
 

@@ -182,15 +182,29 @@ async def save_rubro(request: Request, artrcodi: str = Form(...), artrdesc: str 
     if not resultado['is_valid']:
         msg = '\n'.join(list(resultado['field_errors'].values()) + resultado['form_errors'])
         return HTMLResponse(content=msg or 'Datos inválidos.', status_code=409)
+    ok = False
     try:
-        ok = False
         if action == "create":
-            ok = LinaArtr.row_insert({RUBRO_KEY_FIELD: resultado['normalized_data']['artrcodi'], RUBRO_LABEL_FIELD: resultado['normalized_data']['artrdesc']}, conn=conn)
+            insert_data = {
+                RUBRO_KEY_FIELD: resultado['normalized_data']['artrcodi'],
+                RUBRO_LABEL_FIELD: resultado['normalized_data']['artrdesc'],
+                RUBRO_COMPANY_FIELD: ctx_empr.get()
+            }
+            # Validación estándar: existencia de padres
+            if not LinaArtr.row_got_parents(insert_data, conn=conn):
+                return HTMLResponse(content="No existen todos los registros padres requeridos para crear el rubro.", status_code=409)
+            ok = LinaArtr.row_insert(insert_data, conn=conn)
         else:
             ok = LinaArtr.row_update({RUBRO_KEY_FIELD: resultado['normalized_data']['artrcodi']}, {RUBRO_LABEL_FIELD: resultado['normalized_data']['artrdesc']}, conn=conn)
 
         if not ok:
             return HTMLResponse(content="No se pudo guardar.", status_code=400)
+        user = Lina131.get_current_user(request)
+        if user and tab_id:
+            sess_conns.commit_and_restart_task_conn(task_id=tab_id, user=user, prog=Lina131.prog_code or PROG_CODE)
+        elif conn:
+            conn.commit()
+        return HTMLResponse(content="Guardado exitosamente.")
     except IntegrityError as e:
         conn.rollback()
         if getattr(e, "errno", None) == 1062:
@@ -200,18 +214,9 @@ async def save_rubro(request: Request, artrcodi: str = Form(...), artrdesc: str 
         conn.rollback()
         return HTMLResponse(content=f"Error al guardar: {e}", status_code=500)
 
-    user = Lina131.get_current_user(request)
-    if user and tab_id:
-        sess_conns.commit_and_restart_task_conn(task_id=tab_id, user=user, prog=Lina131.prog_code or PROG_CODE)
-    elif conn:
-        conn.commit()
-    
-    return HTMLResponse(content="Guardado exitosamente.")
-
-
+# --- Restricción de borrado: función faltante ---
 def _rubro_delete_restriction_message(conn, artrcodi: str) -> str | None:
     parent_values = {RUBRO_COMPANY_FIELD: ctx_empr.get(), RUBRO_KEY_FIELD: artrcodi}
-
     for relation in LinaArtr.CHILD_RELATIONS:
         has_related = LinaArtr.has_children(relation, parent_values, conn=conn)
         if has_related:
