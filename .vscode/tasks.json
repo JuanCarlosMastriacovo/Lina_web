@@ -1,45 +1,56 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "apply_refresh_sp_and_trgs",
-      "type": "shell",
-      "command": "mysql",
-      "args": [
-        "-u",
-        "root",
-        "-p",
-        "-e",
-        "SOURCE CapaDAL/DbLinaSQLs/apply_refresh_sp_and_trgs.sql"
-      ],
-      "group": "none",
-      "problemMatcher": []
-    },
-    {
-      "label": "DB: Apply audit triggers",
-      "type": "shell",
-      "command": "mysql",
-      "args": [
-        "-u",
-        "root",
-        "-p",
-        "-e",
-        "SOURCE CapaDAL/DbLinaSQLs/setup_audit_triggers.sql"
-      ],
-      "group": "none",
-      "problemMatcher": []
-    },
-    {
-      "label": "App: Run Uvicorn (reload)",
-      "type": "shell",
-      "command": "uvicorn",
-      "args": [
-        "CapaUI.lina0:app",
-        "--reload"
-      ],
-      "group": "none",
-      "isBackground": true,
-      "problemMatcher": []
-    }
-  ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "apply_refresh_sp_and_trgs",
+			"type": "shell",
+			"command": "mysql",
+			"args": [
+				"-u",
+				"root",
+				"-p",
+				"-e",
+				"SOURCE CapaDAL/DbLinaSQLs/apply_refresh_sp_and_trgs.sql"
+			],
+			"group": "none",
+			"problemMatcher": []
+		},
+		{
+			"label": "DB: Apply audit triggers",
+			"type": "shell",
+			"command": "mysql",
+			"args": [
+				"-u",
+				"root",
+				"-p",
+				"-e",
+				"SOURCE CapaDAL/DbLinaSQLs/setup_audit_triggers.sql"
+			],
+			"group": "none",
+			"problemMatcher": []
+		},
+		{
+			"label": "App: Run Uvicorn (reload)",
+			"type": "shell",
+			"command": "uvicorn",
+			"args": [
+				"CapaUI.lina0:app",
+				"--reload"
+			],
+			"group": "none",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "git commit fecha-hora",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"commit",
+				"-am",
+				"Auto-commit $(Get-Date -Format yyyy-MM-dd_HH-mm-ss)"
+			],
+			"group": "none"
+		}
+	]
 }
