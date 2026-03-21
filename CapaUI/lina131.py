@@ -18,7 +18,6 @@ RUBRO_KEY_FIELD = LinaArtr.get_business_key_field()
 RUBRO_SELECTOR_FIELDS = LinaArtr.get_selector_fields()
 RUBRO_LABEL_FIELD = RUBRO_SELECTOR_FIELDS[1]
 
-
 class Lina131(linabase):
     """Módulo de gestión de rubros/artículos (LINA131) con herencia de linabase."""
     SELECTOR_FIELDS = RUBRO_SELECTOR_FIELDS
