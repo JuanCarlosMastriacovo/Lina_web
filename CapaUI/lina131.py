@@ -1,3 +1,103 @@
+@router.post("/{artrcodi}/recode", response_class=JSONResponse)
+async def recode_rubro(
+    request: Request,
+    artrcodi: str,
+    new_code: str = Form(...),
+    tab_id: str = Form(default="", alias="_tab"),
+):
+    conn = Lina131.get_task_conn(request, readonly=False)
+    owns_conn = False
+    if not conn:
+        conn = sess_conns.get_conn(readonly=False, user_override=Lina131.get_current_user(request))
+        owns_conn = True
+
+    # Validación con RecodeRubroValidador
+    validador = RecodeRubroValidador({
+        "artrcodi": artrcodi,
+        "new_code": new_code,
+        "conn": conn
+    })
+    resultado = validador.validate()
+    if not resultado["is_valid"]:
+        msg = '\n'.join(list(resultado["field_errors"].values()) + resultado["form_errors"])
+        if owns_conn:
+            sess_conns.release_conn(conn)
+        return JSONResponse({"ok": False, "message": msg or "Datos inválidos."}, status_code=400)
+
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            f"""
+            UPDATE {RUBRO_TABLE}
+               SET {RUBRO_KEY_FIELD} = %s
+             WHERE {RUBRO_COMPANY_FIELD} = %s
+               AND {RUBRO_KEY_FIELD} = %s
+            """,
+            (resultado['normalized_data']['new_code'], ctx_empr.get(), resultado['normalized_data']['artrcodi']),
+        )
+        updated = cur.rowcount
+        cur.close()
+    except IntegrityError as e:
+        if owns_conn:
+            conn.rollback()
+        return JSONResponse({"ok": False, "message": f"No se pudo cambiar el código: {e.msg}"}, status_code=400)
+    except Exception as e:
+        if owns_conn:
+            conn.rollback()
+        return JSONResponse({"ok": False, "message": f"Error al cambiar código: {e}"}, status_code=500)
+
+    if updated == 0:
+        return JSONResponse({"ok": False, "message": "No se encontró el registro a recodificar."}, status_code=404)
+
+    user = Lina131.get_current_user(request)
+    if user and tab_id and not owns_conn:
+        sess_conns.commit_and_restart_task_conn(task_id=tab_id, user=user, prog=Lina131.prog_code or PROG_CODE)
+    else:
+        conn.commit()
+
+    if owns_conn:
+        sess_conns.release_conn(conn)
+
+    return JSONResponse({"ok": True, "new_code": resultado['normalized_data']['new_code'], "message": "Código cambiado correctamente."})
+
+
+class RecodeRubroValidador(BaseValidador):
+    """Validador para el cambio de código (recode) de un rubro."""
+    def normalize(self):
+        # Forzar a str y upper si es posible, si no, dejar None
+        artrcodi = self.original_data.get("artrcodi")
+        new_code = self.original_data.get("new_code")
+        if artrcodi is not None:
+            artrcodi = str(artrcodi).strip().upper()
+        if new_code is not None:
+            new_code = str(new_code).strip().upper()
+        self.normalized_data = {
+            "artrcodi": artrcodi,
+            "new_code": new_code,
+        }
+
+    def validate_formal(self):
+        new = self.normalized_data.get("new_code")
+        old = self.normalized_data.get("artrcodi")
+        if not new:
+            self.field_errors["new_code"] = "El nuevo código es obligatorio."
+            return
+        if not old:
+            self.field_errors["artrcodi"] = "El código actual es inválido."
+            return
+        if len(new) > 9:
+            self.field_errors["new_code"] = "Máximo 9 caracteres."
+            return
+        if new == old:
+            self.field_errors["new_code"] = "El nuevo código debe ser distinto al actual."
+
+    def validate_negocio(self):
+        if "new_code" in self.field_errors:
+            return
+        conn = self.original_data.get("conn")
+        new = self.normalized_data.get("new_code")
+        if LinaArtr.row_get({RUBRO_KEY_FIELD: new}, conn=conn):
+            self.field_errors["new_code"] = f"El código {new} ya existe."
 from fastapi import APIRouter, Request, HTTPException, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from typing import Dict, Any
