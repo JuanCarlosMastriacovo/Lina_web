@@ -11,3 +11,4 @@ MYSQL_CONFIG = {
     "pool_size": int(os.getenv("LINA_MYSQL_POOL_SIZE", "5")),
     "pool_name": os.getenv("LINA_MYSQL_POOL_NAME", "lina_pool"),
 }
+# Configuración de logging para LINA_WEB.

@@ -51,6 +51,26 @@
 				"Auto-commit $(Get-Date -Format yyyy-MM-dd_HH-mm-ss)"
 			],
 			"group": "none"
+		},
+		{
+			"label": "git commit fecha-hora con mensaje",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-Command",
+				"$msg = git commit -am \"Auto-commit $(Get-Date -Format yyyy-MM-dd_HH-mm-ss)\"; if ($LASTEXITCODE -eq 0) { Write-Host '✅ Commit realizado con éxito.' } else { Write-Host '❌ Commit fallido.' }"
+			],
+			"group": "none"
+		},
+		{
+			"label": "git add y commit fecha-hora con mensaje",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-Command",
+				"git add .; $msg = git commit -m \"Auto-commit $(Get-Date -Format yyyy-MM-dd_HH-mm-ss)\"; if ($LASTEXITCODE -eq 0) { Write-Host '✅ Commit realizado con éxito.' } elseif ($LASTEXITCODE -eq 1) { Write-Host '⚠️ No hay cambios para commitear.' } else { Write-Host '❌ Commit fallido.' }"
+			],
+			"group": "none"
 		}
 	]
 }
