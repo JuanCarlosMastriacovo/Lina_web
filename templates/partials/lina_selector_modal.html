@@ -1,0 +1,103 @@
+<!--
+  lina_selector_modal.html
+  Modal genérico de búsqueda por descripción.
+  Incluir en base.html justo antes del cierre de body.
+-->
+<div id="linaSelectorModal"
+     x-data="linaSelectorModalModel()"
+     x-show="visible"
+     x-cloak
+     style="
+       position:fixed; inset:0; z-index:9999;
+       display:flex; align-items:center; justify-content:center;
+       background:rgba(0,0,0,0.4);
+     "
+     @keydown.escape.window.stop="cancelar()"
+>
+  <div id="linaSelectorBox" style="
+    background:#fff;
+    border-radius:6px;
+    box-shadow:0 4px 24px rgba(0,0,0,0.2);
+    width:480px;
+    max-width:95vw;
+    height:50vh;
+    display:flex;
+    flex-direction:column;
+    font-family:Arial;
+    font-size:9pt;
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+  ">
+
+    <!-- Encabezado -->
+    <div id="linaSelectorHeader" style="
+      background:#4472C4; color:white; padding:8px 14px;
+      border-radius:6px 6px 0 0; display:flex; justify-content:space-between; align-items:center;
+      flex-shrink:0; cursor:move;
+    ">
+      <span x-text="titulo" style="font-weight:bold; font-size:10pt;"></span>
+      <button @click="cancelar()" style="background:none; border:none; color:white; font-size:14pt; cursor:pointer; line-height:1;">&#x2715;</button>
+    </div>
+
+    <!-- Campo de búsqueda -->
+    <div style="padding:10px 14px 6px; flex-shrink:0;">
+      <input type="text"
+             x-model="buscar"
+             @input.debounce.300ms="buscarRows()"
+             @keydown.enter.prevent="aceptarSeleccionado()"
+             @keydown.arrow-down.prevent="moverSeleccion(1)"
+             @keydown.arrow-up.prevent="moverSeleccion(-1)"
+             @keydown.escape.stop="cancelar()"
+             x-ref="inputBuscar"
+             placeholder="Buscar..."
+             style="width:100%; padding:4px 8px; border:1px solid #ccc; border-radius:3px; font-size:9pt; box-sizing:border-box;">
+    </div>
+
+    <!-- Grilla de resultados -->
+    <div style="flex:1; overflow-y:auto; margin:0 14px; min-height:0;">
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr style="background:#f0f0f0; position:sticky; top:0;">
+            <th style="padding:4px 8px; text-align:left; border-bottom:1px solid #ccc; font-size:8pt;">Código</th>
+            <th style="padding:4px 8px; text-align:left; border-bottom:1px solid #ccc; font-size:8pt;">Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-if="cargando">
+            <tr><td colspan="2" style="padding:8px; color:#888; text-align:center;">Buscando...</td></tr>
+          </template>
+          <template x-if="!cargando && rows.length === 0">
+            <tr><td colspan="2" style="padding:8px; color:#888; text-align:center;">Sin resultados</td></tr>
+          </template>
+          <template x-for="(row, idx) in rows" :key="row.codigo">
+            <tr
+              :style="idx === selIdx ? 'background:#4472C4; color:white; cursor:pointer;' : 'cursor:pointer;'"
+              @click="selIdx = idx; aceptarSeleccionado()"
+              @mouseover="selIdx = idx"
+              style="border-bottom:1px solid #f0f0f0;"
+            >
+              <td style="padding:3px 8px;" x-text="row.codigo"></td>
+              <td style="padding:3px 8px;" x-text="row.desc"></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pie -->
+    <div style="padding:8px 14px; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #eee; flex-shrink:0;">
+      <button @click="aceptarSeleccionado()"
+              :disabled="selIdx < 0"
+              style="padding:5px 14px; background:#4472C4; color:white; border:none; border-radius:4px; cursor:pointer; font-size:9pt;">
+        Aceptar
+      </button>
+      <button @click="cancelar()"
+              style="padding:5px 14px; background:#888; color:white; border:none; border-radius:4px; cursor:pointer; font-size:9pt;">
+        Cancelar
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -20,6 +20,9 @@ from CapaDAL.dataconn import sess_conns, ctx_user, ctx_empr, ctx_date
 from CapaBRL.linabase import linabase
 from CapaDAL.tablebase import get_table_model
 
+from CapaUI.linaapi import router as linaapi_router
+
+
 
 # ==================== MODELOS DE TABLAS ====================
 
@@ -340,6 +343,7 @@ def discover_program_modules() -> Dict[str, Dict[str, str]]:
             print(f"Error cargando módulo {module_path}: {e}")
     return modules
 
+app.include_router(linaapi_router)
 
 def register_program_routers(app_instance: FastAPI, modules: Dict[str, Dict[str, str]]) -> None:
     """Incluye en la app los routers descubiertos dinámicamente."""

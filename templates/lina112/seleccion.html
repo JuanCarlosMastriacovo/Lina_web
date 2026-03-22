@@ -20,11 +20,20 @@
     <div style="display:flex; align-items:center; gap:8px;">
       <label style="width:120px;">Desde Cliente:</label>
       <input type="number" x-model.number="desde" min="0" max="9999"
+             x-init="$nextTick(() => { $el.focus(); $el.select(); })"
+             data-selector-tabla="linaclie"
+             data-selector-campo-cod="cliecodi"
+             data-selector-campo-desc="cliename"
+             data-selector-titulo="Buscar Cliente (Desde)"
              style="width:80px; padding:3px 6px; border:1px solid #ccc; border-radius:3px;">
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
       <label style="width:120px;">Hasta Cliente:</label>
       <input type="number" x-model.number="hasta" min="0" max="9999"
+             data-selector-tabla="linaclie"
+             data-selector-campo-cod="cliecodi"
+             data-selector-campo-desc="cliename"
+             data-selector-titulo="Buscar Cliente (Hasta)"
              style="width:80px; padding:3px 6px; border:1px solid #ccc; border-radius:3px;">
     </div>
     <div style="display:flex; gap:8px; margin-top:8px;">
