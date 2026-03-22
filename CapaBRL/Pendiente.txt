@@ -12,19 +12,6 @@ Qué hacer con tabs abiertos al cambiar empresa o fecha.
     Si la fecha de sesión afecta solo UI/reportes 
         o también lógica de negocio y validaciones de alta/modificación.        
 
-3. Validaciones de campos en CapaDAL y localmente para el prog en CapaUI
-    máscara de validación
-    "" no se valida
-    "9" que sea numérico entero
-    "9#" que sea numérico entero o decimal
-    "A" que sea alfanumérico
-    "D" fecha
-    "T" hora
-    "DT" datetime
-    "*" no vacío ni blancos a la izquierda si es "A"
-    
-    "<expr" o "<=expr" limite superior del valor
-    ">expr" o ">=expr" limite inferior del valor
 4. Usar la barra de mensajes
 5. Forms modales de asistencia y selectores de single record
 6. Listados
@@ -42,5 +29,18 @@ Qué hacer con tabs abiertos al cambiar empresa o fecha.
 ***OK *** Los anchos de los controles de ingreso de datos en las pantallas que sean producto de la "medida" de la longitud del dato según la fuente
 ***OK *** Con el click en la cruz del campo "buscar" que se refresque la lista y el foco al primer registro del selector
 ***OK *** ¿se pueden usar "tool tips" que se muestren al hacer hover con el mouse en los controles (tanto etiquetas como cuadros de texto)?
-NEGADO Que el menu contextual en selector de abm single record se despliegue tambien con tecla windows
 ***OK *** Implementar git
+NEGADO Que el menu contextual en selector de abm single record se despliegue tambien con tecla windows
+DESCARTADO Validaciones de campos en CapaDAL y localmente para el prog en CapaUI
+    máscara de validación
+    "" no se valida
+    "9" que sea numérico entero
+    "9#" que sea numérico entero o decimal
+    "A" que sea alfanumérico
+    "D" fecha
+    "T" hora
+    "DT" datetime
+    "*" no vacío ni blancos a la izquierda si es "A"
+    
+    "<expr" o "<=expr" limite superior del valor
+    ">expr" o ">=expr" limite inferior del valor

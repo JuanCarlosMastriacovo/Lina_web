@@ -1,352 +1,58 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <title>{% block title %}LINA Web{% endblock %}</title>
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+  <!-- Estilos LINA -->
+  <link rel="stylesheet" href="/static/css/lina_base.css">
   <link rel="stylesheet" href="/static/css/lina_master_detail.css">
+
+  <!-- HTMX + Bootstrap JS + Alpine -->
   <script src="https://unpkg.com/htmx.org@2.0.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- JS LINA (defer: ejecutan después de parsear el DOM) -->
   <script defer src="/static/js/lina_master_detail.js"></script>
   <script defer src="/static/js/lina_login.js"></script>
-  <style>
-    /* Configuración global de fuente y colores */
-    html, body { 
-      font-family: "Microsoft Sans Serif", "MS Sans Serif", Tahoma, sans-serif;
-      font-size: 8.25pt;
-      background-color: #f5f5f5;
-      margin: 0 !important;
-      padding: 0 !important;
-      width: 100% !important;
-      height: 100% !important;
-    }
-    
-    body { 
-      padding-top: 2.5rem !important; /* Espacio para el navbar fixed */
-      display: block !important;      background: #f5f5f5 !important;    }
-
-    /* Navbar con azul más claro y padding reducido */
-    .navbar, nav.fixed-top.navbar-expand-lg {
-      background: #87CEEB !important;
-      background-color: #87CEEB !important;
-      padding: 0.4rem 0 !important;
-      height: auto !important;
-      z-index: 1030 !important;
-      position: fixed !important;
-      width: 100% !important;
-      top: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      display: block !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-    }
-
-    .navbar .container-fluid {
-      background-color: #87CEEB !important;
-      background: #87CEEB !important;
-    }
-
-    .navbar-brand, .nav-link {
-      padding-top: 0.25rem !important;
-      padding-bottom: 0.25rem !important;
-      color: #000 !important; /* Texto oscuro para contraste en navbar azul */
-    }
-    
-    .nav-link {
-      font-weight: 500;
-      color: #000 !important;
-      display: inline-block !important;
-      padding: 0.25rem 0.75rem !important;
-    }
-
-    .nav-item, .navbar .nav-item {
-      display: inline-block !important;
-    }
-
-    .navbar-text {
-      color: #000 !important;
-    }
-
-    .dropdown-menu, .navbar-expand-lg .navbar-nav .dropdown-menu {
-      background-color: #ffffff !important;
-      border: 1px solid #dee2e6 !important;
-    }
-
-    .dropdown-item {
-      color: #000 !important;
-      background-color: transparent !important;
-    }
-
-    .dropdown-item:hover {
-      background-color: #f8f9fa !important;
-    }
-
-    .navbar-toggler {
-      border-color: #000 !important;
-    }
-
-    .navbar-toggler-icon {
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%23000' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
-    }
-
-    .menu-code { font-size: 0.75rem; color: #333; } /* Menú más pequeño */
-
-    /* Achicar componentes de bootstrap para un look más compacto */
-    .btn, .form-control, .nav-link, .navbar-brand, .table, h5,
-    .form-label, .dropdown-item, .navbar-text, .tab-button {
-      font-family: "Microsoft Sans Serif", "MS Sans Serif", Tahoma, sans-serif !important;
-      font-size: 8.25pt; /* Elementos de control con la fuente estándar */
-    }
-    
-    /* Fondo del formulario en panel de detalle con color cornsilk */
-    #detail-panel {
-      background-color: cornsilk;
-      padding: 0.5rem;
-    }
-
-    /* Forzar fondo blanco en los campos de datos no-readonly */
-    .form-control:not([readonly]) {
-      background-color: white !important;
-    }
-
-    /* Barra de navegación - color azul, no cornsilk */
-    .navbar .container-fluid {
-      background-color: transparent !important;
-    }
-
-    /* Contenedor principal con fondo cornsilk solo en área de trabajo */
-    .tabs-container {
-      display: flex !important;
-      flex-direction: column !important;
-      width: min(1100px, calc(100vw - 1.5rem)) !important;
-      min-height: 460px !important;
-      max-height: calc(100vh - 3.25rem) !important;
-      height: auto !important;
-      background-color: cornsilk !important;
-      background: cornsilk !important;
-      margin: 0.75rem auto 0.5rem auto !important;
-      position: relative !important;
-      z-index: 0 !important;
-      border: 1px solid #d6cba9;
-      border-radius: 2px;
-      box-shadow: 0 0 0 1px #ece2c3 inset;
-      overflow: hidden;
-    }
-
-    /* Soporte para menús anidados en Bootstrap 5 */
-    .dropdown-submenu { position: relative; }
-    .dropdown-submenu > .dropdown-menu {
-      top: 0;
-      left: 100%;
-      margin-top: -6px;
-      margin-left: -1px;
-      border-radius: 0 6px 6px 6px;
-    }
-    .dropdown-submenu:hover > .dropdown-menu { display: block; }
-    .dropdown-submenu > a:after {
-      display: block;
-      content: " ";
-      float: right;
-      width: 0;
-      height: 0;
-      border-color: transparent;
-      border-style: solid;
-      border-width: 5px 0 5px 5px;
-      border-left-color: #333;
-      margin-top: 5px;
-      margin-right: -10px;
-    }
-    .dropdown-submenu:hover > a:after { border-left-color: #000; }
-    .dropdown-submenu.pull-left { float: none; }
-    .dropdown-submenu.pull-left > .dropdown-menu {
-      left: -100%;
-      margin-left: 10px;
-      border-radius: 6px 0 6px 6px;
-    }
-    
-    .tabs-header {
-      display: flex;
-      gap: 0.25rem;
-      padding: 0.3rem 0.5rem;
-      background-color: #e9ecef;
-      border-bottom: 1px solid #dee2e6;
-      overflow-x: auto;
-      flex-shrink: 0;
-    }
-    
-    .tab-button {
-      padding: 0.3rem 0.8rem;
-      background-color: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-bottom: none;
-      cursor: pointer;
-      font-size: 8.25pt;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      border-radius: 4px 4px 0 0;
-      transition: background-color 0.2s;
-      white-space: nowrap;
-    }
-    
-    .tab-button:hover {
-      background-color: #ffffff;
-    }
-    
-    .tab-button.active {
-      background-color: #ffffff;
-      border-color: #dee2e6;
-      font-weight: bold;
-    }
-    
-    .tab-close {
-      cursor: pointer;
-      font-weight: bold;
-      margin-left: 0.3rem;
-      color: #666;
-    }
-    
-    .tab-close:hover {
-      color: #000;
-    }
-    
-    .tabs-content {
-      flex-grow: 1;
-      overflow: auto;
-      display: flex;
-      min-height: 420px;
-    }
-    
-    .tab-pane {
-      display: none;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-    }
-    
-    .tab-pane.active {
-      display: flex;
-      flex-direction: column;
-    }
-    
-    u { text-decoration: underline; }
-
-    /* ── BR-006: Barra de mensajes ── */
-    .lina-msgbar {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.18rem 0.5rem;
-      min-height: 1.6rem;
-      border-top: 1px solid #d6cba9;
-      background-color: #f5f0e8;
-      font-size: 8.25pt;
-      flex-shrink: 0;
-    }
-    .lina-msgbar-icon {
-      flex-shrink: 0;
-      font-size: 1rem;
-      display: none;
-    }
-    .lina-msgbar-icon.visible { display: inline; }
-    .lina-msgbar-text {
-      flex-grow: 1;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      cursor: default;
-    }
-    .lina-msgbar-text.has-msg { cursor: pointer; }
-    .lina-msgbar-ack {
-      flex-shrink: 0;
-      background: none;
-      border: none;
-      padding: 0;
-      cursor: pointer;
-      font-size: 1rem;
-      display: none;
-      line-height: 1;
-    }
-    .lina-msgbar-ack.visible { display: inline; }
-    .lina-msgbar.lv-info  { background-color: #eef6fb; border-top-color: #9acde0; }
-    .lina-msgbar.lv-warn  { background-color: #fff8e1; border-top-color: #f0c040; }
-    .lina-msgbar.lv-error { background-color: #fdecea; border-top-color: #e57373; }
-
-    .lina-viewport-warn {
-      display: none;
-      margin: 0.4rem auto 0;
-      width: min(1100px, calc(100vw - 1.5rem));
-      border: 1px solid #f0c040;
-      background: #fff8e1;
-      color: #6b5300;
-      padding: 0.28rem 0.5rem;
-      font-size: 8.25pt;
-    }
-    .lina-viewport-warn.visible { display: block; }
-
-    /* Botones de contexto en navbar (empresa, fecha) */
-    .btn-ctx {
-      background-color: #fff !important;
-      border: 1px solid #b8b8b8;
-      border-radius: 4px;
-      cursor: pointer;
-      padding: 0.08rem 0.4rem;
-      line-height: 1.2;
-      color: #000 !important;
-      font-family: "Microsoft Sans Serif", "MS Sans Serif", Tahoma, sans-serif !important;
-      font-size: 8.25pt;
-    }
-    .btn-ctx:hover, .btn-ctx:focus {
-      background-color: #fff !important;
-      border-color: #7f9db9;
-      outline: none;
-      color: #000 !important;
-      box-shadow: 0 0 0 1px rgba(127, 157, 185, 0.15);
-    }
-    .ctx-picker-wrap {
-      position: relative;
-      display: inline-block;
-    }
-    .ctx-picker-panel {
-      display: none;
-      position: absolute;
-      top: calc(100% + 0.2rem);
-      right: 0;
-      min-width: 230px;
-      padding: 0.45rem;
-      background: #fff;
-      border: 1px solid #b8b8b8;
-      border-radius: 4px;
-      box-shadow: 0 0.3rem 0.8rem rgba(0, 0, 0, 0.18);
-      z-index: 1080;
-    }
-    .ctx-picker-panel.visible {
-      display: block;
-    }
-  </style>
 </head>
+
 <body x-data="tabsManager()" @htmx:after-swap.window="onTabLoad($event)">
+
+  <!-- ══ NAVBAR ══ -->
   <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container-fluid">
+
       <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-        <img src="/static/favicon.ico" alt="LINA" style="height:22px;width:22px;vertical-align:middle;"> LINA Web
+        <img src="/static/favicon.ico" alt="LINA" style="height:22px;width:22px;vertical-align:middle;">
+        LINA Web
       </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+
+      <button class="navbar-toggler" type="button"
+              data-bs-toggle="collapse" data-bs-target="#navbarsExampleDefault"
+              aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div class="navbar-collapse show" id="navbarsExampleDefault">
+
+        <!-- Menú principal (izquierda) -->
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           {% if user %}
             {% set menu_roots = get_menu_roots() %}
             {% for root in menu_roots %}
               {% set hk, display_title = parse_hotkey(root.title) %}
               <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="dropdown{{ root.code }}" data-bs-toggle="dropdown" aria-expanded="false" {% if hk %}data-hotkey="{{ hk }}"{% endif %}>
+                <a class="nav-link dropdown-toggle" href="#"
+                   id="dropdown{{ root.code }}"
+                   data-bs-toggle="dropdown" aria-expanded="false"
+                   {% if hk %}data-hotkey="{{ hk }}"{% endif %}>
                   {{ display_title | safe }}
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="dropdown{{ root.code }}">
@@ -359,75 +65,97 @@
             {% endfor %}
           {% endif %}
         </ul>
+
+        <!-- Info de sesión (derecha) -->
         <ul class="navbar-nav ms-auto">
           {% if user %}
-          {% set empr = get_empr_info() %}
-          {% set empr_options = get_empr_options() %}
-          <li class="nav-item">
-            <span class="navbar-text me-3">
-              <strong>Empresa.:</strong>
-              <span class="ctx-picker-wrap ms-1">
-                <button id="btn-empr" type="button" class="btn-ctx"
-                        data-empr-code="{{ empr.code }}"
-                        data-empr-name="{{ empr.name }}"
-                        title="Empresa activa (F2)"
-                        aria-expanded="false"
-                        onclick="linaToggleCompanyPicker(event)">{{ empr.code }} · {{ empr.name }}</button>
-                <div id="session-company-panel" class="ctx-picker-panel" role="dialog" aria-label="Selector de empresa activa">
-                  <label for="session-company-input" class="form-label mb-1">Empresa activa</label>
-                  <select id="session-company-input" class="form-select form-select-sm">
-                    {% for option in empr_options %}
-                    <option value="{{ option.code }}" {% if option.code == empr.code %}selected{% endif %}>{{ option.code }} · {{ option.name }}</option>
-                    {% endfor %}
-                  </select>
-                  <div class="d-flex justify-content-end gap-1 mt-2">
-                    <button type="button" class="btn btn-sm btn-primary" onclick="linaApplySessionCompany()">Aplicar</button>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="linaCloseCompanyPicker(true)">Cancelar</button>
+            {% set empr = get_empr_info() %}
+            {% set empr_options = get_empr_options() %}
+
+            <!-- Selector de empresa -->
+            <li class="nav-item">
+              <span class="navbar-text me-3">
+                <strong>Empresa.:</strong>
+                <span class="ctx-picker-wrap ms-1">
+                  <button id="btn-empr" type="button" class="btn-ctx"
+                          data-empr-code="{{ empr.code }}"
+                          data-empr-name="{{ empr.name }}"
+                          title="Empresa activa (F2)"
+                          aria-expanded="false"
+                          onclick="linaToggleCompanyPicker(event)">
+                    {{ empr.code }} · {{ empr.name }}
+                  </button>
+                  <div id="session-company-panel" class="ctx-picker-panel"
+                       role="dialog" aria-label="Selector de empresa activa">
+                    <label for="session-company-input" class="form-label mb-1">Empresa activa</label>
+                    <select id="session-company-input" class="form-select form-select-sm">
+                      {% for option in empr_options %}
+                        <option value="{{ option.code }}"
+                          {% if option.code == empr.code %}selected{% endif %}>
+                          {{ option.code }} · {{ option.name }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                    <div class="d-flex justify-content-end gap-1 mt-2">
+                      <button type="button" class="btn btn-sm btn-primary" onclick="linaApplySessionCompany()">Aplicar</button>
+                      <button type="button" class="btn btn-sm btn-secondary" onclick="linaCloseCompanyPicker(true)">Cancelar</button>
+                    </div>
                   </div>
-                </div>
+                </span>
               </span>
-            </span>
-          </li>
-          <li class="nav-item">
-            <span class="navbar-text me-3">
-              <strong>Fecha de Sesión.:</strong>
-              <span class="ctx-picker-wrap ms-1">
-                <button id="btn-fecha" type="button" class="btn-ctx"
-                        data-date-iso="{{ get_session_date_iso() }}"
-                        title="Fecha de sesión (F3)"
-                        aria-expanded="false"
-                        onclick="linaToggleSessionDatePicker(event)">{{ get_session_date() }}</button>
-                <div id="session-date-panel" class="ctx-picker-panel" role="dialog" aria-label="Selector de fecha de sesión">
-                  <label for="session-date-input" class="form-label mb-1">Fecha de sesión</label>
-                  <input id="session-date-input" type="date" class="form-control form-control-sm" value="{{ get_session_date_iso() }}">
-                  <div class="d-flex justify-content-end gap-1 mt-2">
-                    <button type="button" class="btn btn-sm btn-primary" onclick="linaApplySessionDate()">Aplicar</button>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="linaCloseSessionDatePicker(true)">Cancelar</button>
+            </li>
+
+            <!-- Selector de fecha de sesión -->
+            <li class="nav-item">
+              <span class="navbar-text me-3">
+                <strong>Fecha de Sesión.:</strong>
+                <span class="ctx-picker-wrap ms-1">
+                  <button id="btn-fecha" type="button" class="btn-ctx"
+                          data-date-iso="{{ get_session_date_iso() }}"
+                          title="Fecha de sesión (F3)"
+                          aria-expanded="false"
+                          onclick="linaToggleSessionDatePicker(event)">
+                    {{ get_session_date() }}
+                  </button>
+                  <div id="session-date-panel" class="ctx-picker-panel"
+                       role="dialog" aria-label="Selector de fecha de sesión">
+                    <label for="session-date-input" class="form-label mb-1">Fecha de sesión</label>
+                    <input id="session-date-input" type="date" class="form-control form-control-sm"
+                           value="{{ get_session_date_iso() }}">
+                    <div class="d-flex justify-content-end gap-1 mt-2">
+                      <button type="button" class="btn btn-sm btn-primary" onclick="linaApplySessionDate()">Aplicar</button>
+                      <button type="button" class="btn btn-sm btn-secondary" onclick="linaCloseSessionDatePicker(true)">Cancelar</button>
+                    </div>
                   </div>
-                </div>
+                </span>
               </span>
-            </span>
-          </li>
-          <li class="nav-item">
-            <span class="navbar-text me-3"><strong>Usuario.:</strong> {{ user }}</span>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/logout">Salir</a>
-          </li>
+            </li>
+
+            <!-- Usuario y Salir -->
+            <li class="nav-item">
+              <span class="navbar-text me-3"><strong>Usuario.:</strong> {{ user }}</span>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/logout">Salir</a>
+            </li>
           {% endif %}
         </ul>
+
       </div>
     </div>
   </nav>
 
+  <!-- Aviso de viewport insuficiente -->
   <div class="lina-viewport-warn" id="lina-viewport-warn" role="status" aria-live="polite"></div>
 
+  <!-- ══ CONTENEDOR DE PESTAÑAS ══ -->
   <div class="tabs-container">
-    <!-- BARRA DE PESTAÑAS -->
+
+    <!-- Barra de pestañas -->
     <div class="tabs-header" x-show="tabs.length > 0">
       <template x-for="(tab, idx) in tabs" :key="tab.id">
-        <button class="tab-button" 
-                :class="{ active: tab.id === activeTab }" 
+        <button class="tab-button"
+                :class="{ active: tab.id === activeTab }"
                 @click="activateTab(tab.id)"
                 :title="tab.title">
           <span x-text="tab.title"></span>
@@ -437,7 +165,7 @@
       </template>
     </div>
 
-    <!-- BR-006: BARRA DE MENSAJES -->
+    <!-- BR-006: Barra de mensajes -->
     <div class="lina-msgbar" id="lina-msgbar">
       <span class="lina-msgbar-icon" id="lina-msgbar-icon" title=""></span>
       <span class="lina-msgbar-text" id="lina-msgbar-text"
@@ -446,17 +174,18 @@
       <button class="lina-msgbar-ack" id="lina-msgbar-ack" title="Aceptar" onclick="linaAckMsg()">✔</button>
     </div>
 
-    <!-- CONTENIDO DE LAS PESTAÑAS -->
+    <!-- Contenido de las pestañas -->
     <div class="tabs-content">
       <template x-for="(tab, idx) in tabs" :key="tab.id">
-        <div class="tab-pane" 
-             :class="{ active: tab.id === activeTab }" 
+        <div class="tab-pane"
+             :class="{ active: tab.id === activeTab }"
              :id="'pane-' + tab.id">
         </div>
       </template>
-      
-      <!-- PANTALLA DE BIENVENIDA (sin pestañas) -->
-      <div class="tab-pane active" x-show="tabs.length === 0" style="align-items: center; justify-content: center;">
+
+      <!-- Pantalla de bienvenida (sin pestañas abiertas) -->
+      <div class="tab-pane active" x-show="tabs.length === 0"
+           style="align-items: center; justify-content: center;">
         <div style="overflow: auto; width: 100%; padding: 2rem;">
           {% block content %}
           <div class="text-center text-muted">
@@ -468,7 +197,9 @@
     </div>
   </div>
 
-  <!-- BR-006: Modal detalle de mensaje -->
+  <!-- ══ MODALES ══ -->
+
+  <!-- Modal: detalle de mensaje (BR-006) -->
   <div class="modal fade" id="linaMsgDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -480,12 +211,14 @@
           <pre id="linaMsgDetailBody" style="white-space:pre-wrap;font-size:8.25pt;margin:0;"></pre>
         </div>
         <div class="modal-footer py-1">
-          <button type="button" class="btn btn-sm btn-secondary" id="linaMsgDetailOk" data-bs-dismiss="modal" autofocus>Cerrar</button>
+          <button type="button" class="btn btn-sm btn-secondary" id="linaMsgDetailOk"
+                  data-bs-dismiss="modal" autofocus>Cerrar</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Modal: alerta informativa -->
   <div class="modal fade" id="linaAlertModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -497,12 +230,14 @@
           <pre id="linaAlertBody" style="white-space:pre-wrap;font-size:8.25pt;margin:0;"></pre>
         </div>
         <div class="modal-footer py-1">
-          <button type="button" class="btn btn-sm btn-secondary" id="linaAlertOk" data-bs-dismiss="modal" autofocus>Cerrar</button>
+          <button type="button" class="btn btn-sm btn-secondary" id="linaAlertOk"
+                  data-bs-dismiss="modal" autofocus>Cerrar</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Modal: confirmación Sí/No -->
   <div class="modal fade" id="linaConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -521,6 +256,7 @@
     </div>
   </div>
 
+  <!-- Modal: ingreso de texto (prompt) -->
   <div class="modal fade" id="linaInputModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -541,6 +277,7 @@
     </div>
   </div>
 
+  <!-- Modal: cambios sin guardar al cerrar pestaña -->
   <div class="modal fade" id="dirtyCloseModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -559,10 +296,14 @@
     </div>
   </div>
 
-  <script id="lina-min-viewport-config" type="application/json">{{ MIN_VIEWPORT_CONFIG | tojson | safe }}</script>
+  <!-- Configuración de viewport mínimo (JSON para lina_base_core.js) -->
+  <script id="lina-min-viewport-config" type="application/json">
+    {{ MIN_VIEWPORT_CONFIG | tojson | safe }}
+  </script>
+
+  <!-- JS LINA core (sin defer: debe estar disponible antes que Alpine inicialice) -->
   <script src="/static/js/lina_base_core.js"></script>
   <script src="/static/js/lina_base_session.js"></script>
+
 </body>
 </html>
-
-

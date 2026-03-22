@@ -1,0 +1,14 @@
+{# ============================================================
+   partials/_permisos.html
+   Muestra los permisos del usuario para un programa.
+   Variables requeridas: permisos (objeto con .alta/.baja/.modi/.cons)
+   ============================================================ #}
+{% if permisos %}
+<h5>Permisos del usuario</h5>
+<ul>
+  <li>Alta: {{ 'Sí' if permisos.alta else 'No' }}</li>
+  <li>Baja: {{ 'Sí' if permisos.baja else 'No' }}</li>
+  <li>Modificación: {{ 'Sí' if permisos.modi else 'No' }}</li>
+  <li>Consulta: {{ 'Sí' if permisos.cons else 'No' }}</li>
+</ul>
+{% endif %}

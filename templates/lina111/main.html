@@ -5,5 +5,13 @@
 {% block route_list %}/clients/list{% endblock %}
 
 {% block grid_content %}
-{% include "lina111/grid.html" %}
+{# Grilla genérica: requiere items, code_field, label_field, code_label, label_column, detail_url_base, route_list #}
+{% set items = clients %}
+{% set code_field = 'cliecodi' %}
+{% set label_field = 'cliename' %}
+{% set code_label = 'Código' %}
+{% set label_column = 'Nombre' %}
+{% set detail_url_base = '/clients/detail' %}
+{% set route_list = '/clients/list' %}
+{% include "partials/master_detail_entity_grid.html" %}
 {% endblock %}
