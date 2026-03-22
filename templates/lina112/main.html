@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {
+      margin-top: 2.2cm;
+      margin-left: 1.5cm;
+      margin-right: 1.5cm;
+      margin-bottom: 1.5cm;
+      @top-right {
+        content: "Pág. " counter(page) " de " counter(pages);
+        font-family: Arial, sans-serif;
+        font-size: 8pt;
+        color: #555;
+        vertical-align: bottom;
+        padding-bottom: 0;
+      }
+    }
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      margin: 0;
+    }
+    .encabezado {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.4cm;
+      margin-top: 0;
+      padding-top: 0;
+    }
+    .encabezado h1 {
+      margin: 0;
+      font-size: 12pt;
+    }
+    .encabezado-derecha {
+      font-size: 8pt;
+      color: #555;
+      text-align: right;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      background-color: #4472C4;
+      color: white;
+      padding: 4px 8px;
+      text-align: left;
+      font-size: 9pt;
+    }
+    td {
+      padding: 3px 8px;
+      border-bottom: 1px solid #ddd;
+      font-size: 9pt;
+    }
+    tr:nth-child(even) td {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <div class="encabezado">
+    <h1>{{ titulo }}</h1>
+    <div class="encabezado-derecha">
+      {{ app_name }} — {{ empr_code }} {{ empr_name }}<br>
+      Usuario: {{ usuario }} — {{ fecha }} {{ hora }}
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        {% for col in columnas %}
+        <th>{{ col }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for fila in filas %}
+      <tr>
+        {% for celda in fila %}
+        <td>{{ celda }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

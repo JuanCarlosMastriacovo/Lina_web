@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}LINA Web{% endblock %}</title>
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+  <!-- Estilos LINA -->
+  <link rel="stylesheet" href="/static/css/lina_base.css">
+  <link rel="stylesheet" href="/static/css/lina_master_detail.css">
+
+  <!-- HTMX + Bootstrap JS + Alpine -->
+  <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- JS LINA (defer: ejecutan después de parsear el DOM) -->
+  <script defer src="/static/js/lina_master_detail.js"></script>
+  <script defer src="/static/js/lina_login.js"></script>
+</head>
+
+<body x-data="tabsManager()" @htmx:after-swap.window="onTabLoad($event)">
+
+  <!-- ══ NAVBAR ══ -->
+  <nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container-fluid">
+
+      <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+        <img src="/static/favicon.ico" alt="LINA" style="height:22px;width:22px;vertical-align:middle;">
+        LINA Web
+      </a>
+
+      <button class="navbar-toggler" type="button"
+              data-bs-toggle="collapse" data-bs-target="#navbarsExampleDefault"
+              aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="navbar-collapse show" id="navbarsExampleDefault">
+
+        <!-- Menú principal (izquierda) -->
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          {% if user %}
+            {% set menu_roots = get_menu_roots() %}
+            {% for root in menu_roots %}
+              {% set hk, display_title = parse_hotkey(root.title) %}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#"
+                   id="dropdown{{ root.code }}"
+                   data-bs-toggle="dropdown" aria-expanded="false"
+                   {% if hk %}data-hotkey="{{ hk }}"{% endif %}>
+                  {{ display_title | safe }}
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="dropdown{{ root.code }}">
+                  {% for child in root.children %}
+                    {% set item = child %}
+                    {% include "partials/navbar_item.html" %}
+                  {% endfor %}
+                </ul>
+              </li>
+            {% endfor %}
+          {% endif %}
+        </ul>
+
+        <!-- Info de sesión (derecha) -->
+        <ul class="navbar-nav ms-auto">
+          {% if user %}
+            {% set empr = get_empr_info() %}
+            {% set empr_options = get_empr_options() %}
+
+            <!-- Selector de empresa -->
+            <li class="nav-item">
+              <span class="navbar-text me-3">
+                <strong>Empresa.:</strong>
+                <span class="ctx-picker-wrap ms-1">
+                  <button id="btn-empr" type="button" class="btn-ctx"
+                          data-empr-code="{{ empr.code }}"
+                          data-empr-name="{{ empr.name }}"
+                          title="Empresa activa (F2)"
+                          aria-expanded="false"
+                          onclick="linaToggleCompanyPicker(event)">
+                    {{ empr.code }} · {{ empr.name }}
+                  </button>
+                  <div id="session-company-panel" class="ctx-picker-panel"
+                       role="dialog" aria-label="Selector de empresa activa">
+                    <label for="session-company-input" class="form-label mb-1">Empresa activa</label>
+                    <select id="session-company-input" class="form-select form-select-sm">
+                      {% for option in empr_options %}
+                        <option value="{{ option.code }}"
+                          {% if option.code == empr.code %}selected{% endif %}>
+                          {{ option.code }} · {{ option.name }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                    <div class="d-flex justify-content-end gap-1 mt-2">
+                      <button type="button" class="btn btn-sm btn-primary" onclick="linaApplySessionCompany()">Aplicar</button>
+                      <button type="button" class="btn btn-sm btn-secondary" onclick="linaCloseCompanyPicker(true)">Cancelar</button>
+                    </div>
+                  </div>
+                </span>
+              </span>
+            </li>
+
+            <!-- Selector de fecha de sesión -->
+            <li class="nav-item">
+              <span class="navbar-text me-3">
+                <strong>Fecha de Sesión.:</strong>
+                <span class="ctx-picker-wrap ms-1">
+                  <button id="btn-fecha" type="button" class="btn-ctx"
+                          data-date-iso="{{ get_session_date_iso() }}"
+                          title="Fecha de sesión (F3)"
+                          aria-expanded="false"
+                          onclick="linaToggleSessionDatePicker(event)">
+                    {{ get_session_date() }}
+                  </button>
+                  <div id="session-date-panel" class="ctx-picker-panel"
+                       role="dialog" aria-label="Selector de fecha de sesión">
+                    <label for="session-date-input" class="form-label mb-1">Fecha de sesión</label>
+                    <input id="session-date-input" type="date" class="form-control form-control-sm"
+                           value="{{ get_session_date_iso() }}">
+                    <div class="d-flex justify-content-end gap-1 mt-2">
+                      <button type="button" class="btn btn-sm btn-primary" onclick="linaApplySessionDate()">Aplicar</button>
+                      <button type="button" class="btn btn-sm btn-secondary" onclick="linaCloseSessionDatePicker(true)">Cancelar</button>
+                    </div>
+                  </div>
+                </span>
+              </span>
+            </li>
+
+            <!-- Usuario y Salir -->
+            <li class="nav-item">
+              <span class="navbar-text me-3"><strong>Usuario.:</strong> {{ user }}</span>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/logout">Salir</a>
+            </li>
+          {% endif %}
+        </ul>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- Aviso de viewport insuficiente -->
+  <div class="lina-viewport-warn" id="lina-viewport-warn" role="status" aria-live="polite"></div>
+
+  <!-- ══ CONTENEDOR DE PESTAÑAS ══ -->
+  <div class="tabs-container">
+
+    <!-- Barra de pestañas -->
+    <div class="tabs-header" x-show="tabs.length > 0">
+      <template x-for="(tab, idx) in tabs" :key="tab.id">
+        <button class="tab-button"
+                :class="{ active: tab.id === activeTab }"
+                @click="activateTab(tab.id)"
+                :title="tab.title">
+          <span x-text="tab.title"></span>
+          <span x-show="tab.dirty" style="color:#b30000; font-weight:bold;">*</span>
+          <span class="tab-close" @click.stop="closeTab(tab.id)">✕</span>
+        </button>
+      </template>
+    </div>
+
+    <!-- BR-006: Barra de mensajes -->
+    <div class="lina-msgbar" id="lina-msgbar">
+      <span class="lina-msgbar-icon" id="lina-msgbar-icon" title=""></span>
+      <span class="lina-msgbar-text" id="lina-msgbar-text"
+            title="Doble clic para ver detalle"
+            ondblclick="linaOpenMsgDetail()"></span>
+      <button class="lina-msgbar-ack" id="lina-msgbar-ack" title="Aceptar" onclick="linaAckMsg()">✔</button>
+    </div>
+
+    <!-- Contenido de las pestañas -->
+    <div class="tabs-content">
+      <template x-for="(tab, idx) in tabs" :key="tab.id">
+        <div class="tab-pane"
+             :class="{ active: tab.id === activeTab }"
+             :id="'pane-' + tab.id">
+        </div>
+      </template>
+
+      <!-- Pantalla de bienvenida (sin pestañas abiertas) -->
+      <div class="tab-pane active" x-show="tabs.length === 0"
+           style="align-items: center; justify-content: center;">
+        <div style="overflow: auto; width: 100%; padding: 2rem;">
+          {% block content %}
+          <div class="text-center text-muted">
+            <p style="font-size: 12pt;">Seleccione una opción del menú para abrir una pestaña</p>
+          </div>
+          {% endblock %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MODALES ══ -->
+
+  <!-- Modal: detalle de mensaje (BR-006) -->
+  <div class="modal fade" id="linaMsgDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header py-2">
+          <h6 class="modal-title">Detalle del mensaje</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <pre id="linaMsgDetailBody" style="white-space:pre-wrap;font-size:8.25pt;margin:0;"></pre>
+        </div>
+        <div class="modal-footer py-1">
+          <button type="button" class="btn btn-sm btn-secondary" id="linaMsgDetailOk"
+                  data-bs-dismiss="modal" autofocus>Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: alerta informativa -->
+  <div class="modal fade" id="linaAlertModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header py-2">
+          <h6 class="modal-title" id="linaAlertTitle">LINA - Informacion</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <pre id="linaAlertBody" style="white-space:pre-wrap;font-size:8.25pt;margin:0;"></pre>
+        </div>
+        <div class="modal-footer py-1">
+          <button type="button" class="btn btn-sm btn-secondary" id="linaAlertOk"
+                  data-bs-dismiss="modal" autofocus>Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: confirmación Sí/No -->
+  <div class="modal fade" id="linaConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header py-2">
+          <h6 class="modal-title" id="linaConfirmTitle">LINA - Advertencia</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <pre id="linaConfirmBody" style="white-space:pre-wrap;font-size:8.25pt;margin:0;"></pre>
+        </div>
+        <div class="modal-footer py-1">
+          <button type="button" class="btn btn-sm btn-secondary" id="linaConfirmNo" data-bs-dismiss="modal">No</button>
+          <button type="button" class="btn btn-sm btn-danger" id="linaConfirmYes" autofocus>Si</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: ingreso de texto (prompt) -->
+  <div class="modal fade" id="linaInputModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header py-2">
+          <h6 class="modal-title" id="linaInputTitle">LINA - Ingreso</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="linaInputBody" class="mb-2" style="font-size:8.25pt;"></div>
+          <input id="linaInputValue" type="text" class="form-control form-control-sm">
+          <div id="linaInputError" class="text-danger mt-2" style="display:none; font-size:8.25pt;"></div>
+        </div>
+        <div class="modal-footer py-1">
+          <button type="button" class="btn btn-sm btn-secondary" id="linaInputCancel" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-sm btn-primary" id="linaInputOk" autofocus>Aceptar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: cambios sin guardar al cerrar pestaña -->
+  <div class="modal fade" id="dirtyCloseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Hay cambios sin guardar</h5>
+        </div>
+        <div class="modal-body">
+          Se han hecho cambios en esta pestaña. ¿Qué desea hacer?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="btnDirtySave">Guardar</button>
+          <button type="button" class="btn btn-outline-danger" id="btnDirtyDiscard">Descartar</button>
+          <button type="button" class="btn btn-secondary" id="btnDirtyCancel">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Configuración de viewport mínimo (JSON para lina_base_core.js) -->
+  <script id="lina-min-viewport-config" type="application/json">
+    {{ MIN_VIEWPORT_CONFIG | tojson | safe }}
+  </script>
+
+  <!-- JS LINA core (sin defer: debe estar disponible antes que Alpine inicialice) -->
+  <script src="/static/js/lina_base_core.js"></script>
+  <script src="/static/js/lina_base_session.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+{# Fragment para mostrar errores/info de programas no ejecutables en tabs #}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <h4>{{ code }} - {{ desc }}</h4>
+
+      {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+      {% else %}
+        <div class="alert alert-info">Programa no disponible.</div>
+      {% endif %}
+
+      {% include "partials/_permisos.html" %}
+    </div>
+  </div>
+</div>

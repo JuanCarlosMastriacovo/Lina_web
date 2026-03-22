@@ -1,0 +1,46 @@
+1 .CurrEmpr
+dejemos por ahora el tema de las ventanas activas. 
+    Todavia necesito definir bien el impacto de cambio de fecha y de empresa 
+    en los tabs abiertos,
+        si están o no dirty,
+        si el usuario tiene permiso en la otra empresa, etc
+Qué hacer con tabs abiertos al cambiar empresa o fecha.
+    Si un tab dirty bloquea el cambio o no.
+    Si el cambio exige revalidar permisos por programa en la nueva empresa.
+    Si hay que cerrar conexiones transaccionales activas 
+        y recrearlas con el nuevo contexto.
+    Si la fecha de sesión afecta solo UI/reportes 
+        o también lógica de negocio y validaciones de alta/modificación.        
+
+4. Usar la barra de mensajes
+5. Forms modales de asistencia y selectores de single record
+6. Listados
+***OK *** Que los botones tambien presenten tool tips con su función
+***OK *** Session date
+***OK *** Que el botón mostrar/ocultar en pantalla login no tenga tabstop para que con enter se 
+          llegue directamente a "ingresar"
+***OK *** Que al cerrar el navegador se haga logout en la aplicación
+***OK *** Ancho de los cuadros de ingreso en forms
+***OK *** Grilla selector con click en cabecera
+***OK *** Grilla selector con botón derecho=>menú
+***OK *** Grilla selector con "buscar"
+***OK *** SP sp_copy_user_rights: desde source_emprcodi+source_usercodi hasta target_emprcodi+target_usercodi copiar safealta,baja,modi,cons
+***OK *** Revisa que la lógica de funcionamiento de lina111 sea homogénea con lina131 que no sé si lo fuimos llevando así.
+***OK *** Los anchos de los controles de ingreso de datos en las pantallas que sean producto de la "medida" de la longitud del dato según la fuente
+***OK *** Con el click en la cruz del campo "buscar" que se refresque la lista y el foco al primer registro del selector
+***OK *** ¿se pueden usar "tool tips" que se muestren al hacer hover con el mouse en los controles (tanto etiquetas como cuadros de texto)?
+***OK *** Implementar git
+NEGADO Que el menu contextual en selector de abm single record se despliegue tambien con tecla windows
+DESCARTADO Validaciones de campos en CapaDAL y localmente para el prog en CapaUI
+    máscara de validación
+    "" no se valida
+    "9" que sea numérico entero
+    "9#" que sea numérico entero o decimal
+    "A" que sea alfanumérico
+    "D" fecha
+    "T" hora
+    "DT" datetime
+    "*" no vacío ni blancos a la izquierda si es "A"
+    
+    "<expr" o "<=expr" limite superior del valor
+    ">expr" o ">=expr" limite inferior del valor

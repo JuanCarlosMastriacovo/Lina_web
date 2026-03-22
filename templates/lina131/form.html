@@ -1,0 +1,19 @@
+{% set entity = rubro %}
+{% set code_field = 'artrcodi' %}
+{% set label_field = 'artrdesc' %}
+{% set entity_label = 'este rubro' %}
+{% set entity_route_base = '/rubros' %}
+{% set detail_url_base = '/rubros/detail' %}
+{% set code_uppercase = true %}
+{% set edit_title = 'Editar Rubro' %}
+{% set new_title = 'Nuevo Rubro' %}
+{% set code_input_type = 'text' %}
+{% set code_maxlength = 9 %}
+{% set code_input_style = 'width: calc(9ch + 1.5rem); font-size: 8.25pt; background-color: white;' %}
+{% set label_input_label = 'Descripción' %}
+{% set label_maxlength = 30 %}
+{% set label_input_style = 'width: calc(30ch + 1.5rem); font-size: 8.25pt; background-color: white;' %}
+{% set code_tooltip = (field_tooltips.get(code_field, '') if field_tooltips is defined else '') %}
+{% set label_tooltip = (field_tooltips.get(label_field, '') if field_tooltips is defined else '') %}
+
+{% include "partials/master_detail_entity_form.html" %}

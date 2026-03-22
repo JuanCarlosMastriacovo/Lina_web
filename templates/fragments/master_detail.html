@@ -1,0 +1,10 @@
+{# Fragment para cargar en tabs - sin layout base #}
+{% set workspace_style = "height: 400px; max-width: 100%; margin: 0;" %}
+{% set left_panel_style = "height: 100%; min-height: 0; background-color: cornsilk; position: relative;" %}
+{% set right_panel_style = "height: 100%; min-height: 0; background-color: cornsilk;" %}
+{% set list_title = list_title|default('Registros') %}
+{% set add_button_class = "detail-nav-trigger" %}
+{% set grid_content_template = grid_content %}
+
+{% include "partials/master_detail_layout.html" with context %}
+

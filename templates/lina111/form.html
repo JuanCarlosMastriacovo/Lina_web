@@ -1,0 +1,23 @@
+{# ============================================================
+   lina111/form.html — Formulario de alta/edición de cliente
+   Los spinners de input[type=number] se ocultan en lina_base.css
+   ============================================================ #}
+{% set entity = client %}
+{% set code_field = 'cliecodi' %}
+{% set label_field = 'cliename' %}
+{% set entity_label = 'este cliente' %}
+{% set entity_route_base = '/clients' %}
+{% set detail_url_base = '/clients/detail' %}
+{% set code_uppercase = false %}
+{% set edit_title = 'Editar Cliente' %}
+{% set new_title = 'Nuevo Cliente' %}
+{% set code_input_type = 'number' %}
+{% set code_maxlength = none %}
+{% set code_input_style = 'width: calc(8ch + 1.5rem); font-size: 8.25pt; background-color: white;' %}
+{% set label_input_label = 'Nombre' %}
+{% set label_maxlength = 40 %}
+{% set label_input_style = 'width: calc(40ch + 1.5rem); font-size: 8.25pt; background-color: white;' %}
+{% set code_tooltip = (field_tooltips.get(code_field, '') if field_tooltips is defined else '') %}
+{% set label_tooltip = (field_tooltips.get(label_field, '') if field_tooltips is defined else '') %}
+
+{% include "partials/master_detail_entity_form.html" %}

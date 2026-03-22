@@ -1,0 +1,12 @@
+{# ============================================================
+   lina111/grid.html — Grilla de clientes (fragmento HTMX)
+   Delegado a partials/master_detail_entity_grid.html
+   ============================================================ #}
+{% set items = clients %}
+{% set code_field = 'cliecodi' %}
+{% set label_field = 'cliename' %}
+{% set code_label = 'Código' %}
+{% set label_column = 'Nombre' %}
+{% set detail_url_base = '/clients/detail' %}
+{% set route_list = '/clients/list' %}
+{% include "partials/master_detail_entity_grid.html" %}

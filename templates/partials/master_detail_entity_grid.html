@@ -1,0 +1,40 @@
+<table class="table table-sm table-hover table-sticky m-0">
+    <thead>
+        <tr>
+            <th class="ps-3" style="cursor:pointer" hx-get="{{ route_list }}?sort={{ code_field }}" :hx-target="'#' + $id('wgrid')">{{ code_label }}</th>
+            <th style="cursor:pointer" hx-get="{{ route_list }}?sort={{ label_field }}" :hx-target="'#' + $id('wgrid')">{{ label_column }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        {% set row_code_attr = item|attr(code_field) %}
+        {% set row_label_attr = item|attr(label_field) %}
+        {% set row_code_key = item[code_field] if item[code_field] is defined else '' %}
+        {% set row_label_key = item[label_field] if item[label_field] is defined else '' %}
+
+        {% set row_code_attr_txt = '' if row_code_attr is undefined or row_code_attr is none else row_code_attr|string|trim %}
+        {% set row_label_attr_txt = '' if row_label_attr is undefined or row_label_attr is none else row_label_attr|string|trim %}
+        {% set row_code_key_txt = '' if row_code_key is undefined or row_code_key is none else row_code_key|string|trim %}
+        {% set row_label_key_txt = '' if row_label_key is undefined or row_label_key is none else row_label_key|string|trim %}
+
+        {% set row_code = row_code_attr_txt if row_code_attr_txt else row_code_key_txt %}
+        {% set row_label = row_label_attr_txt if row_label_attr_txt else row_label_key_txt %}
+        <tr class="grid-row detail-nav-trigger" hx-get="{{ detail_url_base }}/{{ row_code }}" :hx-target="'#' + $id('wdetail')"
+            data-detail-url="{{ detail_url_base }}/{{ row_code }}"
+            data-item-code="{{ row_code }}"
+            data-item-label="{{ row_label }}"
+            @click="selectedIndex = {{ loop.index0 }}; updateSelection()"
+            @focus="selectedIndex = {{ loop.index0 }}; updateSelection()"
+            @keydown.enter.prevent="$el.click()"
+            @keydown.numpad-enter.prevent="$el.click()"
+            tabindex="0">
+            <td class="ps-3">{{ row_code }}</td>
+            <td>{{ row_label }}</td>
+        </tr>
+        {% else %}
+        <tr class="grid-empty">
+            <td class="ps-3" colspan="2">Sin registros para mostrar.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

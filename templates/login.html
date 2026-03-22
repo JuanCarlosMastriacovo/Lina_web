@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Login - LINA Web{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="/static/css/lina_login.css">
+<div class="login-container text-center">
+  <img src="/static/favicon.ico" alt="LINA" style="height:48px;width:48px;margin-bottom:0.7rem;opacity:0.92;">
+  <h3>Ingreso a LINA</h3>
+  {% if error %}
+  <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+  <form method="post" action="/login" autocomplete="off" novalidate>
+    <div class="mb-3">
+      <label for="login_user_code" class="form-label">Código de usuario</label>
+      <input
+        type="text"
+        class="form-control"
+        id="login_user_code"
+        name="login_user_code"
+        value="{{ login_user_code or '' }}"
+        required
+        minlength="8"
+        autocomplete="new-password"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        aria-autocomplete="none"
+        data-lpignore="true"
+        data-1p-ignore="true"
+        maxlength="32"
+      >
+      <div class="form-text text-muted" style="font-size:0.85em;">Usuario asignado por el administrador</div>
+    </div>
+    <div class="mb-3">
+      <label for="login_user_pass" class="form-label">Contraseña</label>
+      <div class="input-group">
+        <input
+          type="password"
+          class="form-control"
+          id="login_user_pass"
+          name="login_user_pass"
+          required
+          minlength="8"
+          autocomplete="new-password"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          maxlength="32"
+        >
+        <button class="btn btn-outline-secondary" type="button" id="toggle-user-pass" aria-label="Mostrar u ocultar contraseña" tabindex="-1">Mostrar</button>
+      </div>
+      <div class="form-text text-muted" style="font-size:0.85em;">Clave personal, mínimo 8 caracteres</div>
+    </div>
+    <button type="submit" class="btn btn-primary w-100" id="login-submit-btn">Ingresar</button>
+  </form>
+</div>
+{% endblock %}
+

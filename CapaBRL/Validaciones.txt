@@ -1,0 +1,178 @@
+Necesito implementar validaciones formales y por reglas de negocio de los campos in/out en cada programa que vaya apareciendo
+¿Tenemos algun starndar por ejemplo para validar el tipo de datos, que no esté vacío, etc en cuanto a lo formal.?¿Entorno de valores permitidos, otras reglas de negocio particulares? 
+¿Como lo estructuraríamos? Sugiereme standards encapsulables y faciles de mantener
+
+
+
+Sí. Hoy ya tenés una base mínima, pero todavía no un estándar formal completo.
+
+Estado actual que veo:
+1. Validación formal parcial en UI por atributos de formulario como required y maxlength en templates/lina111/form.html y templates/lina131/form.html.
+2. Coerción básica de tipos en FastAPI por firma del endpoint, por ejemplo en CapaUI/lina111.py y CapaUI/lina131.py.
+3. Algunas reglas de negocio puntuales en save/delete, como código duplicado y restricciones de integridad, también en CapaUI/lina111.py y CapaUI/lina131.py.
+4. En CapaDAL no hay todavía un framework de validación reusable; CapaDAL/tablebase.py hoy resuelve CRUD e integridad, no validación formal declarativa.
+
+Mi recomendación es separar siempre en 4 capas, con una sola capa “autoritativa” para validar de verdad:
+
+1. Normalización
+1. Se ejecuta primero.
+2. Reglas típicas: trim, upper, conversión de vacío a null, defaults, parseo de fechas, enteros, decimales.
+3. Tiene que devolver un diccionario normalizado listo para validar.
+4. Esto conviene centralizarlo por campo, no escribirlo ad hoc en cada save.
+
+2. Validación formal
+1. Reglas independientes del negocio.
+2. Ejemplos:
+   1. tipo de dato
+   2. requerido o no
+   3. longitud máxima
+   4. mínimo y máximo numérico
+   5. formato o regex
+   6. fecha válida
+   7. valor dentro de lista permitida
+3. Esta capa debería poder definirse por metadata y reutilizarse en todos los programas.
+
+3. Validación de negocio
+1. Reglas contextuales y semánticas.
+2. Ejemplos:
+   1. el código no puede existir al alta
+   2. el código no puede cambiar si ya tiene movimientos
+   3. cierta combinación de campos no está permitida
+   4. una fecha no puede ser menor que la fecha de sesión
+   5. un valor solo es válido para cierta empresa o cierto usuario
+3. Estas reglas deben vivir fuera del template y fuera del SQL, idealmente en BRL.
+
+4. Base de datos como última barrera
+1. Unique, foreign keys, not null, checks si aplica.
+2. No debe ser la primera línea de validación, pero sí la última.
+3. Si algo llega a fallar ahí, se transforma a mensaje funcional.
+
+El estándar encapsulable que te sugiero es este:
+
+1. Un contrato común de resultado
+   1. normalized_data
+   2. field_errors
+   3. form_errors
+   4. warnings
+   5. is_valid
+2. Un esquema declarativo por campo
+   1. nombre
+   2. tipo
+   3. required
+   4. max_length
+   5. allowed_values
+   6. normalizers
+   7. validators formales
+3. Reglas de negocio aparte, como funciones pequeñas
+   1. validate_unique_code
+   2. validate_delete_allowed
+   3. validate_session_date
+   4. validate_company_scope
+4. Un pipeline único
+   1. normalize
+   2. validate_formal
+   3. validate_business
+   4. persist
+
+La estructura que mejor encaja con tu proyecto sería algo así:
+
+1. Núcleo común en BRL
+   1. CapaBRL/validation.py o una carpeta CapaBRL/validation/
+2. Un validador por programa
+   1. lina111_validator
+   2. lina131_validator
+3. Cada validador define
+   1. FIELD_SPECS
+   2. normalize_input
+   3. validate_formal
+   4. validate_business_create
+   5. validate_business_update
+   6. validate_business_delete si hace falta
+
+El formato mental sería este:
+
+1. FieldSpec
+   1. type
+   2. required
+   3. max_length
+   4. uppercase
+   5. trim
+   6. allowed_values
+   7. label
+2. ValidationIssue
+   1. field
+   2. code
+   3. message
+3. ValidationResult
+   1. normalized
+   2. issues
+
+Estándares concretos que yo fijaría desde ya:
+
+1. Formal
+   1. Todo string se trimmea antes de validar.
+   2. String vacío después de trim cuenta como vacío.
+   3. Los códigos alfanuméricos se guardan en mayúsculas si el campo lo requiere.
+   4. Todo campo requerido se valida en backend aunque el HTML tenga required.
+   5. Toda longitud máxima se valida en backend aunque el input tenga maxlength.
+   6. Todo valor numérico se valida por rango si el dominio lo exige.
+   7. Todo campo con dominio cerrado usa allowed_values o enum.
+   8. Toda fecha se valida contra parse real, no por string.
+
+2. Negocio
+   1. Las reglas no se mezclan con parseo ni normalización.
+   2. Cada regla devuelve un código estable y un mensaje humano.
+   3. Toda regla que consulte base debe estar aislada en una función chica.
+   4. Las reglas create y update se separan.
+   5. Delete también debería tener su propio validador semántico.
+
+3. Respuesta
+   1. Si hay error de campo, responder con field_errors.
+   2. Si hay error general, responder con form_errors.
+   3. No depender de excepciones SQL para mensajes funcionales.
+
+4. Frontend
+   1. El frontend replica validación formal simple para UX.
+   2. El backend sigue siendo la autoridad final.
+   3. Los mensajes deberían poder mostrarse junto al campo y también en la barra general.
+
+Mi recomendación práctica es no arrancar con algo demasiado sofisticado. Haría esto:
+
+1. Fase 1
+   1. Crear un motor común de validación formal.
+   2. Migrar LINA111 y LINA131 a ese motor.
+2. Fase 2
+   1. Mover duplicados, delete restrictions y reglas similares a validadores de negocio.
+3. Fase 3
+   1. Usar metadata MySQL como base automática para tipo, nullability, longitud y comments.
+   2. Completar con overrides por programa para reglas semánticas.
+
+La ventaja de usar metadata MySQL como base es fuerte:
+1. tipo
+2. nullable
+3. longitud
+4. comments
+5. eventualmente enum o set
+
+Eso te permite generar el piso formal automáticamente y luego agregar encima reglas propias del programa.
+
+Si me pedís un estándar concreto para adoptar, te propongo este:
+
+1. CapaDAL
+   1. metadata de tabla y columnas
+   2. persistencia
+   3. integridad como última barrera
+2. CapaBRL
+   1. normalización
+   2. validación formal reusable
+   3. reglas de negocio
+3. CapaUI
+   1. render de atributos HTML desde metadata
+   2. llamado al validador
+   3. presentación de errores
+
+Para este proyecto, la forma más mantenible no sería meter todo dentro de CapaDAL/tablebase.py. Ahí dejaría CRUD y metadata. La validación la pondría en BRL, porque ahí pertenece la lógica de negocio y porque te va a permitir crecer programa por programa sin contaminar la DAL.
+
+Si querés, el siguiente paso útil es uno de estos:
+1. Te diseño el módulo base de validación con clases y contrato estándar, sin tocar todavía todos los programas.
+2. Te implemento ya una primera versión real para LINA111 y LINA131 y la dejamos como patrón para los próximos.
