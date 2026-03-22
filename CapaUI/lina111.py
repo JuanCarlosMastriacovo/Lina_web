@@ -71,27 +71,17 @@ class ClienteValidador(BaseValidador):
         }
 
     def validate_formal(self):
-        c = self.normalized_data.get("cliecodi", "")
-        n = self.normalized_data.get("cliename", "")
- 
-        # Código: requerido + rango entero
-        err = self.validate_required(c, "Código")
-        if err:
-            self.field_errors["cliecodi"] = err
-        else:
-            err = self.validate_int_range(c, "Código", CLIENT_CODE_MIN, CLIENT_CODE_MAX)
-            if err:
-                self.field_errors["cliecodi"] = err
- 
-        # Nombre: requerido + longitud máxima
-        err = self.validate_required(n, "Nombre")
-        if err:
-            self.field_errors["cliename"] = err
-        else:
-            err = self.validate_str_length(n, "Nombre", max_len=40)
-            if err:
-                self.field_errors["cliename"] = err
- 
+        c = self.normalized_data.get('cliecodi', '')
+        n = self.normalized_data.get('cliename', '')
+        if not c:
+            self.field_errors['cliecodi'] = 'Código obligatorio'
+        elif len(c) > 15:
+            self.field_errors['cliecodi'] = 'Máximo 15 caracteres'
+        if not n:
+            self.field_errors['cliename'] = 'Nombre obligatorio'
+        elif len(n) > 40:
+            self.field_errors['cliename'] = 'Máximo 40 caracteres'
+
     def validate_negocio(self):
         if self.original_data.get('action') == 'create':
             conn = self.original_data.get('conn')
@@ -99,6 +89,7 @@ class ClienteValidador(BaseValidador):
             exists = LinaClie.row_get({CLIENT_KEY_FIELD: c}, conn=conn)
             if exists:
                 self.field_errors['cliecodi'] = f'El código {c} ya existe.'
+        
 
 @router.get("/", response_class=HTMLResponse)
 async def list_clients(request: Request):
@@ -195,12 +186,17 @@ async def save_client(request: Request, cliecodi: int = Form(...), cliename: str
     try:
         ok = False
         if action == "create":
-            ok = LinaClie.row_insert({
+            insert_data = {
                 CLIENT_KEY_FIELD: resultado['normalized_data']['cliecodi'],
                 CLIENT_LABEL_FIELD: resultado['normalized_data']['cliename'],
                 "cliesala": 0,
-                "cliefesa": '1900-01-01'
-            }, conn=conn)
+                "cliefesa": '1900-01-01',
+                CLIENT_COMPANY_FIELD: ctx_empr.get()
+            }
+            # Validación estándar: existencia de padres
+            if not LinaClie.row_got_parents(insert_data, conn=conn):
+                return HTMLResponse(content="No existen todos los registros padres requeridos para crear el cliente.", status_code=409)
+            ok = LinaClie.row_insert(insert_data, conn=conn)
         else:
             ok = LinaClie.row_update({CLIENT_KEY_FIELD: resultado['normalized_data']['cliecodi']}, {CLIENT_LABEL_FIELD: resultado['normalized_data']['cliename']}, conn=conn)
 
