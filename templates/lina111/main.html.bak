@@ -1,9 +1,0 @@
-{% extends "master_detail_base.html" %}
-
-{% block list_title %}Clientes{% endblock %}
-{% block route_new %}/clients/new{% endblock %}
-{% block route_list %}/clients/list{% endblock %}
-
-{% block grid_content %}
-{% include "lina111/grid.html" %}
-{% endblock %}

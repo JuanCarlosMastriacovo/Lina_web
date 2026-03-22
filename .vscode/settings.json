@@ -1,5 +1,7 @@
 {
     "python.analysis.typeCheckingMode": "off",
+    "python.analysis.diagnosticMode": "off",
+    "python.analysis.ignore": ["*"],
     "python.linting.enabled": false,
     "[plaintext]": {
         "editor.wordWrap": "on"
