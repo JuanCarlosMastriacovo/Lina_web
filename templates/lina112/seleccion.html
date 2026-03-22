@@ -1,0 +1,44 @@
+<div x-data="{
+  desde: 0,
+  hasta: 9999,
+  abrir(base) {
+    if (this.desde > this.hasta) {
+      linaAlert('El valor Desde no puede ser mayor que Hasta.');
+      return;
+    }
+    (window.top || window).open(base + '?desde=' + this.desde + '&hasta=' + this.hasta, '_blank');
+  }
+}" style="font-family:Arial; font-size:9pt; padding:20px;">
+
+  <h3 style="font-size:11pt; margin-bottom:16px;">Listado de Clientes — Selección</h3>
+
+  {% if error %}
+  <p style="color:red; font-size:8pt;">{{ error }}</p>
+  {% endif %}
+
+  <div style="display:flex; flex-direction:column; gap:10px; max-width:300px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:120px;">Desde Cliente:</label>
+      <input type="number" x-model.number="desde" min="0" max="9999"
+             style="width:80px; padding:3px 6px; border:1px solid #ccc; border-radius:3px;">
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:120px;">Hasta Cliente:</label>
+      <input type="number" x-model.number="hasta" min="0" max="9999"
+             style="width:80px; padding:3px 6px; border:1px solid #ccc; border-radius:3px;">
+    </div>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button type="button" @click="abrir('/lina112/pdf')"
+              style="padding:6px 14px; background:#4472C4; color:white;
+                     border:none; border-radius:4px; cursor:pointer;">
+        Ver PDF
+      </button>
+      <button type="button" @click="abrir('/lina112/xlsx')"
+              style="padding:6px 14px; background:#217346; color:white;
+                     border:none; border-radius:4px; cursor:pointer;">
+        Ver XLSX
+      </button>
+    </div>
+  </div>
+
+</div>

@@ -14,7 +14,6 @@
         font-size: 8pt;
         color: #555;
         vertical-align: bottom;
-        padding-bottom: 0;
       }
     }
     body {
@@ -26,13 +25,16 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 0.4cm;
-      margin-top: 0;
-      padding-top: 0;
+      margin-bottom: 0.2cm;
     }
     .encabezado h1 {
       margin: 0;
       font-size: 12pt;
+    }
+    .encabezado-subtitulo {
+      font-size: 8pt;
+      color: #555;
+      margin: 2px 0 0.3cm 0;
     }
     .encabezado-derecha {
       font-size: 8pt;
@@ -68,6 +70,9 @@
       Usuario: {{ usuario }} — {{ fecha }} {{ hora }}
     </div>
   </div>
+  {% if subtitulo %}
+  <p class="encabezado-subtitulo">{{ subtitulo }}</p>
+  {% endif %}
 
   <table>
     <thead>

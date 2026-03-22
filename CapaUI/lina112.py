@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Query
 from fastapi.responses import Response, HTMLResponse, RedirectResponse
 from weasyprint import HTML
 from jinja2 import Environment, FileSystemLoader
@@ -27,24 +27,18 @@ CLIENT_LABEL_FIELD = LinaClie.get_selector_fields()[1]
 EMPR_CODE_FIELD    = LinaEmpr.require_column("emprcodi")
 EMPR_NAME_FIELD    = LinaEmpr.require_column("emprname")
 
-templates_dir = Path(__file__).parent.parent / "templates"
-jinja_env     = Environment(loader=FileSystemLoader(str(templates_dir)))
+pdf_templates_dir = Path(__file__).parent.parent / "templates"
+pdf_jinja_env     = Environment(loader=FileSystemLoader(str(pdf_templates_dir)))
+
+
+# ==================== CLASE PRINCIPAL ====================
+
+class Lina112(linabase):
+    """Módulo de listado de clientes (LINA112)."""
+    pass
 
 
 # ==================== FUNCIONES AUXILIARES ====================
-
-def _get_clientes(conn):
-    """Obtiene la lista de clientes ordenada por código."""
-    clients = LinaClie.list_all(
-        order_by=CLIENT_KEY_FIELD,
-        fields=[CLIENT_KEY_FIELD, CLIENT_LABEL_FIELD],
-        conn=conn,
-    )
-    return [
-        [str(c.get(CLIENT_KEY_FIELD) or "0").zfill(4), str(c.get(CLIENT_LABEL_FIELD) or "")]
-        for c in clients
-    ]
-
 
 def _get_empr_info():
     """Obtiene código y nombre de la empresa activa."""
@@ -54,47 +48,64 @@ def _get_empr_info():
     return empr_code, empr_name
 
 
+def _get_clientes(conn, desde: int, hasta: int):
+    """Obtiene clientes filtrados por rango de código."""
+    clients = LinaClie.list_all(
+        order_by=CLIENT_KEY_FIELD,
+        fields=[CLIENT_KEY_FIELD, CLIENT_LABEL_FIELD],
+        conn=conn,
+    )
+    return [
+        [str(c.get(CLIENT_KEY_FIELD) or "0").zfill(4), str(c.get(CLIENT_LABEL_FIELD) or "")]
+        for c in clients
+        if desde <= int(c.get(CLIENT_KEY_FIELD) or 0) <= hasta
+    ]
+
+
 # ==================== RUTAS ====================
 
 @router.get("/", response_class=HTMLResponse)
 async def lina112_index(request: Request):
-    linabase.set_prog_code(PROG_CODE)
-    user = linabase.get_current_user(request)
+    Lina112.set_prog_code(PROG_CODE)
+    user = Lina112.get_current_user(request)
     if not user:
         return RedirectResponse("/login")
-    return HTMLResponse("""
-        <html><body style="font-family:Arial; padding:20px;">
-        <p>Listado de Clientes</p>
-        <a href="/lina112/pdf" target="_blank"
-           style="padding:8px 16px; background:#4472C4; color:white;
-                  text-decoration:none; border-radius:4px;">Ver PDF</a>
-        &nbsp;
-        <a href="/lina112/xlsx" target="_blank"
-           style="padding:8px 16px; background:#217346; color:white;
-                  text-decoration:none; border-radius:4px;">Ver XLSX</a>
-        </body></html>
-    """)
+    return Lina112.templates.TemplateResponse(
+        "lina112/seleccion.html",
+        {"request": request, "error": None},
+    )
 
 
 @router.get("/pdf")
-async def lina112_pdf(request: Request):
+async def lina112_pdf(
+    request: Request,
+    desde: int = Query(default=0),
+    hasta: int = Query(default=9999),
+):
     """Genera el PDF del listado de clientes."""
-    linabase.set_prog_code(PROG_CODE)
-    user = linabase.get_current_user(request)
+    Lina112.set_prog_code(PROG_CODE)
+    user = Lina112.get_current_user(request)
     if not user:
         return RedirectResponse("/login")
 
-    empr_code, empr_name = _get_empr_info()
-    conn  = linabase.get_task_conn(request, readonly=True)
-    filas = _get_clientes(conn)
+    if desde > hasta:
+        return Lina112.templates.TemplateResponse(
+            "lina112/seleccion.html",
+            {"request": request, "error": "El valor 'Desde' no puede ser mayor que 'Hasta'."},
+        )
 
-    template = jinja_env.get_template("lina112/main.html")
+    empr_code, empr_name = _get_empr_info()
+    conn  = Lina112.get_task_conn(request, readonly=True)
+    filas = _get_clientes(conn, desde, hasta)
+
+    template = pdf_jinja_env.get_template("lina112/main.html")
     html_str = template.render(
         app_name  = APP_CONFIG.get("app_name", ""),
         empr_code = empr_code,
         empr_name = empr_name,
         usuario   = user,
         titulo    = "Listado de Clientes",
+        subtitulo = f"Clientes {str(desde).zfill(4)} al {str(hasta).zfill(4)}",
         fecha     = date.today().strftime("%d/%m/%Y"),
         hora      = datetime.now().strftime("%H:%M"),
         columnas  = ["Código", "Nombre"],
@@ -110,62 +121,63 @@ async def lina112_pdf(request: Request):
 
 
 @router.get("/xlsx")
-async def lina112_xlsx(request: Request):
+async def lina112_xlsx(
+    request: Request,
+    desde: int = Query(default=0),
+    hasta: int = Query(default=9999),
+):
     """Genera el XLSX del listado de clientes."""
-    linabase.set_prog_code(PROG_CODE)
-    user = linabase.get_current_user(request)
+    Lina112.set_prog_code(PROG_CODE)
+    user = Lina112.get_current_user(request)
     if not user:
         return RedirectResponse("/login")
 
-    empr_code, empr_name = _get_empr_info()
-    conn  = linabase.get_task_conn(request, readonly=True)
-    filas = _get_clientes(conn)
+    if desde > hasta:
+        return Lina112.templates.TemplateResponse(
+            "lina112/seleccion.html",
+            {"request": request, "error": "El valor 'Desde' no puede ser mayor que 'Hasta'."},
+        )
 
-    # Crear workbook
+    empr_code, empr_name = _get_empr_info()
+    conn  = Lina112.get_task_conn(request, readonly=True)
+    filas = _get_clientes(conn, desde, hasta)
+
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Clientes"
 
-    # Estilos
-    header_font    = Font(bold=True, color="FFFFFF", size=10)
-    header_fill    = PatternFill("solid", fgColor="4472C4")
-    header_align   = Alignment(horizontal="left", vertical="center")
-    title_font     = Font(bold=True, size=12)
-    subtitle_font  = Font(size=8, color="555555")
+    header_font   = Font(bold=True, color="FFFFFF", size=10)
+    header_fill   = PatternFill("solid", fgColor="4472C4")
+    header_align  = Alignment(horizontal="left", vertical="center")
+    title_font    = Font(bold=True, size=12)
+    subtitle_font = Font(size=8, color="555555")
 
-    # Título
     ws.merge_cells("A1:B1")
-    ws["A1"] = "Listado de Clientes"
+    ws["A1"]      = "Listado de Clientes"
     ws["A1"].font = title_font
 
-    # Subtítulo
     ws.merge_cells("A2:B2")
-    ws["A2"] = f"{APP_CONFIG.get('app_name', '')} — {empr_code} {empr_name}"
+    ws["A2"]      = f"{APP_CONFIG.get('app_name', '')} — {empr_code} {empr_name}"
     ws["A2"].font = subtitle_font
 
     ws.merge_cells("A3:B3")
-    ws["A3"] = f"Usuario: {user} — {date.today().strftime('%d/%m/%Y')} {datetime.now().strftime('%H:%M')}"
+    ws["A3"]      = f"Clientes {str(desde).zfill(4)} al {str(hasta).zfill(4)} — Usuario: {user} — {date.today().strftime('%d/%m/%Y')} {datetime.now().strftime('%H:%M')}"
     ws["A3"].font = subtitle_font
 
-    # Fila vacía
     ws.append([])
 
-    # Encabezados de columna
     ws.append(["Código", "Nombre"])
     for cell in ws[5]:
-        cell.font  = header_font
-        cell.fill  = header_fill
+        cell.font      = header_font
+        cell.fill      = header_fill
         cell.alignment = header_align
 
-    # Datos
     for fila in filas:
         ws.append(fila)
 
-    # Ancho de columnas
     ws.column_dimensions["A"].width = 10
     ws.column_dimensions["B"].width = 45
 
-    # Guardar en buffer
     buffer = BytesIO()
     wb.save(buffer)
     buffer.seek(0)
