@@ -111,8 +111,9 @@ Respetar estructura de capas. Toda comunicacion con la bd origen debe estar en C
 ******
 BR-011
 ******
-En la lista de precio compactar
-1. Los que tienen precio =0
-2. Los que tienen en parte de su descripcion "NO HAY" o "NO USAR"
-3. Compacta todos los que están bajo el rubro MCOM con el mismo precio y lista un solo renglón, código en blanco, descripción "Todas las medallas comunes"
-4. Compacta en un solo rengón "Medallas laser" a todas las que tengan como descripcion "Medalla laser" y el mismo precio.
+En la lista de precios LINA1332
+1. Omitir los que tienen precio = 0
+2. Omitir los que tienen en parte de su descripcion "NO HAY" o "NO USAR"
+3. Compactar todos los que están bajo el rubro MCOM con el mismo precio y lista un solo renglón, código en blanco, descripción "Todas las medallas comunes"
+4. Compactar en un solo rengón "Medallas laser" a todas las que tengan como descripcion "Medalla laser" y el mismo precio.
+

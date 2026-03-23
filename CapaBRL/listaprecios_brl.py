@@ -13,7 +13,7 @@ _DESC_EXCLUIDAS = ("NO HAY", "NO USAR")
 
 # Rubro que se compacta en un único renglón por precio
 _RUBRO_MCOM = "MCOM"
-_MCOM_DESC  = "Todas las medallas comunes"
+_MCOM_DESC  = "Medallas comunes"
 
 # Descripción que se compacta en un único renglón por precio
 _DESC_LASER_MATCH = "MEDALLA LASER"
