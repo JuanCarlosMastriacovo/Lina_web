@@ -1,0 +1,17 @@
+{% extends "master_detail_base.html" %}
+
+{% block list_title %}Proveedores{% endblock %}
+{% block route_new %}/suppliers/new{% endblock %}
+{% block route_list %}/suppliers/list{% endblock %}
+
+{% block grid_content %}
+{# Grilla genérica: requiere items, code_field, label_field, code_label, label_column, detail_url_base, route_list #}
+{% set items = suppliers %}
+{% set code_field = 'provcodi' %}
+{% set label_field = 'provname' %}
+{% set code_label = 'Código' %}
+{% set label_column = 'Nombre' %}
+{% set detail_url_base = '/suppliers/detail' %}
+{% set route_list = '/suppliers/list' %}
+{% include "partials/master_detail_entity_grid.html" %}
+{% endblock %}

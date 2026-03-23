@@ -102,7 +102,7 @@
             {# ---- Columna izquierda: campos editables ---- #}
             <div style="flex: 0 0 auto;">
                 <form id="detail-form" hx-post="/lina132/save" hx-target="#form-message"
-                      @htmx:after-request="handleSaveResponse($event)">
+                      novalidate @htmx:after-request="handleSaveResponse($event)">
                     <input type="hidden" name="action" value="{{ action }}">
 
                     {# Código #}
@@ -295,7 +295,7 @@
                             <p class="mb-0">Confirma cambiar el código <strong x-text="current['articodi']"></strong> por <strong x-text="recodeNewCode"></strong>?</p>
                         </div>
                     </template>
-                    <div class="text-danger mt-2" x-text="recodeError" x-show="recodeError"></div>
+                    <div class="change-code-error text-danger mt-2" style="display:none;"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" @click="closeChangeCodeModal()">Cancelar</button>

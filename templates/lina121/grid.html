@@ -1,0 +1,12 @@
+{# ============================================================
+   lina121/grid.html — Grilla de proveedores (fragmento HTMX)
+   Delegado a partials/master_detail_entity_grid.html
+   ============================================================ #}
+{% set items = suppliers %}
+{% set code_field = 'provcodi' %}
+{% set label_field = 'provname' %}
+{% set code_label = 'Código' %}
+{% set label_column = 'Nombre' %}
+{% set detail_url_base = '/suppliers/detail' %}
+{% set route_list = '/suppliers/list' %}
+{% include "partials/master_detail_entity_grid.html" %}

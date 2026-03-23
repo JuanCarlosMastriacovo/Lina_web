@@ -1,0 +1,77 @@
+<div x-data="{
+  desde: '',
+  hasta: 'ZZZZZZZZZ',
+  orden: 'codigo',
+  abrir(base) {
+    if (this.desde && this.hasta && this.desde > this.hasta) {
+      linaAlert('El valor Desde no puede ser mayor que Hasta.');
+      return;
+    }
+    const params = new URLSearchParams();
+    if (this.desde) params.set('desde', this.desde);
+    params.set('hasta', this.hasta || 'ZZZZZZZZZ');
+    params.set('orden', this.orden);
+    (window.top || window).open(base + '?' + params.toString(), '_blank');
+  }
+}" style="font-family:Arial; font-size:9pt; padding:20px;">
+
+  <h3 style="font-size:11pt; margin-bottom:16px;">Listado Detallado de Artículos — Selección</h3>
+
+  {% if error %}
+  <p style="color:red; font-size:8pt;">{{ error }}</p>
+  {% endif %}
+
+  <div style="display:flex; flex-direction:column; gap:10px; max-width:360px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:130px;">Desde Artículo:</label>
+      <input type="text" x-model="desde"
+             x-init="$nextTick(() => { $el.focus(); $el.select(); })"
+             data-selector-tabla="linaarti"
+             data-selector-campo-cod="articodi"
+             data-selector-campo-desc="artidesc"
+             data-selector-titulo="Buscar Artículo (Desde)"
+             maxlength="9"
+             placeholder="(inicio)"
+             style="width:110px; padding:3px 6px; border:1px solid #ccc; border-radius:3px; text-transform:uppercase;"
+             @input="desde = $el.value.toUpperCase()">
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:130px;">Hasta Artículo:</label>
+      <input type="text" x-model="hasta"
+             data-selector-tabla="linaarti"
+             data-selector-campo-cod="articodi"
+             data-selector-campo-desc="artidesc"
+             data-selector-titulo="Buscar Artículo (Hasta)"
+             maxlength="9"
+             placeholder="(fin)"
+             style="width:110px; padding:3px 6px; border:1px solid #ccc; border-radius:3px; text-transform:uppercase;"
+             @input="hasta = $el.value.toUpperCase()">
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:4px; margin-top:4px;">
+      <label style="font-weight:bold;">Ordenar por:</label>
+      <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+        <input type="radio" x-model="orden" value="codigo">
+        Código de Artículo
+      </label>
+      <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+        <input type="radio" x-model="orden" value="rubro">
+        Rubro + Código
+      </label>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button type="button" @click="abrir('/lina1331/pdf')"
+              style="padding:6px 14px; background:#4472C4; color:white;
+                     border:none; border-radius:4px; cursor:pointer;">
+        Ver PDF
+      </button>
+      <button type="button" @click="abrir('/lina1331/xlsx')"
+              style="padding:6px 14px; background:#217346; color:white;
+                     border:none; border-radius:4px; cursor:pointer;">
+        Ver XLSX
+      </button>
+    </div>
+  </div>
+
+</div>

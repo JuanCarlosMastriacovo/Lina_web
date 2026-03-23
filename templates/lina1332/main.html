@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <style>
     @page {
+      size: A4 portrait;
       margin-top:    2.8cm;
       margin-left:   1.5cm;
       margin-right:  1.5cm;
@@ -25,11 +26,10 @@
 
     body {
       font-family: Arial, sans-serif;
-      font-size: 9pt;
+      font-size: 8pt;
       margin: 0;
     }
 
-    /* Running element izquierdo — se repite en todas las páginas */
     .header-left {
       position: running(header-left);
       font-family: Arial, sans-serif;
@@ -42,70 +42,92 @@
       white-space: nowrap;
     }
     .header-left h1 {
-      font-size: 12pt;
+      font-size: 11pt;
       font-weight: bold;
-      margin: 0 0 1px 0;
-      white-space: nowrap;
-    }
-    .header-left .subtitulo {
-      font-size: 8pt;
-      color: #555;
       margin: 0;
       white-space: nowrap;
     }
 
-    /* Tabla */
     table {
       width: 100%;
       border-collapse: collapse;
     }
-    th {
+    thead th {
       background-color: #4472C4;
       color: white;
-      padding: 4px 8px;
+      padding: 3px 5px;
       text-align: left;
-      font-size: 9pt;
+      font-size: 8pt;
+      white-space: nowrap;
     }
+    thead th.num { text-align: right; }
+
     td {
-      padding: 3px 8px;
+      padding: 2px 5px;
       border-bottom: 1px solid #ddd;
-      font-size: 9pt;
+      font-size: 8pt;
     }
-    tr:nth-child(even) td {
+    tr.data:nth-child(even) td {
       background-color: #f2f2f2;
     }
+    td.num { text-align: right; }
+
+    /* Encabezado de sección (rubro) */
+    tr.grupo-header td {
+      background-color: #2E4057;
+      color: white;
+      font-weight: bold;
+      font-size: 9pt;
+      padding: 4px 5px;
+      border-bottom: none;
+    }
+
+    col.c-cod  { width: 15%; }
+    col.c-desc { width: 68%; }
+    col.c-prec { width: 17%; }
   </style>
 </head>
 <body>
 
-  <!-- Running element izquierdo -->
   <div class="header-left">
     <div class="empr-line">{{ empr_code }} - {{ empr_name }}</div>
     <h1>{{ titulo }}</h1>
-    {% if subtitulo %}<div class="subtitulo">{{ subtitulo }}</div>{% endif %}
   </div>
 
   <table>
+    <colgroup>
+      <col class="c-cod">
+      <col class="c-desc">
+      <col class="c-prec">
+    </colgroup>
     <thead>
       <tr>
-        {% for col in columnas %}
-        <th>{{ col }}</th>
-        {% endfor %}
+        <th>Código</th>
+        <th>Descripción</th>
+        <th class="num">Precio</th>
       </tr>
     </thead>
     <tbody>
-      {% for fila in filas %}
-      <tr>
-        {% for celda in fila %}
-        <td>{{ celda }}</td>
-        {% endfor %}
+      {% for grupo in grupos %}
+      {% if not loop.first %}
+      <tr><td colspan="3" style="padding:4px 0; border:none;"></td></tr>
+      {% endif %}
+      <tr class="grupo-header">
+        <td colspan="3">{{ grupo.artrcodi }}{% if grupo.artrdesc %} — {{ grupo.artrdesc }}{% endif %}</td>
       </tr>
+      {% for fila in grupo.filas %}
+      <tr class="data">
+        <td>{{ fila[0] }}</td>
+        <td>{{ fila[1] }}</td>
+        <td class="num">{{ fila[2] }}</td>
+      </tr>
+      {% endfor %}
       {% endfor %}
     </tbody>
   </table>
 
   <p style="font-size: 8pt; color: #555; margin: 6px 0 0 0;">
-    {{ filas|length }} registro{{ 's' if filas|length != 1 else '' }} listado{{ 's' if filas|length != 1 else '' }}.
+    {{ total_articulos }} artículo{{ 's' if total_articulos != 1 else '' }}.
   </p>
 
 </body>

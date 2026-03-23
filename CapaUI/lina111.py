@@ -4,7 +4,7 @@ from typing import Dict, Any
 
 from CapaBRL.linabase import linabase
 from CapaDAL.tablebase import get_table_model
-from CapaBRL.validador_base import BaseValidador
+from CapaBRL.validador_base import BaseValidador, RecodeIntValidador
 from CapaDAL.dataconn import sess_conns, ctx_empr
 from mysql.connector import IntegrityError
 
@@ -71,18 +71,22 @@ class Lina111(linabase):
 
 class ClienteValidador(BaseValidador):
     def normalize(self):
+        try:
+            cliecodi = int(self.original_data.get("cliecodi"))
+        except (TypeError, ValueError):
+            cliecodi = None
         self.normalized_data = {
-            "cliecodi": str(self.original_data.get("cliecodi", "")).strip().upper(),
+            "cliecodi": cliecodi,
             "cliename": str(self.original_data.get("cliename", "")).strip(),
         }
 
     def validate_formal(self):
-        c = self.normalized_data.get("cliecodi", "")
+        c = self.normalized_data.get("cliecodi")
         n = self.normalized_data.get("cliename", "")
-        if not c:
+        if c is None:
             self.field_errors["cliecodi"] = "Código obligatorio"
-        elif len(c) > 15:
-            self.field_errors["cliecodi"] = "Máximo 15 caracteres"
+        elif not (CLIENT_CODE_MIN <= c <= CLIENT_CODE_MAX):
+            self.field_errors["cliecodi"] = f"El código debe estar entre {CLIENT_CODE_MIN} y {CLIENT_CODE_MAX}."
         if not n:
             self.field_errors["cliename"] = "Nombre obligatorio"
         elif len(n) > 40:
@@ -96,45 +100,11 @@ class ClienteValidador(BaseValidador):
                 self.field_errors["cliecodi"] = f"El código {c} ya existe."
 
 
-class RecodeClienteValidador(BaseValidador):
-    """Validador para el cambio de código (recode) de un cliente."""
-
-    def normalize(self):
-        try:
-            cliecodi = int(self.original_data.get("cliecodi"))
-        except (TypeError, ValueError):
-            cliecodi = None
-        try:
-            new_code = int(self.original_data.get("new_code"))
-        except (TypeError, ValueError):
-            new_code = None
-        self.normalized_data = {
-            "cliecodi": cliecodi,
-            "new_code": new_code,
-        }
-
-    def validate_formal(self):
-        new = self.normalized_data.get("new_code")
-        old = self.normalized_data.get("cliecodi")
-        if new is None:
-            self.field_errors["new_code"] = "El nuevo código debe ser un número entero válido."
-            return
-        if old is None:
-            self.field_errors["cliecodi"] = "El código actual es inválido."
-            return
-        if not (CLIENT_CODE_MIN <= new <= CLIENT_CODE_MAX):
-            self.field_errors["new_code"] = f"El nuevo código debe estar entre {CLIENT_CODE_MIN} y {CLIENT_CODE_MAX}."
-            return
-        if new == old:
-            self.field_errors["new_code"] = "El nuevo código debe ser distinto al actual."
-
-    def validate_negocio(self):
-        if "new_code" in self.field_errors:
-            return
-        conn = self.original_data.get("conn")
-        new  = self.normalized_data.get("new_code")
-        if LinaClie.row_get({"cliecodi": new}, conn=conn):
-            self.field_errors["new_code"] = f"El código {new} ya existe."
+class RecodeClienteValidador(RecodeIntValidador):
+    table_model = LinaClie
+    key_field   = CLIENT_KEY_FIELD
+    code_min    = CLIENT_CODE_MIN
+    code_max    = CLIENT_CODE_MAX
 
 
 # ==================== FUNCIONES AUXILIARES ====================
@@ -351,52 +321,9 @@ async def recode_client(
     new_code: int = Form(...),
     tab_id:   str = Form(default="", alias="_tab"),
 ):
-    conn      = Lina111.get_task_conn(request, readonly=False)
-    owns_conn = False
-    if not conn:
-        conn      = sess_conns.get_conn(readonly=False, user_override=Lina111.get_current_user(request))
-        owns_conn = True
-
-    validador = RecodeClienteValidador({"cliecodi": cliecodi, "new_code": new_code, "conn": conn})
-    resultado = validador.validate()
-    if not resultado["is_valid"]:
-        msg = "\n".join(list(resultado["field_errors"].values()) + resultado["form_errors"])
-        if owns_conn:
-            sess_conns.release_conn(conn)
-        return JSONResponse({"ok": False, "message": msg or "Datos inválidos."}, status_code=400)
-
-    try:
-        cur = conn.cursor()
-        cur.execute(
-            """
-            UPDATE linaclie
-               SET cliecodi = %s
-             WHERE emprcodi = %s
-               AND cliecodi = %s
-            """,
-            (new_code, ctx_empr.get(), cliecodi),
-        )
-        updated = cur.rowcount
-        cur.close()
-    except IntegrityError as e:
-        if owns_conn:
-            conn.rollback()
-        return JSONResponse({"ok": False, "message": f"No se pudo cambiar el código: {e.msg}"}, status_code=400)
-    except Exception as e:
-        if owns_conn:
-            conn.rollback()
-        return JSONResponse({"ok": False, "message": f"Error al cambiar código: {e}"}, status_code=500)
-
-    if updated == 0:
-        return JSONResponse({"ok": False, "message": "No se encontró el registro a recodificar."}, status_code=404)
-
-    user = Lina111.get_current_user(request)
-    if user and tab_id and not owns_conn:
-        sess_conns.commit_and_restart_task_conn(task_id=tab_id, user=user, prog=Lina111.prog_code or PROG_CODE)
-    else:
-        conn.commit()
-
-    if owns_conn:
-        sess_conns.release_conn(conn)
-
-    return JSONResponse({"ok": True, "new_code": new_code, "message": "Código cambiado correctamente."})
+    return await Lina111.exec_recode_int(
+        request, cliecodi, new_code,
+        LinaClie, CLIENT_KEY_FIELD,
+        RecodeClienteValidador,
+        PROG_CODE, tab_id,
+    )

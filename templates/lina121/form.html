@@ -1,16 +1,16 @@
 {# ============================================================
-   lina111/form.html — Formulario de alta/edición de cliente
+   lina121/form.html — Formulario de alta/edición de proveedor
    Los spinners de input[type=number] se ocultan en lina_base.css
    ============================================================ #}
-{% set entity = client %}
-{% set code_field = 'cliecodi' %}
-{% set label_field = 'cliename' %}
-{% set entity_label = 'este cliente' %}
-{% set entity_route_base = '/clients' %}
-{% set detail_url_base = '/clients/detail' %}
+{% set entity = supplier %}
+{% set code_field = 'provcodi' %}
+{% set label_field = 'provname' %}
+{% set entity_label = 'este proveedor' %}
+{% set entity_route_base = '/suppliers' %}
+{% set detail_url_base = '/suppliers/detail' %}
 {% set code_uppercase = false %}
-{% set edit_title = 'Editar Cliente' %}
-{% set new_title = 'Nuevo Cliente' %}
+{% set edit_title = 'Editar Proveedor' %}
+{% set new_title = 'Nuevo Proveedor' %}
 {% set code_input_type = 'number' %}
 {% set code_maxlength = none %}
 {% set code_min = 0 %}

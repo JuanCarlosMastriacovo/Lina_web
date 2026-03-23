@@ -4,9 +4,10 @@
   <meta charset="utf-8">
   <style>
     @page {
+      size: A4 landscape;
       margin-top:    2.8cm;
-      margin-left:   1.5cm;
-      margin-right:  1.5cm;
+      margin-left:   1.2cm;
+      margin-right:  1.2cm;
       margin-bottom: 1.5cm;
       @top-left {
         content: element(header-left);
@@ -25,11 +26,10 @@
 
     body {
       font-family: Arial, sans-serif;
-      font-size: 9pt;
+      font-size: 8pt;
       margin: 0;
     }
 
-    /* Running element izquierdo — se repite en todas las páginas */
     .header-left {
       position: running(header-left);
       font-family: Arial, sans-serif;
@@ -42,7 +42,7 @@
       white-space: nowrap;
     }
     .header-left h1 {
-      font-size: 12pt;
+      font-size: 11pt;
       font-weight: bold;
       margin: 0 0 1px 0;
       white-space: nowrap;
@@ -54,58 +54,90 @@
       white-space: nowrap;
     }
 
-    /* Tabla */
     table {
       width: 100%;
       border-collapse: collapse;
     }
-    th {
+    thead th {
       background-color: #4472C4;
       color: white;
-      padding: 4px 8px;
+      padding: 3px 5px;
       text-align: left;
-      font-size: 9pt;
+      font-size: 8pt;
+      white-space: nowrap;
     }
+    thead th.num { text-align: right; }
+
     td {
-      padding: 3px 8px;
+      padding: 2px 5px;
       border-bottom: 1px solid #ddd;
-      font-size: 9pt;
+      font-size: 8pt;
     }
-    tr:nth-child(even) td {
-      background-color: #f2f2f2;
+    tr:nth-child(even) td { background-color: #f2f2f2; }
+    td.num { text-align: right; }
+
+    tr.total-row td {
+      border-top: 2px solid #4472C4;
+      border-bottom: none;
+      font-weight: bold;
+      background-color: #E9EFF9;
     }
+
+    col.c-rub  { width:  8%; }
+    col.c-cod  { width: 10%; }
+    col.c-desc { width: 40%; }
+    col.c-exis { width: 10%; }
+    col.c-prec { width: 14%; }
+    col.c-val  { width: 14%; }
   </style>
 </head>
 <body>
 
-  <!-- Running element izquierdo -->
   <div class="header-left">
     <div class="empr-line">{{ empr_code }} - {{ empr_name }}</div>
     <h1>{{ titulo }}</h1>
-    {% if subtitulo %}<div class="subtitulo">{{ subtitulo }}</div>{% endif %}
+    <div class="subtitulo">Al {{ fecha_hasta }}</div>
   </div>
 
   <table>
+    <colgroup>
+      <col class="c-rub">
+      <col class="c-cod">
+      <col class="c-desc">
+      <col class="c-exis">
+      <col class="c-prec">
+      <col class="c-val">
+    </colgroup>
     <thead>
       <tr>
-        {% for col in columnas %}
-        <th>{{ col }}</th>
-        {% endfor %}
+        <th>Rubro</th>
+        <th>Código</th>
+        <th>Descripción</th>
+        <th class="num">Existencia</th>
+        <th class="num">Precio</th>
+        <th class="num">Valor</th>
       </tr>
     </thead>
     <tbody>
       {% for fila in filas %}
       <tr>
-        {% for celda in fila %}
-        <td>{{ celda }}</td>
-        {% endfor %}
+        <td>{{ fila[0] }}</td>
+        <td>{{ fila[1] }}</td>
+        <td>{{ fila[2] }}</td>
+        <td class="num">{{ fila[3] }}</td>
+        <td class="num">{{ fila[4] }}</td>
+        <td class="num">{{ fila[5] }}</td>
       </tr>
       {% endfor %}
+      <tr class="total-row">
+        <td colspan="5" class="num">TOTAL</td>
+        <td class="num">{{ total_valor }}</td>
+      </tr>
     </tbody>
   </table>
 
   <p style="font-size: 8pt; color: #555; margin: 6px 0 0 0;">
-    {{ filas|length }} registro{{ 's' if filas|length != 1 else '' }} listado{{ 's' if filas|length != 1 else '' }}.
+    {{ filas|length }} artículo{{ 's' if filas|length != 1 else '' }}.
   </p>
 
 </body>

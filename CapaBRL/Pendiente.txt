@@ -1,20 +1,20 @@
+0. Que ocurrio con .venv en la migracion. ¿conviene recrearlo?
 1 .CurrEmpr
-dejemos por ahora el tema de las ventanas activas. 
-    Todavia necesito definir bien el impacto de cambio de fecha y de empresa 
-    en los tabs abiertos,
-        si están o no dirty,
-        si el usuario tiene permiso en la otra empresa, etc
-Qué hacer con tabs abiertos al cambiar empresa o fecha.
-    Si un tab dirty bloquea el cambio o no.
-    Si el cambio exige revalidar permisos por programa en la nueva empresa.
-    Si hay que cerrar conexiones transaccionales activas 
-        y recrearlas con el nuevo contexto.
-    Si la fecha de sesión afecta solo UI/reportes 
-        o también lógica de negocio y validaciones de alta/modificación.        
+    Que hacer al cambiar empresa:
+        a. negar desplegar selección si hay tabs abiertos===>msg
+        b. permitir seleccion y buscar si el usuario tiene algun permiso en esa empresa, si no===>msg
+        c. definir nueva plantilla de permisos
+2 .CurrDate
+    Que hacer al cambiar fecha:
+        a. validar que el usuario tenga permiso de cambiar fecha
+        b. negar update de fecha si hay tabs abiertos===>msg
+3. Usar la barra de mensajes
+4. Carpeta temp->miscelaneas
+5. buscar y eliminar deadcode
+6. separar js de html
+7. buscar hardcode y consultar parametrizacion
 
-4. Usar la barra de mensajes
-
-6. Listados
+***OK *** Listados
 ***OK *** Que los botones tambien presenten tool tips con su función
 ***OK *** Session date
 ***OK *** Que el botón mostrar/ocultar en pantalla login no tenga tabstop para que con enter se 

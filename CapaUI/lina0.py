@@ -314,7 +314,7 @@ def discover_program_modules() -> Dict[str, Dict[str, str]]:
     """
     modules: Dict[str, Dict[str, str]] = {}
     ui_dir = Path(__file__).parent
-    for file_path in sorted(ui_dir.glob("lina[0-9][0-9][0-9].py")):
+    for file_path in sorted(ui_dir.glob("lina[0-9]*.py")):
         module_name = file_path.stem.lower()
         module_path = f"CapaUI.{module_name}"
         try:

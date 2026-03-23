@@ -6,9 +6,9 @@ Proporciona configuración global y funciones comunes inyectadas desde lina0.py
 import json
 from typing import Optional, Callable, Dict, Any, Type
 from fastapi import Request
-from fastapi.responses import Response
+from fastapi.responses import Response, JSONResponse
 from fastapi.templating import Jinja2Templates
-from CapaDAL.dataconn import ctx_user, ctx_empr
+from CapaDAL.dataconn import ctx_user, ctx_empr, sess_conns
 from CapaBRL import config as lina_config
 
 
@@ -140,6 +140,84 @@ class linabase:
             },
             "programs": programs,
         }
+
+    @classmethod
+    async def exec_recode_int(
+        cls,
+        request:             Request,
+        old_code:            int,
+        new_code_raw:        Any,
+        table_model:         Any,
+        key_field:           str,
+        recode_validador_cls: type,
+        prog_code:           str,
+        tab_id:              str = "",
+    ) -> JSONResponse:
+        """
+        Lógica reutilizable de recode para entidades con clave entera.
+        Valida, ejecuta UPDATE (respetando emprcodi si existe) y hace commit.
+        """
+        from mysql.connector import IntegrityError
+
+        conn      = cls.get_task_conn(request, readonly=False)
+        owns_conn = False
+        if not conn:
+            conn      = sess_conns.get_conn(readonly=False, user_override=cls.get_current_user(request))
+            owns_conn = True
+
+        try:
+            new_code = int(new_code_raw)
+        except (TypeError, ValueError):
+            new_code = None
+
+        validador = recode_validador_cls({"old_code": old_code, "new_code": new_code, "conn": conn})
+        resultado = validador.validate()
+        if not resultado["is_valid"]:
+            msg = "\n".join(list(resultado["field_errors"].values()) + resultado["form_errors"])
+            if owns_conn:
+                sess_conns.release_conn(conn)
+            return JSONResponse({"ok": False, "message": msg or "Datos inválidos."}, status_code=400)
+
+        nd            = resultado["normalized_data"]
+        company_field = table_model.get_company_field()
+        try:
+            cur = conn.cursor()
+            if company_field:
+                cur.execute(
+                    f"UPDATE {table_model.TABLE_NAME} SET {key_field} = %s"
+                    f" WHERE {company_field} = %s AND {key_field} = %s",
+                    (nd["new_code"], ctx_empr.get(), nd["old_code"]),
+                )
+            else:
+                cur.execute(
+                    f"UPDATE {table_model.TABLE_NAME} SET {key_field} = %s WHERE {key_field} = %s",
+                    (nd["new_code"], nd["old_code"]),
+                )
+            updated = cur.rowcount
+            cur.close()
+        except IntegrityError as e:
+            if owns_conn:
+                conn.rollback()
+            return JSONResponse({"ok": False, "message": f"No se pudo cambiar el código: {e.msg}"}, status_code=400)
+        except Exception as e:
+            if owns_conn:
+                conn.rollback()
+            return JSONResponse({"ok": False, "message": f"Error al cambiar código: {e}"}, status_code=500)
+
+        if updated == 0:
+            if owns_conn:
+                sess_conns.release_conn(conn)
+            return JSONResponse({"ok": False, "message": "No se encontró el registro."}, status_code=404)
+
+        user = cls.get_current_user(request)
+        if user and tab_id and not owns_conn:
+            sess_conns.commit_and_restart_task_conn(task_id=tab_id, user=user, prog=prog_code)
+        else:
+            conn.commit()
+        if owns_conn:
+            sess_conns.release_conn(conn)
+
+        return JSONResponse({"ok": True, "new_code": nd["new_code"], "message": "Código cambiado correctamente."})
 
     @staticmethod
     def get_table_ui_metadata(table_cls: Type[Any], conn=None) -> Dict[str, Any]:

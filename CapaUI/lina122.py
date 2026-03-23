@@ -17,15 +17,15 @@ from CapaDAL.config import APP_CONFIG
 # ==================== CONSTANTES Y ROUTER ====================
 
 router     = APIRouter()
-PROG_CODE  = "LINA112"
-ROUTE_BASE = "/lina112"
+PROG_CODE  = "LINA122"
+ROUTE_BASE = "/lina122"
 
-LinaClie           = get_table_model("linaclie")
+LinaProv           = get_table_model("linaprov")
 LinaEmpr           = get_table_model("linaempr")
-CLIENT_KEY_FIELD   = LinaClie.get_business_key_field()
-CLIENT_LABEL_FIELD = LinaClie.get_selector_fields()[1]
-EMPR_CODE_FIELD    = LinaEmpr.require_column("emprcodi")
-EMPR_NAME_FIELD    = LinaEmpr.require_column("emprname")
+SUPPLIER_KEY_FIELD   = LinaProv.get_business_key_field()
+SUPPLIER_LABEL_FIELD = LinaProv.get_selector_fields()[1]
+EMPR_CODE_FIELD      = LinaEmpr.require_column("emprcodi")
+EMPR_NAME_FIELD      = LinaEmpr.require_column("emprname")
 
 pdf_templates_dir = Path(__file__).parent.parent / "templates"
 pdf_jinja_env     = Environment(loader=FileSystemLoader(str(pdf_templates_dir)))
@@ -33,8 +33,8 @@ pdf_jinja_env     = Environment(loader=FileSystemLoader(str(pdf_templates_dir)))
 
 # ==================== CLASE PRINCIPAL ====================
 
-class Lina112(linabase):
-    """Módulo de listado de clientes (LINA112)."""
+class Lina122(linabase):
+    """Módulo de listado de proveedores (LINA122)."""
     pass
 
 
@@ -48,57 +48,57 @@ def _get_empr_info():
     return empr_code, empr_name
 
 
-def _get_clientes(conn, desde: int, hasta: int):
-    """Obtiene clientes filtrados por rango de código."""
-    clients = LinaClie.list_all(
-        order_by=CLIENT_KEY_FIELD,
-        fields=[CLIENT_KEY_FIELD, CLIENT_LABEL_FIELD],
+def _get_proveedores(conn, desde: int, hasta: int):
+    """Obtiene proveedores filtrados por rango de código."""
+    provs = LinaProv.list_all(
+        order_by=SUPPLIER_KEY_FIELD,
+        fields=[SUPPLIER_KEY_FIELD, SUPPLIER_LABEL_FIELD],
         conn=conn,
     )
     return [
-        [str(c.get(CLIENT_KEY_FIELD) or "0").zfill(4), str(c.get(CLIENT_LABEL_FIELD) or "")]
-        for c in clients
-        if desde <= int(c.get(CLIENT_KEY_FIELD) or 0) <= hasta
+        [str(p.get(SUPPLIER_KEY_FIELD) or "0").zfill(4), str(p.get(SUPPLIER_LABEL_FIELD) or "")]
+        for p in provs
+        if desde <= int(p.get(SUPPLIER_KEY_FIELD) or 0) <= hasta
     ]
 
 
 # ==================== RUTAS ====================
 
 @router.get("/", response_class=HTMLResponse)
-async def lina112_index(request: Request):
-    Lina112.set_prog_code(PROG_CODE)
-    user = Lina112.get_current_user(request)
+async def lina122_index(request: Request):
+    Lina122.set_prog_code(PROG_CODE)
+    user = Lina122.get_current_user(request)
     if not user:
         return RedirectResponse("/login")
-    return Lina112.templates.TemplateResponse(
-        "lina112/seleccion.html",
+    return Lina122.templates.TemplateResponse(
+        "lina122/seleccion.html",
         {"request": request, "error": None},
     )
 
 
 @router.get("/pdf")
-async def lina112_pdf(
+async def lina122_pdf(
     request: Request,
     desde: int = Query(default=0),
     hasta: int = Query(default=9999),
 ):
-    """Genera el PDF del listado de clientes."""
-    Lina112.set_prog_code(PROG_CODE)
-    user = Lina112.get_current_user(request)
+    """Genera el PDF del listado de proveedores."""
+    Lina122.set_prog_code(PROG_CODE)
+    user = Lina122.get_current_user(request)
     if not user:
         return RedirectResponse("/login")
 
     if desde > hasta:
-        return Lina112.templates.TemplateResponse(
-            "lina112/seleccion.html",
+        return Lina122.templates.TemplateResponse(
+            "lina122/seleccion.html",
             {"request": request, "error": "El valor 'Desde' no puede ser mayor que 'Hasta'."},
         )
 
     empr_code, empr_name = _get_empr_info()
-    conn  = Lina112.get_task_conn(request, readonly=True)
-    filas = _get_clientes(conn, desde, hasta)
+    conn  = Lina122.get_task_conn(request, readonly=True)
+    filas = _get_proveedores(conn, desde, hasta)
 
-    template = pdf_jinja_env.get_template("lina112/main.html")
+    template = pdf_jinja_env.get_template("lina122/main.html")
     html_str = template.render(
         app_name        = APP_CONFIG.get("app_name", ""),
         app_description = APP_CONFIG.get("app_description", ""),
@@ -106,8 +106,8 @@ async def lina112_pdf(
         empr_code = empr_code,
         empr_name = empr_name,
         usuario   = user,
-        titulo    = "Listado de Clientes",
-        subtitulo = f"Clientes {str(desde).zfill(4)} al {str(hasta).zfill(4)}",
+        titulo    = "Listado de Proveedores",
+        subtitulo = f"Proveedores {str(desde).zfill(4)} al {str(hasta).zfill(4)}",
         fecha     = date.today().strftime("%d/%m/%Y"),
         hora      = datetime.now().strftime("%H:%M"),
         columnas  = ["Código", "Nombre"],
@@ -118,35 +118,35 @@ async def lina112_pdf(
     return Response(
         content    = pdf,
         media_type = "application/pdf",
-        headers    = {"Content-Disposition": "inline; filename=clientes.pdf"},
+        headers    = {"Content-Disposition": "inline; filename=proveedores.pdf"},
     )
 
 
 @router.get("/xlsx")
-async def lina112_xlsx(
+async def lina122_xlsx(
     request: Request,
     desde: int = Query(default=0),
     hasta: int = Query(default=9999),
 ):
-    """Genera el XLSX del listado de clientes."""
-    Lina112.set_prog_code(PROG_CODE)
-    user = Lina112.get_current_user(request)
+    """Genera el XLSX del listado de proveedores."""
+    Lina122.set_prog_code(PROG_CODE)
+    user = Lina122.get_current_user(request)
     if not user:
         return RedirectResponse("/login")
 
     if desde > hasta:
-        return Lina112.templates.TemplateResponse(
-            "lina112/seleccion.html",
+        return Lina122.templates.TemplateResponse(
+            "lina122/seleccion.html",
             {"request": request, "error": "El valor 'Desde' no puede ser mayor que 'Hasta'."},
         )
 
     empr_code, empr_name = _get_empr_info()
-    conn  = Lina112.get_task_conn(request, readonly=True)
-    filas = _get_clientes(conn, desde, hasta)
+    conn  = Lina122.get_task_conn(request, readonly=True)
+    filas = _get_proveedores(conn, desde, hasta)
 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Clientes"
+    ws.title = "Proveedores"
 
     header_font   = Font(bold=True, color="FFFFFF", size=10)
     header_fill   = PatternFill("solid", fgColor="4472C4")
@@ -155,7 +155,7 @@ async def lina112_xlsx(
     subtitle_font = Font(size=8, color="555555")
 
     ws.merge_cells("A1:B1")
-    ws["A1"]      = "Listado de Clientes"
+    ws["A1"]      = "Listado de Proveedores"
     ws["A1"].font = title_font
 
     ws.merge_cells("A2:B2")
@@ -163,7 +163,7 @@ async def lina112_xlsx(
     ws["A2"].font = subtitle_font
 
     ws.merge_cells("A3:B3")
-    ws["A3"]      = f"Clientes {str(desde).zfill(4)} al {str(hasta).zfill(4)} — Usuario: {user} — {date.today().strftime('%d/%m/%Y')} {datetime.now().strftime('%H:%M')}"
+    ws["A3"]      = f"Proveedores {str(desde).zfill(4)} al {str(hasta).zfill(4)} — Usuario: {user} — {date.today().strftime('%d/%m/%Y')} {datetime.now().strftime('%H:%M')}"
     ws["A3"].font = subtitle_font
 
     ws.append([])
@@ -187,5 +187,5 @@ async def lina112_xlsx(
     return Response(
         content    = buffer.read(),
         media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers    = {"Content-Disposition": "attachment; filename=clientes.xlsx"},
+        headers    = {"Content-Disposition": "attachment; filename=proveedores.xlsx"},
     )

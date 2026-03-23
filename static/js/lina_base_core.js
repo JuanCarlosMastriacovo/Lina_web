@@ -660,6 +660,8 @@ if (_linaViewportCfgEl) {
       const detailUrlBase = cfg.detailUrlBase || '';
       const codeUppercase = !!cfg.codeUppercase;
       const maxCodeLength = cfg.maxCodeLength  || 0;
+      const codeMin       = (cfg.codeMin != null) ? Number(cfg.codeMin) : null;
+      const codeMax       = (cfg.codeMax != null) ? Number(cfg.codeMax) : null;
 
       const cleanCode = (value, upper) => { let text = String(value || '').trim(); if (upper) text = text.toUpperCase(); return text; };
       const clone     = (obj) => ({ ...(obj || {}) });
@@ -674,6 +676,12 @@ if (_linaViewportCfgEl) {
 
         isDirty() { return JSON.stringify(this.original) !== JSON.stringify(this.current); },
         reset()   { this.current = clone(this.original); },
+
+        _setRecodeError(msg) {
+          this.recodeError = msg || '';
+          const errEl = this.$el ? this.$el.querySelector('.change-code-error') : null;
+          if (errEl) { errEl.textContent = this.recodeError; errEl.style.display = this.recodeError ? '' : 'none'; }
+        },
 
         cancel() {
           const panel = this.$el.closest('.md-detail-panel');
@@ -708,7 +716,7 @@ if (_linaViewportCfgEl) {
           if (!currentCode) return;
           this.recodeNewCode = currentCode;
           this.recodeConfirm = false;
-          this.recodeError   = '';
+          this._setRecodeError('');
           const modalEl = this.$el.querySelector('.change-code-modal');
           if (!modalEl || !window.bootstrap) {
             const newCode = await linaPromptCodeChange(entityLabel, currentCode, this.currentLabel(), { uppercase: codeUppercase });
@@ -729,16 +737,22 @@ if (_linaViewportCfgEl) {
           const currentCode = cleanCode(this.currentCode(), codeUppercase);
           const newCode     = cleanCode(this.recodeNewCode, codeUppercase);
           this.recodeNewCode = newCode;
-          if (!newCode)                                        { this.recodeError = 'Debe ingresar un codigo.'; return; }
-          if (maxCodeLength > 0 && newCode.length > maxCodeLength) { this.recodeError = `Máximo ${maxCodeLength} caracteres.`; return; }
-          if (newCode === currentCode)                          { this.recodeError = 'El nuevo codigo debe ser distinto.'; return; }
-          this.recodeError   = '';
+          if (!newCode)                                        { this._setRecodeError('Debe ingresar un codigo.'); return; }
+          if (maxCodeLength > 0 && newCode.length > maxCodeLength) { this._setRecodeError(`Máximo ${maxCodeLength} caracteres.`); return; }
+          if (codeMin !== null || codeMax !== null) {
+            const n = Number(newCode);
+            if (isNaN(n) || (codeMin !== null && n < codeMin) || (codeMax !== null && n > codeMax)) {
+              this._setRecodeError(`El código debe estar entre ${codeMin} y ${codeMax}.`); return;
+            }
+          }
+          if (newCode === currentCode)                          { this._setRecodeError('El nuevo codigo debe ser distinto.'); return; }
+          this._setRecodeError('');
           this.recodeConfirm = true;
         },
 
         closeChangeCodeModal() {
           this.recodeConfirm = false;
-          this.recodeError   = '';
+          this._setRecodeError('');
           if (this.recodeModal) this.recodeModal.hide();
         },
 
@@ -748,7 +762,7 @@ if (_linaViewportCfgEl) {
           const compareCurrent = cleanCode(currentCode, codeUppercase);
           this.recodeNewCode   = newCode;
           if (!newCode || newCode === compareCurrent) {
-            this.recodeError = 'Debe indicar un codigo nuevo valido.';
+            this._setRecodeError('Debe indicar un codigo nuevo valido.');
             return { ok: false, message: this.recodeError };
           }
           const pane  = this.$el.closest('.tab-pane');
@@ -759,7 +773,8 @@ if (_linaViewportCfgEl) {
           const resp    = await fetch(`${recodeUrlBase}/${encodeURIComponent(currentCode)}/recode`, { method: 'POST', headers: { 'X-Tab-Id': tabId }, body: data });
           const payload = await resp.json().catch(() => ({}));
           if (!resp.ok || !payload.ok) {
-            this.recodeError = payload.message || 'No se pudo cambiar el codigo.';
+            this._setRecodeError(payload.message || 'No se pudo cambiar el codigo.');
+            this.recodeConfirm = false;
             return { ok: false, message: this.recodeError };
           }
           this.closeChangeCodeModal();
@@ -785,7 +800,7 @@ if (_linaViewportCfgEl) {
           if (!newCode) return;
           this.recodeNewCode = newCode;
           this.recodeConfirm = true;
-          this.recodeError   = '';
+          this._setRecodeError('');
           const result = await this.confirmChangeCode();
           if (!result || !result.ok) linaShowRecodeReject(result ? result.message : 'No se pudo cambiar el codigo.');
         },

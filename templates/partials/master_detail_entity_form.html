@@ -23,7 +23,9 @@
     entityLabel: '{{ entity_label }}',
     recodeUrlBase: '{{ entity_route_base }}',
     detailUrlBase: '{{ detail_url_base }}',
-    codeUppercase: {{ 'true' if code_uppercase else 'false' }}
+    codeUppercase: {{ 'true' if code_uppercase else 'false' }},
+    codeMin: {{ code_min if code_min is defined else 'null' }},
+    codeMax: {{ code_max if code_max is defined else 'null' }}
 })" @keydown.escape.window.prevent="handleEscape()"
    @selector-recode.window="handleSelectorRecode($event)"
    @selector-delete.window="handleSelectorDelete($event)"
@@ -62,7 +64,7 @@
         {% endif %}
 
         <form id="detail-form" hx-post="{{ entity_route_base }}/save" hx-target="#form-message"
-              @htmx:after-request="handleSaveResponse($event)">
+              novalidate @htmx:after-request="handleSaveResponse($event)">
             <input type="hidden" name="action" value="{{ action }}">
 
             <div class="mb-2">
@@ -72,6 +74,8 @@
                       {% if code_tooltip %}title="{{ code_tooltip }}"{% endif %}
                        style="{{ code_input_style|default('') }}"
                        {% if code_maxlength %}maxlength="{{ code_maxlength }}"{% endif %}
+                       {% if code_min is defined and code_min is not none %}min="{{ code_min }}"{% endif %}
+                       {% if code_max is defined and code_max is not none %}max="{{ code_max }}"{% endif %}
                        {{ 'readonly' if action == 'edit' else 'required' }}>
             </div>
 
@@ -127,7 +131,7 @@
                             <p class="mb-0">Confirma cambiar el codigo <strong x-text="current['{{ code_field }}']"></strong> por <strong x-text="recodeNewCode"></strong>?</p>
                         </div>
                     </template>
-                    <div class="text-danger mt-2" x-text="recodeError" x-show="recodeError"></div>
+                    <div class="change-code-error text-danger mt-2" style="display:none;"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" @click="closeChangeCodeModal()">Cancelar</button>
