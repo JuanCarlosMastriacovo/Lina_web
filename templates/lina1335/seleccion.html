@@ -1,0 +1,49 @@
+<div x-data="{
+  fecha_ini: '{{ hoy }}',
+  fecha_fin: '{{ hoy }}',
+  abrir(base) {
+    if (this.fecha_ini > this.fecha_fin) {
+      linaAlert('La fecha inicial no puede ser mayor que la final.');
+      return;
+    }
+    const params = new URLSearchParams();
+    params.set('fecha_ini', this.fecha_ini);
+    params.set('fecha_fin', this.fecha_fin);
+    (window.top || window).open(base + '?' + params.toString(), '_blank');
+  }
+}" style="font-family:Arial; font-size:9pt; padding:20px;">
+
+  <h3 style="font-size:11pt; margin-bottom:16px;">Ventas de Artículos por Período — Selección</h3>
+
+  {% if error %}
+  <p style="color:red; font-size:8pt;">{{ error }}</p>
+  {% endif %}
+
+  <div style="display:flex; flex-direction:column; gap:10px; max-width:360px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:110px;">Fecha inicial:</label>
+      <input type="date" x-model="fecha_ini"
+             x-init="$nextTick(() => { $el.focus(); })"
+             style="padding:3px 6px; border:1px solid #ccc; border-radius:3px;">
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:110px;">Fecha final:</label>
+      <input type="date" x-model="fecha_fin"
+             style="padding:3px 6px; border:1px solid #ccc; border-radius:3px;">
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button type="button" @click="abrir('/lina1335/pdf')"
+              style="padding:6px 14px; background:#4472C4; color:white;
+                     border:none; border-radius:4px; cursor:pointer;">
+        Ver PDF
+      </button>
+      <button type="button" @click="abrir('/lina1335/xlsx')"
+              style="padding:6px 14px; background:#217346; color:white;
+                     border:none; border-radius:4px; cursor:pointer;">
+        Ver XLSX
+      </button>
+    </div>
+  </div>
+
+</div>

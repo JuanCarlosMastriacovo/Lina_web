@@ -1,0 +1,417 @@
+* emisi¢n de REMITOS DE VENTA
+*1: Emisi¢n
+defi bar 1 of pop1 prom 'Asistencia' key &_kalfa.,'<'+_kalfa+'>'
+defi bar 2 of pop1 prom 'Asistencia' key &_kcodi.,'<'+_kcodi+'>'
+on sele bar 1 of pop1 do asis with 1
+on sele bar 2 of pop1 do asis with 2
+=zopen('CAJA')
+=zopen('BANC')
+=zopen('COHE')
+=zopen('CODE')
+=zopen('CODM')
+loca for codmclpr='C' and codmcodi='REMI'
+=zopen('ARTI')
+=zopen('FVHE')
+=zopen('FVDE')
+=zopen('CTCL')
+=zopen('CLIE')
+wCantReng=0
+wEfec=0
+wBanc=0
+wCtct=0
+m.RengCpbt=40
+m.widtdesc=40
+_cops=1
+WF=_wfil+sys(3)+'.dbf'
+defi wind deta from 07,02 to 20,76 titl '' syst colo sche 12
+pant=0
+do whil .t.
+   do case
+   case pant=0
+      @ 04,00 clea
+      @ 04,00 say 'N§ Cliente' colo &_c1.
+      sele fvhe
+      scat memv blan
+      set orde to nume
+      go bott
+      m.fvhenume=fvhenume+1
+      set orde to
+      m.fvhecodm=codm.codmcodi
+  	   m.fvhefech=_udate
+      @ 04,12 get m.fvhectct pict '@LZ 9999' vali v_ctct()
+      read
+      if read()=12
+         exit
+      endi
+      @ 04,12 say m.fvhectct pict '@LZ 9999'
+      @ 04,17 say clie.cliename
+      @ 04,60 say codm.codmcodi+' N§ '+tran(m.fvhenume,'@L 99999999')
+		if used('WF')
+			sele WF
+			use
+		endi
+		WF=_wfil+sys(3)+'.dbf'
+		sele 0
+		crea tabl (WF) (tcodi c(9),tdesc c(m.widtdesc), texis n(5,0), tcant n(5,0),tunit n(11,2))
+		use (WF) alia WF excl
+      sele WF
+      zap
+      scat memv blan
+      for j=1 to m.RengCpbt
+         =zinse('')
+      endf
+      wrec=1
+      pant=1
+   case pant=1
+      @ 07,00 clea
+      sele WF
+      if wrec<=0
+      	wrec=1
+      endi
+      go wrec
+      on key labe escape keyb '{ctrl+w}'
+      brow fiel treng=recn() :2 :h='Rn' :p='@L 99' :w=.f.,;
+         tcodi :9  :h='Codigo' :p='@!' :v=v_codi() :f,;
+         tdesc :34 :h='Descripci¢n' :w=tcodi='*',;
+         texis :5 :h='Exist' :p='@Z 99999'  :w=.f.,;
+         tcant :5 :h='Cant.' :p='@Z 99999':v=v_cant() :w=not empt(tcodi) ,;
+         tunit :11 :h='Unitario' :p='@Z 99999999.99' :w=(m.fvhectct=9000 or allt(tcodi)='*') :v=v_unit() :f;
+         wind deta nome titl 'DETALLE' nocl valid :f v_Reng()
+      on key labe escape
+		dg='\!'
+      wErr=showtota()
+      if not empt(werr)
+      	=zwait(werr)
+      	dg='\\'
+      else
+      	wEfec=m.fvhetota
+      	wBanc=0
+      	wCtct=0
+      	=ShowPago()
+      	@ 22,00 say 'Observ..:' colo &_c1.
+      	@ 23,00 say 'Efectivo:             Transf:             Cta.Cte:            ' colo &_c1.
+*     	             012345678901234567890123456789012345678901234567890123456789
+      	@ 22,09 get m.fvheobse
+      	read
+      	@ 22,09 say m.fvheobse
+      	@ 23,10 get wEfec pict '99999999.99' vali (wEfec>=0 and ShowPago())
+      	@ 23,30 get wBanc pict '99999999.99' vali (wBanc>=0 and ShowPago())
+      	read
+      	@ 23,10 say wEfec pict '99999999.99'
+      	@ 23,30 say wBanc pict '99999999.99'
+		endi
+      wmens=dg+'Graba;\<Corrige;\?Cancela'
+      acti wind _wmens
+      clea
+      @ 00,00 get wansw pict '@*HT '+wmens defa 1
+      read cycl
+      deac wind _wmens
+      do case
+      case wansw=3
+         pant=0
+      case wansw=2
+      case wansw=1
+         pant=2
+      endc
+   case pant=2
+		if not grabacomp()
+      	pant=0
+      	loop
+		endi
+		=zPrtC(codm.codmclpr,codm.codmcodi,m.fvhenume)
+	   pant=0
+   endc
+endd
+if used('WF')
+	sele WF
+	use
+endi
+dele file (WF)
+***********
+func v_ctct
+***********
+priv all like z*
+if m.fvhectct<=0
+	retu .f.
+endi
+sele clie
+loca for cliecodi=m.fvhectct
+if not foun()
+	=zwait('Codigo NO EXISTENTE')
+	retu .f.
+endi
+***********
+func v_reng
+***********
+priv all like z*
+if (empt(tcant) and not empt(tunit)) or (empt(tunit) and not empt(tcant))
+	if m.fvhectct#9000
+		=zwait('Si se ingresa cantidad o unitario, deben ingresarse ambos.')
+		retu .f.
+	endi
+endi
+=showtota()
+retu v_codi() and v_cant(.t.) and v_unit()	
+***********
+func v_codi
+***********
+priv all like z*
+do case
+case empt(tcodi)
+	repl tdesc with '',texis with 0,tcant with 0,tunit with 0
+	=showtota()
+	retu
+case m.fvhectct=9000
+	repl tunit with 0
+	=showtota()
+case allt(tcodi)='*'
+	=showtota()
+	retu
+endc
+sele arti
+loca for articodi=WF.tcodi
+sele WF
+if not foun('ARTI')
+	repl tdesc with '',tcant with 0,texis with 0,tunit with 0
+	=zwait('Item NO EXISTENTE')
+	retu .f.
+else
+	zEx=zExis(arti.articodi)
+	sele WF
+	repl tdesc with arti.artidesc, texis with zEx
+	do case
+	case empt(tunit)
+		if m.fvhectct#9000
+			repl tunit with arti.artiprec
+		endi
+	endc
+endi
+=showtota()
+***********
+func v_cant
+***********
+para zNomess
+priv all like z*
+if left(tcodi,1)='*' or tCant<0
+	retu
+endi
+if not zNoMess
+	if tCant>tExis
+		=zWait('ATENCION!!! Se remite una cantidad mayor que la existencia.')
+		retu
+	endi
+endi
+=showtota()
+***********
+func v_unit
+***********
+if m.fvhectct=9000
+	repl tunit with 0
+endi
+=showtota()
+retu .t. &&tunit>=0
+*************
+func ShowPago
+*************
+priv all like z*
+wCtct=m.fvhetota-wEfec-wBanc
+@ 23,51 say wCtct pict '99999999.99'
+if wCtct<0
+	=zwait('ATENCION !!! se est  pagando m s plata que el total del remito.')
+*	retu .f.
+	retu
+endi
+*************
+func showtota
+*************
+priv all like z*
+zRet=''
+m.fvhetota=0
+wCantReng=0
+zCantItem=0
+sele WF
+if eof() or bof()
+	zwReg=0
+else
+	zWReg=recn()
+endi
+loca for tcant<0
+zNeg=foun()
+go top
+do whil not eof()
+	do case
+	case tcant=0 and empt(tunit)
+		if not empt(tcodi)
+			wCantReng=recn()
+		endi
+	othe
+		wCantReng=recn()
+		m.fvhetota=m.fvhetota+tcant*tunit
+	endc
+	if zNeg and tcant>0
+		*zRet='No pueden mezclarse cantidades negativas y positivas.'
+		*exit
+	endi		
+	zCantItem=zCantItem+tcant
+   skip
+endd
+if empt(zRet)
+	if wCantReng=0 or m.fvhetota=0 
+		if m.fvhectct#9000 &&cuenta para ajustes de stock
+			zRet='No se admiten comprobantes vac¡os o con total cero'
+		endi
+	endi
+endi
+zf=21
+zc=0
+zWont=wont()
+acti scre
+@ zf+00,zc+00 clea 
+@ zf+00,zc+49 say '³TOTALES³     ³           ³' colo &_c1.
+@ zf+01,zc+49 say 'ÀÄÄÄÄÄÄÄÁÄÄÄÄÄÁÄÄÄÄÄÄÄÄÄÄÄÙ' colo &_c1.
+@ zf+00,zc+58 say zCantItem pict '99999'
+@ zf+00,zc+64 say m.fvhetota pict '99999999.99'
+if not empt(zWont)
+	acti wind &zWont
+endi
+sele WF
+if zWreg=0
+	go top
+else
+	go zwReg
+endi
+retu zRet
+**************
+func GrabaComp
+**************
+sele fvhe
+=zinse('A')
+sele wf
+go top
+do whil not eof()
+	if empt(tcodi)
+		skip
+		loop
+	endi
+	sele fvde
+	scat memv blan
+	m.fvdecodm=m.fvhecodm
+	m.fvdenume=m.fvhenume
+	m.fvdefech=m.fvhefech
+	m.fvdereng=recn('WF')
+	m.fvdearti=wf.tcodi
+	m.fvdedesc=wf.tdesc
+	m.fvdecant=wf.tcant
+	m.fvdeunit=wf.tunit
+	=zinse('A')
+	sele wf
+	skip
+endd
+sele ctcl
+scat memv blan
+m.ctclcodi=clie.cliecodi
+m.ctclfech=m.fvhefech
+m.ctclcodm=codm.codmcodi
+m.ctclnumc=m.fvhenume
+m.ctcldebe=m.fvhetota
+m.ctclhabe=0
+=zinse('A')
+if wEfec+wBanc=0
+	retu
+endi
+sele codm
+loca for codmclpr='C' and codmcodi='RECI'
+scat memv
+sele cohe
+scat memv blan
+set orde to nume
+go bott
+m.cohenume=cohenume+1
+set orde to
+m.cohecodm=m.codmcodi
+m.cohefech=m.fvhefech
+m.cohectct=m.fvhectct
+m.cohetota=wEfec+wBanc
+m.coheefec=wEfec
+m.cohebanc=wBanc
+m.coheobse=m.fvheobse
+=zinse('A')
+sele code
+scat memv blan
+m.codecodm=m.cohecodm
+m.codenume=m.cohenume
+m.codereng=1
+m.codedesc='Recibido con '+fvhe.fvhecodm+' N§ '+tran(m.fvhenume,'@L 99999999')
+m.codeunit=m.cohetota
+=zinse('A')
+if wEfec>0
+	sele code
+	scat memv blan
+	m.codecodm=m.cohecodm
+	m.codenume=m.cohenume
+	m.codereng=m.codereng+1
+	m.codedesc=tran(m.coheefec,'99,999,999.99')+' en Efectivo'
+	m.codeunit=0
+	=zinse('A')
+endi
+if wBanc>0
+	sele code
+	scat memv blan
+	m.codecodm=m.cohecodm
+	m.codenume=m.cohenume
+	m.codereng=m.codereng+1
+	m.codedesc=tran(m.cohebanc,'99,999,999.99')+' en Transf. o Dep¢sito'
+	m.codeunit=0
+	=zinse('A')
+endi
+sele ctcl
+scat memv blan
+m.ctclcodi=m.cohectct
+m.ctclfech=m.cohefech
+m.ctclcodm=codm.codmcodi
+m.ctclnumc=m.cohenume
+m.ctcldebe=0
+m.ctclhabe=wEfec+wBanc
+=zinse('A')
+if wEfec>0
+	sele caja
+	scat memv blan
+	m.cajaempr=_emprcodi
+	m.cajaclpr='C'
+	m.cajacodi=m.cohectct
+	m.cajafech=m.cohefech
+	m.cajanumc=m.cohenume
+	m.cajaconc=m.cohecodm+' '+tran(m.cohenume,'@L 99999999')
+	m.cajadebe=0
+	m.cajahabe=wEfec
+	=zinse('A')
+endi
+if wBanc>0
+	sele banc
+	scat memv blan
+	m.bancempr=_emprcodi
+	m.bancclpr='C'
+	m.banccodi=m.cohectct
+	m.bancfech=m.cohefech
+	m.bancnumc=m.cohenume
+	m.bancconc=m.cohecodm+' '+tran(m.cohenume,'@L 99999999')
+	m.bancdebe=0
+	m.banchabe=wBanc
+	=zinse('A')
+endi
+sele codm
+loca for codmclpr='C' and codmcodi='REMI'
+sele fvhe
+repl fvhereci with m.cohenume
+*********
+func asis
+*********
+para zBar
+priv all like z*
+zVarr=uppe(varr())
+do case
+case zVarr='FVHECTCT'
+   keyb tran(z_clie(zBar),'@L 9999')
+case zVarr='TCODI'
+	keyb z_arti()
+endc

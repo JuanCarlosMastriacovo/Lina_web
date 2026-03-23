@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {
+      size: A4 landscape;
+      margin-top:    2.8cm;
+      margin-left:   1.2cm;
+      margin-right:  1.2cm;
+      margin-bottom: 1.5cm;
+      @top-left {
+        content: element(header-left);
+        vertical-align: bottom;
+      }
+      @top-right {
+        content: "{{ app_name }}: {{ app_description }}\A {{ prog_code }} — Usuario: {{ usuario }} — {{ fecha }} {{ hora }}\A Pág. " counter(page) " de " counter(pages);
+        white-space: pre;
+        font-family: Arial, sans-serif;
+        font-size: 8pt;
+        color: #555;
+        text-align: right;
+        vertical-align: bottom;
+      }
+    }
+
+    body { font-family: Arial, sans-serif; font-size: 8pt; margin: 0; }
+
+    .header-left {
+      position: running(header-left);
+      font-family: Arial, sans-serif;
+      text-align: left;
+    }
+    .header-left .empr-line { font-size: 8pt; color: #555; margin: 0 0 1px 0; white-space: nowrap; }
+    .header-left h1         { font-size: 11pt; font-weight: bold; margin: 0 0 1px 0; white-space: nowrap; }
+    .header-left .subtitulo { font-size: 8pt; color: #555; margin: 0; white-space: nowrap; }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background-color: #4472C4; color: white;
+      padding: 3px 5px; text-align: left; font-size: 8pt; white-space: nowrap;
+    }
+    thead th.num { text-align: right; }
+    td { padding: 2px 5px; border-bottom: 1px solid #ddd; font-size: 8pt; }
+    tr:nth-child(even) td { background-color: #f2f2f2; }
+    td.num { text-align: right; }
+
+    tr.total-row td {
+      border-top: 2px solid #4472C4; border-bottom: none;
+      font-weight: bold; background-color: #E9EFF9;
+    }
+
+    col.c-cod  { width:  9%; }
+    col.c-desc { width: 36%; }
+    col.c-vend { width:  8%; }
+    col.c-prec { width: 14%; }
+    col.c-valo { width: 14%; }
+    col.c-pmpe { width:  7%; }
+    col.c-exis { width:  7%; }
+  </style>
+</head>
+<body>
+
+  <div class="header-left">
+    <div class="empr-line">{{ empr_code }} - {{ empr_name }}</div>
+    <h1>{{ titulo }}</h1>
+    <div class="subtitulo">Desde {{ fecha_ini }} hasta {{ fecha_fin }}</div>
+  </div>
+
+  <table>
+    <colgroup>
+      <col class="c-cod">
+      <col class="c-desc">
+      <col class="c-vend">
+      <col class="c-prec">
+      <col class="c-valo">
+      <col class="c-pmpe">
+      <col class="c-exis">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Descripción</th>
+        <th class="num">Vendidas</th>
+        <th class="num">Precio Vta.</th>
+        <th class="num">Valor Vta.</th>
+        <th class="num">PMP</th>
+        <th class="num">Existencia</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for fila in filas %}
+      <tr>
+        <td>{{ fila[0] }}</td>
+        <td>{{ fila[1] }}</td>
+        <td class="num">{{ fila[2] }}</td>
+        <td class="num">{{ fila[3] }}</td>
+        <td class="num">{{ fila[4] }}</td>
+        <td class="num">{{ fila[5] }}</td>
+        <td class="num">{{ fila[6] }}</td>
+      </tr>
+      {% endfor %}
+      <tr class="total-row">
+        <td colspan="4" class="num">TOTAL</td>
+        <td class="num">{{ total_valor }}</td>
+        <td colspan="2"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="font-size: 8pt; color: #555; margin: 6px 0 0 0;">
+    {{ filas|length }} artículo{{ 's' if filas|length != 1 else '' }}.
+  </p>
+
+</body>
+</html>

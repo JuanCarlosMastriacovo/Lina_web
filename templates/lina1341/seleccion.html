@@ -1,0 +1,66 @@
+<div x-data="{
+  articodi: '',
+  fecha_desde: '',
+  fecha_hasta: '{{ hoy }}',
+  abrir() {
+    if (!this.articodi.trim()) {
+      linaAlert('Debe ingresar un código de artículo.');
+      return;
+    }
+    if (this.fecha_desde && this.fecha_hasta && this.fecha_desde > this.fecha_hasta) {
+      linaAlert('La fecha inicial no puede ser mayor que la final.');
+      return;
+    }
+    const params = new URLSearchParams();
+    params.set('articodi', this.articodi.trim().toUpperCase());
+    if (this.fecha_desde) params.set('fecha_desde', this.fecha_desde);
+    if (this.fecha_hasta) params.set('fecha_hasta', this.fecha_hasta);
+    (window.top || window).open('/lina1341/pdf?' + params.toString(), '_blank');
+  }
+}" style="font-family:Arial; font-size:9pt; padding:20px;">
+
+  <h3 style="font-size:11pt; margin-bottom:16px;">Ficha de Cardex — Selección</h3>
+
+  {% if error %}
+  <p style="color:red; font-size:8pt;">{{ error }}</p>
+  {% endif %}
+
+  <div style="display:flex; flex-direction:column; gap:10px; max-width:400px;">
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:120px;">Código Artículo:</label>
+      <input type="text" x-model="articodi"
+             x-init="$nextTick(() => { $el.focus(); })"
+             data-selector-tabla="linaarti"
+             data-selector-campo-cod="articodi"
+             data-selector-campo-desc="artidesc"
+             data-selector-titulo="Buscar Artículo"
+             maxlength="9"
+             style="width:110px; padding:3px 6px; border:1px solid #ccc; border-radius:3px; text-transform:uppercase;"
+             @input="articodi = $el.value.toUpperCase()"
+             @keydown.enter="abrir()">
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:120px;">Fecha desde:</label>
+      <input type="date" x-model="fecha_desde"
+             style="padding:3px 6px; border:1px solid #ccc; border-radius:3px;">
+      <span style="color:#888; font-size:8pt;">(opcional)</span>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:120px;">Fecha hasta:</label>
+      <input type="date" x-model="fecha_hasta"
+             style="padding:3px 6px; border:1px solid #ccc; border-radius:3px;">
+    </div>
+
+    <div style="margin-top:8px;">
+      <button type="button" @click="abrir()"
+              style="padding:6px 14px; background:#4472C4; color:white;
+                     border:none; border-radius:4px; cursor:pointer;">
+        Ver PDF
+      </button>
+    </div>
+  </div>
+
+</div>

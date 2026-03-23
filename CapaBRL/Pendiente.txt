@@ -1,5 +1,7 @@
+
 0. Que ocurrio con .venv en la migracion. ¿conviene recrearlo?
 1 .CurrEmpr
+    En seleccion de empresa no actualiza desde linaempr al arranque
     Que hacer al cambiar empresa:
         a. negar desplegar selección si hay tabs abiertos===>msg
         b. permitir seleccion y buscar si el usuario tiene algun permiso en esa empresa, si no===>msg
@@ -8,6 +10,7 @@
     Que hacer al cambiar fecha:
         a. validar que el usuario tenga permiso de cambiar fecha
         b. negar update de fecha si hay tabs abiertos===>msg
+        c. Si cntx_date#udate mostrar en rojo
 3. Usar la barra de mensajes
 4. Carpeta temp->miscelaneas
 5. buscar y eliminar deadcode
