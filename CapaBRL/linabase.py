@@ -9,6 +9,7 @@ from fastapi import Request
 from fastapi.responses import Response
 from fastapi.templating import Jinja2Templates
 from CapaDAL.dataconn import ctx_user, ctx_empr
+from CapaBRL import config as lina_config
 
 
 class linabase:
@@ -20,19 +21,14 @@ class linabase:
     permisos_por_usuario_func: Optional[Callable[[str], Dict[str, Any]]] = None
     task_conn_provider_func: Optional[Callable[[str, str, bool, str], Any]] = None
     
-    # Configuración global de estilo
-    DEFAULT_FONT_FAMILY = "Microsoft Sans Serif, sans-serif"
-    DEFAULT_FONT_SIZE = "8.25pt"
-    DEFAULT_BG_COLOR = "cornsilk"
-    DEFAULT_MENU_BG_COLOR = "#87CEEB"  # Sky Blue (azul más claro)
-    # Minimo de viewport recomendado para mostrar la UI completa sin recortes.
-    DEFAULT_MIN_VIEWPORT_WIDTH = 1120
-    DEFAULT_MIN_VIEWPORT_HEIGHT = 620
-    # Parametrizacion por programa (codigo en mayusculas).
-    PROGRAM_MIN_VIEWPORTS: Dict[str, Dict[str, int]] = {
-        "LINA111": {"width": 1120, "height": 620},
-        "LINA131": {"width": 1120, "height": 620},
-    }
+    # Configuración global de estilo (fuente en CapaBRL/config.py)
+    DEFAULT_FONT_FAMILY         = lina_config.DEFAULT_FONT_FAMILY
+    DEFAULT_FONT_SIZE           = lina_config.DEFAULT_FONT_SIZE
+    DEFAULT_BG_COLOR            = lina_config.DEFAULT_BG_COLOR
+    DEFAULT_MENU_BG_COLOR       = lina_config.DEFAULT_MENU_BG_COLOR
+    DEFAULT_MIN_VIEWPORT_WIDTH  = lina_config.DEFAULT_MIN_VIEWPORT_WIDTH
+    DEFAULT_MIN_VIEWPORT_HEIGHT = lina_config.DEFAULT_MIN_VIEWPORT_HEIGHT
+    PROGRAM_MIN_VIEWPORTS: Dict[str, Dict[str, int]] = lina_config.PROGRAM_MIN_VIEWPORTS
     
     @classmethod
     def get_curr_emprcodi(cls) -> str:

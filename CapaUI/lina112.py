@@ -101,6 +101,7 @@ async def lina112_pdf(
     template = pdf_jinja_env.get_template("lina112/main.html")
     html_str = template.render(
         app_name  = APP_CONFIG.get("app_name", ""),
+        prog_code = PROG_CODE,
         empr_code = empr_code,
         empr_name = empr_name,
         usuario   = user,

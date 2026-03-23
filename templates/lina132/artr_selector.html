@@ -1,0 +1,40 @@
+{# ============================================================
+   lina132/artr_selector.html — Selector de rubros (F4)
+   Se carga via HTMX en /lina132/artr/selector
+   ============================================================ #}
+<div style="font-family: Arial, sans-serif; font-size: 8.5pt;">
+    <div class="mb-1 px-1">
+        <input type="text" class="form-control form-control-sm"
+               placeholder="Buscar rubro..."
+               hx-get="/lina132/artr/selector"
+               hx-trigger="input changed delay:300ms"
+               hx-target="closest div[style]"
+               name="search"
+               style="font-size: 8.25pt;">
+    </div>
+    <table class="table table-sm table-hover m-0">
+        <thead>
+            <tr>
+                <th style="font-size: 8pt; padding: 3px 6px;">Código</th>
+                <th style="font-size: 8pt; padding: 3px 6px;">Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rubro in rubros %}
+            <tr style="cursor: pointer;"
+                @click="$dispatch('selector-picked', {cod: '{{ rubro.artrcodi }}', desc: '{{ rubro.artrdesc|e }}'});
+                        $dispatch('close-selector')"
+                @keydown.enter.prevent="$dispatch('selector-picked', {cod: '{{ rubro.artrcodi }}', desc: '{{ rubro.artrdesc|e }}'});
+                                        $dispatch('close-selector')"
+                tabindex="0">
+                <td style="padding: 3px 6px;">{{ rubro.artrcodi }}</td>
+                <td style="padding: 3px 6px;">{{ rubro.artrdesc }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="2" style="padding: 3px 6px; color: #888;">Sin rubros para mostrar.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -659,6 +659,7 @@ if (_linaViewportCfgEl) {
       const recodeUrlBase = cfg.recodeUrlBase || '';
       const detailUrlBase = cfg.detailUrlBase || '';
       const codeUppercase = !!cfg.codeUppercase;
+      const maxCodeLength = cfg.maxCodeLength  || 0;
 
       const cleanCode = (value, upper) => { let text = String(value || '').trim(); if (upper) text = text.toUpperCase(); return text; };
       const clone     = (obj) => ({ ...(obj || {}) });
@@ -728,8 +729,9 @@ if (_linaViewportCfgEl) {
           const currentCode = cleanCode(this.currentCode(), codeUppercase);
           const newCode     = cleanCode(this.recodeNewCode, codeUppercase);
           this.recodeNewCode = newCode;
-          if (!newCode)              { this.recodeError = 'Debe ingresar un codigo.'; return; }
-          if (newCode === currentCode) { this.recodeError = 'El nuevo codigo debe ser distinto.'; return; }
+          if (!newCode)                                        { this.recodeError = 'Debe ingresar un codigo.'; return; }
+          if (maxCodeLength > 0 && newCode.length > maxCodeLength) { this.recodeError = `Máximo ${maxCodeLength} caracteres.`; return; }
+          if (newCode === currentCode)                          { this.recodeError = 'El nuevo codigo debe ser distinto.'; return; }
           this.recodeError   = '';
           this.recodeConfirm = true;
         },

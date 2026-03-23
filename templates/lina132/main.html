@@ -1,0 +1,16 @@
+{% extends "master_detail_base.html" %}
+
+{% block list_title %}Artículos{% endblock %}
+{% block route_new %}/lina132/new{% endblock %}
+{% block route_list %}/lina132/list{% endblock %}
+
+{% block grid_content %}
+{% set items = articles %}
+{% set code_field = 'articodi' %}
+{% set label_field = 'artidesc' %}
+{% set code_label = 'Código' %}
+{% set label_column = 'Descripción' %}
+{% set detail_url_base = '/lina132/detail' %}
+{% set route_list = '/lina132/list' %}
+{% include "partials/master_detail_entity_grid.html" %}
+{% endblock %}

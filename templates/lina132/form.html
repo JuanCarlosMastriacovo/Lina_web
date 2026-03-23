@@ -1,0 +1,309 @@
+{# ============================================================
+   lina132/form.html — Formulario de alta/edición de artículo
+   Campos editables: articodi, artidesc, artrcodi, artipmpe, artiprec
+   Campos readonly:  artiexan, artiexfe, artiucco, artiucfe, artiucca
+   ============================================================ #}
+
+{% if article %}
+{% set entity_code  = article.articodi|string|trim %}
+{% set entity_label = article.artidesc|string|trim %}
+{% set val_artrcodi = article.artrcodi|string|trim %}
+{% set val_artipmpe = article.artipmpe|string|trim %}
+{% set val_artiprec = article.artiprec|string|trim %}
+{% set val_artiexan = article.artiexan|string|trim if article.artiexan is defined else '' %}
+{% set val_artiexfe = article.artiexfe|string|trim if article.artiexfe is defined else '' %}
+{% set val_artiucco = article.artiucco|string|trim if article.artiucco is defined else '' %}
+{% set val_artiucfe = article.artiucfe|string|trim if article.artiucfe is defined else '' %}
+{% set val_artiucca = article.artiucca|string|trim if article.artiucca is defined else '' %}
+{% else %}
+{% set entity_code  = '' %}
+{% set entity_label = '' %}
+{% set val_artrcodi = '' %}
+{% set val_artipmpe = '' %}
+{% set val_artiprec = '' %}
+{% set val_artiexan = '' %}
+{% set val_artiexfe = '' %}
+{% set val_artiucco = '' %}
+{% set val_artiucfe = '' %}
+{% set val_artiucca = '' %}
+{% endif %}
+
+<div class="d-flex flex-column h-100"
+     data-detail-url="{{ '/lina132/detail/' ~ entity_code if article else '' }}"
+     x-data="linaCreateMasterDetailFormModel({
+         original: {
+             articodi: '{{ entity_code }}',
+             artidesc: '{{ entity_label }}',
+             artrcodi: '{{ val_artrcodi }}',
+             artipmpe: '{{ val_artipmpe }}',
+             artiprec: '{{ val_artiprec }}'
+         },
+         current: {
+             articodi: '{{ entity_code }}',
+             artidesc: '{{ entity_label }}',
+             artrcodi: '{{ val_artrcodi }}',
+             artipmpe: '{{ val_artipmpe }}',
+             artiprec: '{{ val_artiprec }}'
+         },
+         codeField:     'articodi',
+         labelField:    'artidesc',
+         entityLabel:   'este artículo',
+         recodeUrlBase: '/lina132',
+         detailUrlBase: '/lina132/detail',
+         codeUppercase:  false,
+         maxCodeLength:  9
+     })"
+     @keydown.escape.window.prevent="handleEscape()"
+     @selector-recode.window="handleSelectorRecode($event)"
+     @selector-delete.window="handleSelectorDelete($event)"
+     style="background-color: cornsilk; min-height: 0;">
+
+    <div class="border-bottom p-2"
+         style="background-color: #f5f5f5; min-height: 2.5rem; display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+    </div>
+
+    <div class="p-2" style="overflow: auto; flex-grow: 1; min-height: 0;">
+
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+            <h5 class="m-0" style="font-weight: bold; font-size: 9pt;">
+                {{ 'Editar Artículo' if action == 'edit' else 'Nuevo Artículo' }}
+            </h5>
+            {% if action == 'edit' %}
+            <div class="d-flex align-items-center" style="gap: 0.35rem;">
+                <button type="button" class="btn btn-outline-primary btn-sm"
+                        data-selector-action="recode"
+                        @click="openChangeCodeModal()"
+                        title="Permite cambiar el código del artículo actual"
+                        style="font-size: 8.25pt; padding: 0.2rem 0.4rem;">
+                    Cambiar Código
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm"
+                        data-selector-action="delete"
+                        @click.prevent="requestDelete($event)"
+                        data-delete-confirm="¿Está seguro de eliminar este artículo? ({{ entity_code }} - {{ entity_label }})"
+                        hx-delete="/lina132/{{ entity_code }}/delete"
+                        hx-target="closest .md-detail-panel"
+                        style="font-size: 8.25pt; padding: 0.2rem 0.4rem;">
+                    🗑️ Eliminar
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if table_description %}
+        <div class="alert alert-info py-1 px-2 mb-2" style="font-size: 8.25pt; line-height: 1.2;">
+            {{ table_description }}
+        </div>
+        {% endif %}
+
+        {# Layout: campos editables a la izquierda, info readonly a la derecha #}
+        <div class="d-flex align-items-start" style="gap: 1.5rem;">
+
+            {# ---- Columna izquierda: campos editables ---- #}
+            <div style="flex: 0 0 auto;">
+                <form id="detail-form" hx-post="/lina132/save" hx-target="#form-message"
+                      @htmx:after-request="handleSaveResponse($event)">
+                    <input type="hidden" name="action" value="{{ action }}">
+
+                    {# Código #}
+                    <div class="mb-2">
+                        <label class="form-label"
+                               style="font-weight: bold; font-size: 8.25pt; margin-bottom: 0.2rem;"
+                               {% if field_tooltips and field_tooltips.get('articodi') %}title="{{ field_tooltips.get('articodi') }}"{% endif %}>
+                            Código
+                        </label>
+                        <input type="text" name="articodi" class="form-control form-control-sm"
+                               x-model="current['articodi']"
+                               maxlength="9"
+                               style="width: calc(9ch + 1.5rem); font-size: 8.25pt; background-color: white;"
+                               {{ 'readonly' if action == 'edit' else 'required' }}>
+                    </div>
+
+                    {# Descripción #}
+                    <div class="mb-2">
+                        <label class="form-label"
+                               style="font-weight: bold; font-size: 8.25pt; margin-bottom: 0.2rem;"
+                               {% if field_tooltips and field_tooltips.get('artidesc') %}title="{{ field_tooltips.get('artidesc') }}"{% endif %}>
+                            Descripción
+                        </label>
+                        <input type="text" name="artidesc" class="form-control form-control-sm"
+                               x-model="current['artidesc']"
+                               maxlength="40" required
+                               style="width: calc(40ch + 1.5rem); font-size: 8.25pt; background-color: white;">
+                    </div>
+
+                    {# Rubro con F4 y descripción reactiva via fetch #}
+                    <div class="mb-2"
+                         x-data="{ artrdesc: '{{ artrdesc|default('')|e }}' }">
+                        <label class="form-label"
+                               style="font-weight: bold; font-size: 8.25pt; margin-bottom: 0.2rem;"
+                               {% if field_tooltips and field_tooltips.get('artrcodi') %}title="{{ field_tooltips.get('artrcodi') }}"{% endif %}>
+                            Rubro
+                            <span style="font-size: 7.5pt; color: #888; font-weight: normal;">(F4)</span>
+                        </label>
+                        <div class="d-flex align-items-center" style="gap: 0.5rem;">
+                            <input type="text" name="artrcodi" class="form-control form-control-sm"
+                                   x-model="current['artrcodi']"
+                                   style="width: calc(10ch + 1.5rem); font-size: 8.25pt; background-color: white;"
+                                   required
+                                   data-selector-tabla="linaartr"
+                                   data-selector-campo-cod="artrcodi"
+                                   data-selector-campo-desc="artrdesc"
+                                   data-selector-titulo="Buscar Rubro"
+                                   @change="
+                                       const v = ($el.value || '').trim();
+                                       if (!v) { artrdesc = ''; return; }
+                                       fetch('/lina132/artr/desc?artrcodi=' + encodeURIComponent(v))
+                                           .then(r => r.json())
+                                           .then(d => { artrdesc = d.artrdesc || ''; })
+                                           .catch(() => { artrdesc = ''; });
+                                   ">
+                            <span class="text-muted" style="font-size: 8.25pt;" x-text="artrdesc"></span>
+                        </div>
+                    </div>
+
+                    {# PMP #}
+                    <div class="mb-2">
+                        <label class="form-label"
+                               style="font-weight: bold; font-size: 8.25pt; margin-bottom: 0.2rem;"
+                               {% if field_tooltips and field_tooltips.get('artipmpe') %}title="{{ field_tooltips.get('artipmpe') }}"{% endif %}>
+                            PMP
+                        </label>
+                        <input type="number" name="artipmpe" class="form-control form-control-sm"
+                               x-model="current['artipmpe']"
+                               step="1" min="0" required
+                               style="width: calc(10ch + 1.5rem); font-size: 8.25pt; background-color: white;">
+                    </div>
+
+                    {# Precio #}
+                    <div class="mb-2">
+                        <label class="form-label"
+                               style="font-weight: bold; font-size: 8.25pt; margin-bottom: 0.2rem;"
+                               {% if field_tooltips and field_tooltips.get('artiprec') %}title="{{ field_tooltips.get('artiprec') }}"{% endif %}>
+                            Precio
+                        </label>
+                        <input type="number" name="artiprec" class="form-control form-control-sm"
+                               x-model="current['artiprec']"
+                               step="0.01" min="0" required
+                               style="width: calc(14ch + 1.5rem); font-size: 8.25pt; background-color: white;">
+                    </div>
+
+                    <div id="form-message" class="mt-2" style="font-size: 8.25pt;"></div>
+                </form>
+            </div>
+
+            {# ---- Columna derecha: información solo lectura ---- #}
+            {% if action == 'edit' %}
+            <div style="flex: 0 0 auto; border: 1px solid #ccc; border-radius: 4px; padding: 0.5rem 0.75rem; background-color: #f8f8f8; min-width: 180px;">
+                <div style="font-size: 8pt; color: #777; font-weight: bold; margin-bottom: 0.4rem; border-bottom: 1px solid #ddd; padding-bottom: 0.2rem;">
+                    Solo lectura
+                </div>
+                <div class="d-flex flex-column" style="gap: 0.4rem;">
+                    <div>
+                        <label class="form-label"
+                               style="font-size: 8pt; color: #777; margin-bottom: 0.1rem; display: block;"
+                               {% if field_tooltips and field_tooltips.get('artiexan') %}title="{{ field_tooltips.get('artiexan') }}"{% endif %}>
+                            Exist. Anterior
+                        </label>
+                        <input type="text" class="form-control form-control-sm" readonly
+                               value="{{ val_artiexan }}" tabindex="-1"
+                               style="width: calc(12ch + 1.5rem); font-size: 8.25pt; background-color: #f0f0f0; color: #555;">
+                    </div>
+                    <div>
+                        <label class="form-label"
+                               style="font-size: 8pt; color: #777; margin-bottom: 0.1rem; display: block;"
+                               {% if field_tooltips and field_tooltips.get('artiexfe') %}title="{{ field_tooltips.get('artiexfe') }}"{% endif %}>
+                            Exist. Fecha
+                        </label>
+                        <input type="text" class="form-control form-control-sm" readonly
+                               value="{{ val_artiexfe }}" tabindex="-1"
+                               style="width: calc(12ch + 1.5rem); font-size: 8.25pt; background-color: #f0f0f0; color: #555;">
+                    </div>
+                    <div>
+                        <label class="form-label"
+                               style="font-size: 8pt; color: #777; margin-bottom: 0.1rem; display: block;"
+                               {% if field_tooltips and field_tooltips.get('artiucco') %}title="{{ field_tooltips.get('artiucco') }}"{% endif %}>
+                            Últ. Costo
+                        </label>
+                        <input type="text" class="form-control form-control-sm" readonly
+                               value="{{ val_artiucco }}" tabindex="-1"
+                               style="width: calc(12ch + 1.5rem); font-size: 8.25pt; background-color: #f0f0f0; color: #555;">
+                    </div>
+                    <div>
+                        <label class="form-label"
+                               style="font-size: 8pt; color: #777; margin-bottom: 0.1rem; display: block;"
+                               {% if field_tooltips and field_tooltips.get('artiucfe') %}title="{{ field_tooltips.get('artiucfe') }}"{% endif %}>
+                            Últ. Costo Fecha
+                        </label>
+                        <input type="text" class="form-control form-control-sm" readonly
+                               value="{{ val_artiucfe }}" tabindex="-1"
+                               style="width: calc(12ch + 1.5rem); font-size: 8.25pt; background-color: #f0f0f0; color: #555;">
+                    </div>
+                    <div>
+                        <label class="form-label"
+                               style="font-size: 8pt; color: #777; margin-bottom: 0.1rem; display: block;"
+                               {% if field_tooltips and field_tooltips.get('artiucca') %}title="{{ field_tooltips.get('artiucca') }}"{% endif %}>
+                            Últ. Compra Cant.
+                        </label>
+                        <input type="text" class="form-control form-control-sm" readonly
+                               value="{{ val_artiucca }}" tabindex="-1"
+                               style="width: calc(12ch + 1.5rem); font-size: 8.25pt; background-color: #f0f0f0; color: #555;">
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>{# fin layout dos columnas #}
+    </div>
+
+    <div class="border-top p-1"
+         style="background-color: #f5f5f5; display: flex; gap: 0.3rem; justify-content: flex-start; flex-shrink: 0;">
+        <button type="submit" form="detail-form" class="btn btn-primary btn-sm"
+                :disabled="!isDirty()"
+                style="font-size: 7.5pt; padding: 0.2rem 0.4rem;">
+            ✓ Guardar
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-action="undo"
+                @click="reset()" :disabled="!isDirty()"
+                style="font-size: 7.5pt; padding: 0.2rem 0.4rem;">
+            ↺ Deshacer
+        </button>
+        <button type="button" class="btn btn-light btn-sm border" data-action="cancel"
+                @click="cancel()"
+                style="font-size: 8.25pt; padding: 0.35rem 0.75rem;">
+            ✕ Cancelar
+        </button>
+    </div>
+
+    {# Modal cambio de código #}
+    <div class="modal fade change-code-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar Código</h5>
+                </div>
+                <div class="modal-body">
+                    <template x-if="!recodeConfirm">
+                        <div>
+                            <label class="form-label">Nuevo código</label>
+                            <input type="text" class="form-control form-control-sm change-code-input"
+                                   x-model="recodeNewCode" maxlength="9">
+                        </div>
+                    </template>
+                    <template x-if="recodeConfirm">
+                        <div>
+                            <p class="mb-0">Confirma cambiar el código <strong x-text="current['articodi']"></strong> por <strong x-text="recodeNewCode"></strong>?</p>
+                        </div>
+                    </template>
+                    <div class="text-danger mt-2" x-text="recodeError" x-show="recodeError"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" @click="closeChangeCodeModal()">Cancelar</button>
+                    <button type="button" class="btn btn-primary btn-sm" x-show="!recodeConfirm" @click="proceedChangeCode()">Continuar</button>
+                    <button type="button" class="btn btn-primary btn-sm" x-show="recodeConfirm" @click="confirmChangeCode()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

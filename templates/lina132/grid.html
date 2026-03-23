@@ -1,0 +1,11 @@
+{# ============================================================
+   lina132/grid.html — Grilla de artículos (fragmento HTMX)
+   ============================================================ #}
+{% set items = articles %}
+{% set code_field = 'articodi' %}
+{% set label_field = 'artidesc' %}
+{% set code_label = 'Código' %}
+{% set label_column = 'Descripción' %}
+{% set detail_url_base = '/lina132/detail' %}
+{% set route_list = '/lina132/list' %}
+{% include "partials/master_detail_entity_grid.html" %}

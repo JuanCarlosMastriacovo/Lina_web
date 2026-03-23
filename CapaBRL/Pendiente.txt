@@ -13,7 +13,7 @@ Qué hacer con tabs abiertos al cambiar empresa o fecha.
         o también lógica de negocio y validaciones de alta/modificación.        
 
 4. Usar la barra de mensajes
-5. Forms modales de asistencia y selectores de single record
+
 6. Listados
 ***OK *** Que los botones tambien presenten tool tips con su función
 ***OK *** Session date
@@ -44,3 +44,4 @@ DESCARTADO Validaciones de campos en CapaDAL y localmente para el prog en CapaUI
     
     "<expr" o "<=expr" limite superior del valor
     ">expr" o ">=expr" limite inferior del valor
+***OK ***Forms modales de asistencia y selectores de single record
