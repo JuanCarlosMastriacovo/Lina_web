@@ -1,7 +1,16 @@
-BR-013
-- modulo imprimir comprobantes: migrado de zprtC.prg
+- implementar BR-012 y BR-013
+- en todos los menues contextuales sacar el ícono que aparece e la izquierda de la leyenda
+- En seleccion de empresa no actualiza desde linaempr al arranque
+- Verás que la parte de compras Menu lina31 hasta lina373 es homóloga a la parte de ventas, lina21 hasta lina273, que ya tenemos
+    Necesito que generes los programas de lina31 hasta lina373,
+    considerando
+    Lo que era Ventas, ahora son Compras
+    Lo que era Cobranzas ahora son Pagos
+    Lo que era linaclie y linactcl ahora son liniaprov y linactpr
+    Lo que era debe ahora es haber y viceversa
+    Lo que era emision de comprobantes (remitos, recibos) ahora es registracion (recibimos los comprobantes, no los generamos)
+
 - CurrEmpr
-    En seleccion de empresa no actualiza desde linaempr al arranque
     Que hacer al cambiar empresa:
         a. negar desplegar selección si hay tabs abiertos===>msg
         b. permitir seleccion y buscar si el usuario tiene algun permiso en esa empresa, si no===>msg
@@ -13,8 +22,6 @@ BR-013
         c. Si cntx_date#udate mostrar en rojo
 - Usar la barra de mensajes
 - Que ocurrio con .venv en la migracion. ¿conviene recrearlo?
-- implementar BR-012 y BR-013
-
 ***OK *** Listados
 ***OK *** Que los botones tambien presenten tool tips con su función
 ***OK *** Session date
@@ -52,3 +59,4 @@ DESCARTADO Validaciones de campos en CapaDAL y localmente para el prog en CapaUI
 ***OK *** que siga en brl def get_existencias_batch usa sql crudo teniendo fn_calc_exis para una individual o si tiene que usar sql crudo migrar fn a CapaDAL
 ***OK *** FMT_NROCOMP = "08d" debe ser "06d"
 ***OK *** Listados a txt
+***OK *** modulo imprimir comprobantes: migrado de zprtC.prg

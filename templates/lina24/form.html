@@ -1,0 +1,202 @@
+<!-- ══ MENÚ CONTEXTUAL ══ -->
+<div id="lina24-ctx"
+     style="display:none; position:fixed; z-index:9999; background:#fff;
+            border:1px solid #bbb; border-radius:3px; box-shadow:2px 2px 8px rgba(0,0,0,.25);
+            font-family:Arial; font-size:8.5pt; min-width:110px;">
+  <div id="lina24-ctx-modificar" class="ctx-item">✏ Modificar</div>
+  <div style="border-top:1px solid #eee;"></div>
+  <div id="lina24-ctx-subir"    class="ctx-item">↑ Subir</div>
+  <div id="lina24-ctx-bajar"    class="ctx-item">↓ Bajar</div>
+  <div style="border-top:1px solid #eee;"></div>
+  <div id="lina24-ctx-eliminar" class="ctx-item-danger">🗑 Eliminar</div>
+</div>
+
+<style>
+  #lina24-tbody tr                { background: #fff; }
+  #lina24-tbody tr:nth-child(even){ background: #f7f7f7; }
+  .ctx-item, .ctx-item-danger     { cursor: pointer; }
+</style>
+
+<!-- ══ RAÍZ ══ -->
+<div id="lina24-root" class="d-flex flex-column h-100"
+     style="background-color:cornsilk; min-height:0; font-family:Arial; font-size:8.5pt;">
+
+  <!-- BARRA SUPERIOR -->
+  <div class="border-bottom px-2 py-1" style="background:#f5f5f5; flex-shrink:0;">
+    <span style="font-weight:bold; font-size:9pt;">Emisión de Recibos de Cobranza</span>
+    <span class="ms-2 text-muted" style="font-size:7.5pt;">LINA24</span>
+  </div>
+
+  <!-- ══ FASE 1: ingreso de cliente ══ -->
+  <div id="lina24-fase1" class="flex-grow-1 p-3" style="min-height:0;">
+    <div class="d-flex align-items-center gap-2">
+      <label style="font-size:8pt; color:#555; white-space:nowrap;">
+        N° Cliente <span style="color:#888;">(F4)</span>:
+      </label>
+      <input type="text" id="lina24-cliecodi" maxlength="6"
+             data-selector-tabla="linaclie"
+             data-selector-campo-cod="cliecodi"
+             data-selector-campo-desc="cliename"
+             data-selector-titulo="Buscar Cliente"
+             style="width:70px; padding:3px 6px; border:1px solid #ccc;
+                    border-radius:3px; font-size:9pt; text-align:right;">
+      <span id="lina24-cliename" style="font-size:9pt;"></span>
+    </div>
+  </div>
+
+  <!-- ══ FASE 2: grilla + ingreso de renglones (oculta al inicio) ══ -->
+  <div id="lina24-fase2" class="d-flex flex-column flex-grow-1"
+       style="min-height:0; display:none !important;">
+
+    <!-- Resumen cliente + número de recibo -->
+    <div class="px-2 py-1 border-bottom d-flex justify-content-between align-items-center"
+         style="flex-shrink:0; background:#fffff0; font-size:8pt;">
+      <span>Cliente: <strong id="lina24-clie-resumen"></strong></span>
+      <span style="font-family:monospace; font-size:8.5pt; color:#1a3a6a; font-weight:bold;"
+            id="lina24-reci-num"></span>
+    </div>
+
+    <!-- GRILLA -->
+    <div style="overflow-y:auto; flex:1 1 0; min-height:300px;">
+      <table id="lina24-grid"
+             style="width:100%; border-collapse:collapse; font-size:8pt; table-layout:fixed;">
+        <colgroup>
+          <col style="width:32px;">
+          <col><!-- Concepto: flexible -->
+          <col style="width:110px;">
+        </colgroup>
+        <thead>
+          <tr style="background:#4472C4; color:white; position:sticky; top:0;">
+            <th style="padding:2px 4px; text-align:center;">#</th>
+            <th style="padding:2px 6px;">Concepto</th>
+            <th style="padding:2px 6px; text-align:right;">Unitario</th>
+          </tr>
+        </thead>
+        <tbody id="lina24-tbody">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BARRA DE TOTAL -->
+    <div style="flex-shrink:0; background:#e9eff9; border-top:2px solid #4472C4;
+                border-bottom:1px solid #ccc; padding:2px 8px;
+                display:flex; justify-content:flex-end; align-items:center; gap:16px;
+                font-size:8pt; font-weight:bold;">
+      <span style="color:#555;">TOTAL $:</span>
+      <span id="lina24-total"
+            style="font-family:monospace; font-size:9pt; min-width:100px; text-align:right;">
+        $ 0,00
+      </span>
+    </div>
+
+    <!-- SEPARADOR -->
+    <div style="flex-shrink:0; height:5px; background:#f0ede0;"></div>
+
+    <!-- FILA DE INGRESO -->
+    <div id="lina24-ingreso" style="flex-shrink:0; padding:3px 0;">
+      <table style="width:100%; border-collapse:collapse; font-size:8pt; table-layout:fixed;">
+        <colgroup>
+          <col style="width:32px;">
+          <col>
+          <col style="width:110px;">
+        </colgroup>
+        <tbody>
+          <tr>
+            <td style="padding:1px 4px; text-align:center; color:#888; font-size:8pt;">
+              <span id="inp24-reng">1</span>
+            </td>
+            <td style="padding:1px 4px;">
+              <input type="text" id="inp24-desc" maxlength="40"
+                     placeholder="Concepto"
+                     style="width:100%; padding:1px 4px; border:1px solid #aaa;
+                            border-radius:2px; font-size:8pt; background:#fffff8;">
+            </td>
+            <td style="padding:1px 4px;">
+              <input type="number" id="inp24-unit" min="0" step="0.01" value=""
+                     placeholder="Importe"
+                     style="width:100%; padding:1px 4px; border:1px solid #aaa;
+                            border-radius:2px; font-size:8pt; text-align:right;
+                            background:#fffff8;">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PANEL DE CIERRE (oculto hasta presionar Continuar) -->
+    <div id="lina24-cierre"
+         style="display:none; flex-shrink:0; padding:5px 8px;
+                background:#fffff0; border-top:1px solid #ccc;">
+      <div class="d-flex align-items-center flex-wrap gap-3" style="font-size:8.5pt;">
+        <label style="white-space:nowrap;">
+          Observ.:
+          <input type="text" id="cierre24-obse" maxlength="40"
+                 style="width:200px; padding:1px 4px; border:1px solid #aaa;
+                        border-radius:2px; font-size:8.5pt; background:#fffff8;">
+        </label>
+        <label style="white-space:nowrap;">
+          Efectivo $
+          <input type="number" id="cierre24-efec" min="0" step="0.01" value="0"
+                 style="width:100px; padding:1px 4px; border:1px solid #aaa;
+                        border-radius:2px; font-size:8.5pt; text-align:right;
+                        background:#fffff8;">
+        </label>
+        <label style="white-space:nowrap;">
+          Transf. $
+          <input type="number" id="cierre24-transf" min="0" step="0.01" value="0"
+                 style="width:100px; padding:1px 4px; border:1px solid #aaa;
+                        border-radius:2px; font-size:8.5pt; text-align:right;
+                        background:#fffff8;">
+        </label>
+        <span style="white-space:nowrap; color:#555;">
+          Diferencia: <strong id="cierre24-dif"
+                              style="font-family:monospace; font-size:9pt; min-width:80px;
+                                     display:inline-block; text-align:right;">0,00</strong>
+        </span>
+      </div>
+    </div>
+
+  </div><!-- fin fase2 -->
+
+  <!-- BARRA INFERIOR -->
+  <div class="border-top px-2 py-1 d-flex gap-2 align-items-center"
+       style="background:#f5f5f5; flex-shrink:0;">
+
+    <span id="lina24-btns-fase2" style="display:none;">
+      <button id="lina24-btn-guardar" disabled
+              style="padding:3px 14px; background:#4472C4; color:white; border:none;
+                     border-radius:4px; cursor:pointer; font-size:8.5pt; opacity:0.5;">
+        → Continuar
+      </button>
+    </span>
+
+    <span id="lina24-btns-fase3" style="display:none; gap:6px;">
+      <button id="lina24-btn-confirmar"
+              style="padding:3px 14px; background:#2e7d32; color:white; border:none;
+                     border-radius:4px; cursor:pointer; font-size:8.5pt;">
+        ✓ Guardar
+      </button>
+      <button id="lina24-btn-corregir"
+              style="padding:3px 12px; background:#e65100; color:white; border:none;
+                     border-radius:4px; cursor:pointer; font-size:8.5pt; margin-left:4px;">
+        ✎ Corregir
+      </button>
+    </span>
+
+    <button id="lina24-btn-cancelar"
+            style="padding:3px 12px; background:#fff; color:#555;
+                   border:1px solid #ccc; border-radius:4px; cursor:pointer; font-size:8.5pt;">
+      ✕ Cancelar
+    </button>
+  </div>
+
+</div><!-- fin root -->
+
+<script id="lina24-config" type="application/json">{"maxLineas": {{ max_lineas }}}</script>
+<script>
+  (function () {
+    var s = document.createElement('script');
+    s.src = '/static/js/lina24.js';
+    document.head.appendChild(s);
+  })();
+</script>

@@ -118,6 +118,8 @@ async def cpbte_pdf(
         total_cant = total_cant,
         obse       = datos.obse,
         saldo      = fmt_money(datos.saldo) if datos.saldo is not None else None,
+        pago_efec  = fmt_money(datos.pago_efec) if datos.pago_efec else None,
+        pago_banc  = fmt_money(datos.pago_banc) if datos.pago_banc else None,
         reci_vinculado_num   = reci_num_fmt,
         reci_vinculado_total = fmt_money(datos.reci_vinculado_total) if datos.reci_vinculado_total else None,
     )

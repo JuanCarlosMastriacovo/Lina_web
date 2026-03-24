@@ -63,6 +63,8 @@ class CpbteData:
     renglones_remi: List[RengRemi] = field(default_factory=list)
     renglones_reci: List[RengReci] = field(default_factory=list)
     saldo:         Optional[float] = None   # saldo cta cte cliente (solo ventas)
+    pago_efec:     Optional[float] = None   # coheefec / paheefec
+    pago_banc:     Optional[float] = None   # cohebanc / pahebanc
     reci_vinculado_num:   Optional[int]   = None  # REMI ventas: recibo asociado
     reci_vinculado_total: Optional[float] = None
 
@@ -104,6 +106,8 @@ _TABLES = {
         "cabe_total": "cohetota",
         "cabe_obse":  "coheobse",
         "cabe_reci":  None,
+        "cabe_efec":  "coheefec",
+        "cabe_banc":  "cohebanc",
         "deta_table": "linacode",
         "deta_pk":    "cohenume",
         "deta_reng":  "codereng",
@@ -240,6 +244,20 @@ def _fetch(empr: str, clpr: str, codm: str, nume: int, cur) -> Optional[CpbteDat
             reci_row = cur.fetchone() or {}
             reci_vinculado_total = float(reci_row.get("cohetota") or 0)
 
+    # ── Forma de pago (efectivo / banco) — solo comprobantes con esos campos ──
+    pago_efec = None
+    pago_banc = None
+    efec_col = cfg.get("cabe_efec")
+    banc_col = cfg.get("cabe_banc")
+    if efec_col:
+        v = float(cabe.get(efec_col) or 0)
+        if v:
+            pago_efec = v
+    if banc_col:
+        v = float(cabe.get(banc_col) or 0)
+        if v:
+            pago_banc = v
+
     # ── Saldo cuenta corriente (solo ventas) ─────────────────────────────────
     saldo = None
     if cfg["es_ventas"]:
@@ -302,6 +320,8 @@ def _fetch(empr: str, clpr: str, codm: str, nume: int, cur) -> Optional[CpbteDat
         renglones_remi          = renglones_remi,
         renglones_reci          = renglones_reci,
         saldo                   = saldo,
+        pago_efec               = pago_efec,
+        pago_banc               = pago_banc,
         reci_vinculado_num      = reci_vinculado_num,
         reci_vinculado_total    = reci_vinculado_total,
     )
@@ -354,6 +374,14 @@ def _reci_total_row(total: float) -> str:
     buf = [" "] * 67
     _place(buf, 49, "Total",     5)
     _place(buf, 55, fmt_money(total), 12, rjust=True)
+    return "".join(buf)
+
+
+def _reci_pago_row(label: str, amount: float) -> str:
+    """Fila de forma de pago para recibos (col 0–54 label, col 55–66 importe)."""
+    buf = [" "] * 67
+    _place(buf,  0, label,             54)
+    _place(buf, 55, fmt_money(amount), 12, rjust=True)
     return "".join(buf)
 
 
@@ -439,8 +467,12 @@ def generar_cpbte_txt(
         _place(sep3_buf, 55, "===========", 11)
         lines.append("".join(sep3_buf))
 
+    if datos.pago_efec:
+        lines.append(_reci_pago_row("Recibido en efectivo", datos.pago_efec))
+    if datos.pago_banc:
+        lines.append(_reci_pago_row("Recibido en transferencia o depósito", datos.pago_banc))
     if datos.saldo is not None:
-        lines.append(f"Saldo de su Cuenta a la fecha   $ {fmt_money(datos.saldo)}")
+        lines.append(_reci_pago_row("Saldo de su Cuenta a la fecha", datos.saldo))
     if datos.obse:
         lines.append(f"Obs.: {datos.obse}")
 

@@ -185,11 +185,32 @@
     {% if reci_vinculado_num %}
     <div>Recibido pago Nro. <strong>{{ reci_vinculado_num }}</strong> por $ {{ reci_vinculado_total }}</div>
     {% endif %}
-    {% if saldo is not none %}
-    <div class="saldo-line">Saldo de su Cuenta a la fecha: $ {{ saldo }}</div>
+
+    {% if pago_efec or pago_banc or saldo is not none %}
+    <table style="border-collapse:collapse; font-size:8.5pt; margin-top:6px;">
+      {% if pago_efec %}
+      <tr>
+        <td style="padding:1px 20px 1px 0; white-space:nowrap;">Recibido en efectivo</td>
+        <td style="padding:1px 0; text-align:right; font-family:monospace; white-space:nowrap;">$ {{ pago_efec }}</td>
+      </tr>
+      {% endif %}
+      {% if pago_banc %}
+      <tr>
+        <td style="padding:1px 20px 1px 0; white-space:nowrap;">Recibido en transferencia o depósito</td>
+        <td style="padding:1px 0; text-align:right; font-family:monospace; white-space:nowrap;">$ {{ pago_banc }}</td>
+      </tr>
+      {% endif %}
+      {% if saldo is not none %}
+      <tr style="border-top:1px solid #ccc; font-weight:bold; color:#1a3a6a;">
+        <td style="padding:2px 20px 1px 0; white-space:nowrap;">Saldo de su Cuenta a la fecha</td>
+        <td style="padding:2px 0 1px 0; text-align:right; font-family:monospace; white-space:nowrap; font-weight:bold; color:#1a3a6a;">$ {{ saldo }}</td>
+      </tr>
+      {% endif %}
+    </table>
     {% endif %}
+
     {% if obse %}
-    <div>Obs.: {{ obse }}</div>
+    <div style="margin-top:4px;">Obs.: {{ obse }}</div>
     {% endif %}
   </div>
 

@@ -27,6 +27,7 @@ CLIE_AJUSTE = 9000     # Cliente especial para ajustes de stock (precio unitario
 
 # Límites operativos
 MAX_LINEAS_REMITO = 40   # Máximo de renglones en un remito de venta
+MAX_LINEAS_RECIBO = 40   # Máximo de renglones en un recibo de cobranza
 SELECTOR_MAX_ROWS = 200  # Máximo de filas devueltas por el selector modal
 
 # Formato de numeración de comprobantes (f"{nro:{FMT_NROCOMP}}")
@@ -53,4 +54,5 @@ PROGRAM_MIN_VIEWPORTS: dict = {
     "LINA131": {"width": 1120, "height": 620},
     "LINA132": {"width": 1120, "height": 620},
     "LINA21":  {"width": 1120, "height": 660},
+    "LINA24":  {"width": 1120, "height": 660},
 }
