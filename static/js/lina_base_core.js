@@ -1108,3 +1108,18 @@ window.linaMakeDraggable = function(containerEl, handleEl) {
     document.addEventListener("mouseup",   onUp);
   });
 };
+
+/* ── Barra de mensajes (BR-006): listeners sin onclick en HTML ── */
+(function () {
+  function bindMsgbar() {
+    const ack = document.getElementById('lina-msgbar-ack');
+    if (ack) ack.addEventListener('click', linaAckMsg);
+    const txt = document.getElementById('lina-msgbar-text');
+    if (txt) txt.addEventListener('dblclick', linaOpenMsgDetail);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindMsgbar);
+  } else {
+    bindMsgbar();
+  }
+})();

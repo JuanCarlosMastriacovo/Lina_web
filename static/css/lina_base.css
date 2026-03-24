@@ -4,10 +4,18 @@
    Cargado desde: templates/base.html
    ============================================================ */
 
+/* ── Variables CSS globales (espejo de CapaBRL/config.py) ── */
+:root {
+  --lina-font-family:   "Microsoft Sans Serif", "MS Sans Serif", Tahoma, sans-serif;
+  --lina-font-size:     8.25pt;
+  --lina-bg-color:      cornsilk;
+  --lina-menu-bg:       #87CEEB;
+}
+
 /* ── Tipografía y reset global ── */
 html, body {
-  font-family: "Microsoft Sans Serif", "MS Sans Serif", Tahoma, sans-serif;
-  font-size: 8.25pt;
+  font-family: var(--lina-font-family);
+  font-size: var(--lina-font-size);
   background-color: #f5f5f5;
   margin: 0 !important;
   padding: 0 !important;
@@ -24,8 +32,8 @@ body {
 /* ── Fuente estándar en componentes Bootstrap ── */
 .btn, .form-control, .nav-link, .navbar-brand, .table, h5,
 .form-label, .dropdown-item, .navbar-text, .tab-button {
-  font-family: "Microsoft Sans Serif", "MS Sans Serif", Tahoma, sans-serif !important;
-  font-size: 8.25pt;
+  font-family: var(--lina-font-family) !important;
+  font-size: var(--lina-font-size);
 }
 
 /* ── Navbar ── */
@@ -340,3 +348,9 @@ input[type=number] {
   appearance: textfield;
   -moz-appearance: textfield;
 }
+
+/* ── Menú contextual lina21 ── */
+#lina21-ctx .ctx-item               { padding:5px 14px; cursor:pointer; }
+#lina21-ctx .ctx-item:hover         { background:#e8f0fe; }
+#lina21-ctx .ctx-item-danger        { padding:5px 14px; cursor:pointer; color:#c00; }
+#lina21-ctx .ctx-item-danger:hover  { background:#ffeaea; }

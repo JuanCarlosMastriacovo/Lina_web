@@ -1,5 +1,6 @@
 from typing import List, Dict, Any, Optional, Type
 from .dataconn import sess_conns, ctx_empr
+from CapaBRL.config import SELECTOR_MAX_ROWS
     
 
 _TABLE_MODEL_CACHE: Dict[str, Type["TableBase"]] = {}
@@ -59,6 +60,26 @@ class TableBase:
         finally:
             if not conn:
                 sess_conns.release_conn(_conn)
+    @classmethod
+    def search_by_fields(cls, campo_cod: str, campo_desc: str, term: str, limit: int = SELECTOR_MAX_ROWS, conn=None) -> list:
+        """Busca registros con LIKE en dos campos específicos con filtro de empresa."""
+        like          = f"%{term}%"
+        company_field = cls.get_company_field_required()
+        query = (
+            f"SELECT {campo_cod}, {campo_desc} FROM {cls.TABLE_NAME} "
+            f"WHERE {company_field} = %s "
+            f"AND ({campo_desc} LIKE %s OR CAST({campo_cod} AS CHAR) LIKE %s) "
+            f"ORDER BY {campo_cod} LIMIT {limit}"
+        )
+        _conn = conn or sess_conns.get_conn(readonly=True)
+        try:
+            cur = _conn.cursor(dictionary=True)
+            cur.execute(query, (ctx_empr.get(), like, like))
+            return cur.fetchall()
+        finally:
+            if not conn:
+                sess_conns.release_conn(_conn)
+
     @classmethod
     def search_selector(cls, search_term: str, sort_field: str, conn=None) -> list[dict]:
         """Busca registros para selector usando LIKE en clave y etiqueta."""

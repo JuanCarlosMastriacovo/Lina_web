@@ -1,27 +1,25 @@
 
-0. Que ocurrio con .venv en la migracion. ¿conviene recrearlo?
-1 .CurrEmpr
+- modulo imprimir comprobantes: migrado de zprtC.prg
+- Listados a txt
+- CurrEmpr
     En seleccion de empresa no actualiza desde linaempr al arranque
     Que hacer al cambiar empresa:
         a. negar desplegar selección si hay tabs abiertos===>msg
         b. permitir seleccion y buscar si el usuario tiene algun permiso en esa empresa, si no===>msg
         c. definir nueva plantilla de permisos
-2 .CurrDate
+- CurrDate
     Que hacer al cambiar fecha:
         a. validar que el usuario tenga permiso de cambiar fecha
         b. negar update de fecha si hay tabs abiertos===>msg
         c. Si cntx_date#udate mostrar en rojo
-3. Usar la barra de mensajes
-4. Carpeta temp->miscelaneas
-5. buscar y eliminar deadcode
-6. separar js de html
-7. buscar hardcode y consultar parametrizacion
+- Usar la barra de mensajes
+- Que ocurrio con .venv en la migracion. ¿conviene recrearlo?
+- implementar BR-012 y BR-013
 
 ***OK *** Listados
 ***OK *** Que los botones tambien presenten tool tips con su función
 ***OK *** Session date
-***OK *** Que el botón mostrar/ocultar en pantalla login no tenga tabstop para que con enter se 
-          llegue directamente a "ingresar"
+***OK *** Que el botón mostrar/ocultar en pantalla login no tenga tabstop para que con enter se llegue directamente a "ingresar"
 ***OK *** Que al cerrar el navegador se haga logout en la aplicación
 ***OK *** Ancho de los cuadros de ingreso en forms
 ***OK *** Grilla selector con click en cabecera
@@ -48,3 +46,9 @@ DESCARTADO Validaciones de campos en CapaDAL y localmente para el prog en CapaUI
     "<expr" o "<=expr" limite superior del valor
     ">expr" o ">=expr" limite inferior del valor
 ***OK ***Forms modales de asistencia y selectores de single record
+***OK *** Carpeta temp->miscelaneas
+***OK *** buscar y eliminar deadcode
+***OK *** separar js de html
+***OK *** buscar hardcode y consultar parametrizacion
+***OK *** que siga en brl def get_existencias_batch usa sql crudo teniendo fn_calc_exis para una individual o si tiene que usar sql crudo migrar fn a CapaDAL
+***OK *** FMT_NROCOMP = "08d" debe ser "06d"

@@ -3,11 +3,11 @@ from mysql.connector import pooling
 from typing import Dict, Optional
 from contextvars import ContextVar
 import threading
-from CapaDAL.config import MYSQL_CONFIG
+from CapaDAL.config import MYSQL_CONFIG, DEFAULT_EMPR_CODE
 
 # Contexto de sesión aislado (Thread-safe y Asgi-safe)
 ctx_user: ContextVar[Optional[str]] = ContextVar("ctx_user", default=None)
-ctx_empr: ContextVar[str] = ContextVar("ctx_empr", default="01")
+ctx_empr: ContextVar[str] = ContextVar("ctx_empr", default=DEFAULT_EMPR_CODE)
 ctx_prog: ContextVar[Optional[str]] = ContextVar("ctx_prog", default=None)
 ctx_date: ContextVar[str] = ContextVar("ctx_date", default="")
 

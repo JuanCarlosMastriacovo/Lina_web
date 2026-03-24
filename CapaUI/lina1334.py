@@ -7,12 +7,16 @@ from datetime import date, datetime
 from io import BytesIO
 
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment
 
 from CapaBRL.linabase import linabase
+from CapaBRL.formatters import fmt_money
+from CapaBRL.stock_brl import get_existencias_batch
 from CapaDAL.tablebase import get_table_model
-from CapaDAL.dataconn import ctx_empr, sess_conns
 from CapaDAL.config import APP_CONFIG
+from CapaUI.xlsx_styles import (
+    TITLE_FONT, SUBTITLE_FONT, HEADER_FONT, HEADER_FILL, HEADER_ALIGN,
+    TOTAL_FONT, CURRENCY_FORMAT,
+)
 
 # ==================== CONSTANTES Y ROUTER ====================
 
@@ -21,10 +25,7 @@ PROG_CODE  = "LINA1334"
 ROUTE_BASE = "/lina1334"
 
 LinaArti          = get_table_model("linaarti")
-LinaEmpr          = get_table_model("linaempr")
 ARTICLE_KEY_FIELD = LinaArti.get_business_key_field()
-EMPR_CODE_FIELD   = LinaEmpr.require_column("emprcodi")
-EMPR_NAME_FIELD   = LinaEmpr.require_column("emprname")
 
 pdf_templates_dir = Path(__file__).parent.parent / "templates"
 pdf_jinja_env     = Environment(loader=FileSystemLoader(str(pdf_templates_dir)))
@@ -39,18 +40,6 @@ class Lina1334(linabase):
 
 # ==================== FUNCIONES AUXILIARES ====================
 
-def _get_empr_info():
-    empr_code = ctx_empr.get() or "01"
-    empr_rec  = LinaEmpr.row_get({EMPR_CODE_FIELD: empr_code})
-    empr_name = str(empr_rec.get(EMPR_NAME_FIELD) or "").strip() if empr_rec else ""
-    return empr_code, empr_name
-
-
-def _fmt_price(val: float) -> str:
-    """Precio con punto de miles y coma decimal: 1.234,56"""
-    return f"{val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
-
 def _get_filas(fecha_hasta: date) -> list:
     """
     Retorna filas [artrcodi, articodi, artidesc, exis, artipmpe, faltan, artiprec, valor]
@@ -63,36 +52,8 @@ def _get_filas(fecha_hasta: date) -> list:
     if not arts:
         return []
 
-    articodis    = [str(a.get("articodi") or "").strip() for a in arts]
-    placeholders = ",".join(["%s"] * len(articodis))
-
-    conn = sess_conns.get_conn(readonly=True)
-    try:
-        cur = conn.cursor()
-        try:
-            cur.execute(
-                f"""
-                SELECT a.articodi,
-                       COALESCE(a.artiexan, 0)
-                       + COALESCE((SELECT SUM(e.fcdecant) FROM linafcde e
-                                    WHERE e.articodi = a.articodi
-                                      AND e.fchefech <= %s), 0)
-                       - COALESCE((SELECT SUM(s.fvdecant) FROM linafvde s
-                                    WHERE s.articodi = a.articodi
-                                      AND s.fvhefech <= %s), 0)
-                  FROM linaarti a
-                 WHERE a.articodi IN ({placeholders})
-                """,
-                [fecha_hasta, fecha_hasta] + articodis,
-            )
-            exist_map = {
-                str(row[0] or "").strip(): (int(row[1]) if row[1] is not None else 0)
-                for row in cur.fetchall()
-            }
-        finally:
-            cur.close()
-    finally:
-        sess_conns.release_conn(conn)
+    articodis = [str(a.get("articodi") or "").strip() for a in arts]
+    exist_map = get_existencias_batch(articodis, fecha_hasta)
 
     arts_sorted = sorted(arts, key=lambda a: (
         str(a.get("artrcodi") or "").strip(),
@@ -147,13 +108,13 @@ async def lina1334_pdf(
     except ValueError:
         fh = date.today()
 
-    empr_code, empr_name = _get_empr_info()
+    empr_code, empr_name = Lina1334.get_empr_info()
     filas = _get_filas(fh)
 
     total_valor = sum(f[7] for f in filas)
 
     filas_pdf = [
-        [f[0], f[1], f[2], f[3], f[4], f[5], _fmt_price(f[6]), _fmt_price(f[7])]
+        [f[0], f[1], f[2], f[3], f[4], f[5], fmt_money(f[6]), fmt_money(f[7])]
         for f in filas
     ]
 
@@ -170,7 +131,7 @@ async def lina1334_pdf(
         fecha        = date.today().strftime("%d/%m/%Y"),
         hora         = datetime.now().strftime("%H:%M"),
         filas        = filas_pdf,
-        total_valor  = _fmt_price(total_valor),
+        total_valor  = fmt_money(total_valor),
     )
 
     pdf = HTML(string=html_str).write_pdf()
@@ -196,20 +157,19 @@ async def lina1334_xlsx(
     except ValueError:
         fh = date.today()
 
-    empr_code, empr_name = _get_empr_info()
+    empr_code, empr_name = Lina1334.get_empr_info()
     filas = _get_filas(fh)
 
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Bajo PMP"
 
-    title_font    = Font(bold=True, size=12)
-    subtitle_font = Font(size=8, color="555555")
-    header_font   = Font(bold=True, color="FFFFFF", size=9)
-    header_fill   = PatternFill("solid", fgColor="4472C4")
-    header_align  = Alignment(horizontal="left", vertical="center")
-    total_font    = Font(bold=True, size=9)
-    PRICE_FMT     = '#,##0.00;-#,##0.00'
+    title_font    = TITLE_FONT
+    subtitle_font = SUBTITLE_FONT
+    header_font   = HEADER_FONT
+    header_fill   = HEADER_FILL
+    header_align  = HEADER_ALIGN
+    total_font    = TOTAL_FONT
 
     ncols    = 8
     last_col = openpyxl.utils.get_column_letter(ncols)
@@ -243,16 +203,16 @@ async def lina1334_xlsx(
         # A=artrcodi B=articodi C=artidesc D=exis E=artipmpe F=faltan G=artiprec H=valor
         ws.append([fila[0], fila[1], fila[2], fila[3], fila[4], None, fila[6], None])
         ws.cell(row=row_num, column=6).value         = f"=E{row_num}-D{row_num}"
-        ws.cell(row=row_num, column=7).number_format = PRICE_FMT
+        ws.cell(row=row_num, column=7).number_format = CURRENCY_FORMAT
         ws.cell(row=row_num, column=8).value         = f"=F{row_num}*G{row_num}"
-        ws.cell(row=row_num, column=8).number_format = PRICE_FMT
+        ws.cell(row=row_num, column=8).number_format = CURRENCY_FORMAT
 
     total_row = DATA_START + len(filas)
     last_data = total_row - 1
     ws.append(["", "", "TOTAL", "", "", "", "", f"=SUM(H{DATA_START}:H{last_data})"])
     for cell in ws[total_row]:
         cell.font = total_font
-    ws.cell(row=total_row, column=8).number_format = PRICE_FMT
+    ws.cell(row=total_row, column=8).number_format = CURRENCY_FORMAT
 
     ws.column_dimensions["A"].width = 8
     ws.column_dimensions["B"].width = 12

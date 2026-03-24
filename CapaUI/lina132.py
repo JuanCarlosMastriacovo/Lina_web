@@ -23,11 +23,6 @@ ARTICLE_COMPANY_FIELD   = LinaArti.get_company_field_required()
 ARTICLE_KEY_FIELD       = LinaArti.get_business_key_field()
 ARTICLE_SELECTOR_FIELDS = ["articodi", "artidesc"]
 ARTICLE_LABEL_FIELD     = ARTICLE_SELECTOR_FIELDS[1]
-print("KEY:", ARTICLE_KEY_FIELD)
-print("LABEL:", ARTICLE_LABEL_FIELD)
-print("SELECTOR:", ARTICLE_SELECTOR_FIELDS)
-ARTICLE_CODE_MIN = 0
-ARTICLE_CODE_MAX = 999999
 
 
 # ==================== CLASE PRINCIPAL ====================
@@ -43,18 +38,6 @@ class Lina132(linabase):
         if cls.permisos_por_usuario_func:
             return cls.permisos_por_usuario_func(user)
         return {}
-
-    @classmethod
-    async def list_articles_data(cls):
-        return LinaArti.list_all(order_by=cls.DEFAULT_SORT_FIELD, fields=cls.SELECTOR_FIELDS)
-
-    @classmethod
-    async def get_article_by_id(cls, articodi: str):
-        return LinaArti.row_get({ARTICLE_KEY_FIELD: articodi})
-
-    @classmethod
-    async def delete_article_from_db(cls, articodi: str):
-        return LinaArti.row_delete({ARTICLE_KEY_FIELD: articodi})
 
 
 # ==================== VALIDADORES ====================
@@ -280,11 +263,6 @@ async def save_article(
     action:   str = Form(...),
     tab_id:   str = Form(default="", alias="_tab"),
 ):
-    # ---- DEBUG: mostrar datos recibidos ----
-    print(f"DEBUG save_article: action={action!r} articodi={articodi!r} "
-          f"artidesc={artidesc!r} artrcodi={artrcodi!r} "
-          f"artipmpe={artipmpe!r} artiprec={artiprec!r} tab_id={tab_id!r}")
-
     conn      = Lina132.get_task_conn(request, readonly=False)
     validador = ArticuloValidador({
         "articodi": articodi,
@@ -296,10 +274,6 @@ async def save_article(
         "conn":     conn,
     })
     resultado = validador.validate()
-
-    print(f"DEBUG validacion: is_valid={resultado['is_valid']} "
-          f"field_errors={resultado['field_errors']} "
-          f"form_errors={resultado['form_errors']}")
 
     if not resultado["is_valid"]:
         msg = "\n".join(list(resultado["field_errors"].values()) + resultado["form_errors"])
@@ -316,16 +290,13 @@ async def save_article(
                 "artiprec":            float(nd["artiprec"]),
                 ARTICLE_COMPANY_FIELD: ctx_empr.get(),
             }
-            print(f"DEBUG insert_data: {insert_data}")
             got_parents = LinaArti.row_got_parents(insert_data, conn=conn)
-            print(f"DEBUG row_got_parents: {got_parents}")
             if not got_parents:
                 return HTMLResponse(
                     content="No existen todos los registros padres requeridos para crear el artículo.",
                     status_code=409,
                 )
             ok = LinaArti.row_insert(insert_data, conn=conn)
-            print(f"DEBUG row_insert result: {ok}")
         else:
             update_data = {
                 ARTICLE_LABEL_FIELD: nd["artidesc"],
@@ -333,13 +304,11 @@ async def save_article(
                 "artipmpe":           int(nd["artipmpe"]),
                 "artiprec":          float(nd["artiprec"]),
             }
-            print(f"DEBUG update_data: {update_data}")
             ok = LinaArti.row_update(
                 {ARTICLE_KEY_FIELD: nd["articodi"]},
                 update_data,
                 conn=conn,
             )
-            print(f"DEBUG row_update result: {ok}")
 
         if not ok:
             return HTMLResponse(content="No se pudo guardar.", status_code=400)
@@ -351,7 +320,6 @@ async def save_article(
         return HTMLResponse(content=f"Error de integridad al guardar: {e.msg}", status_code=400)
     except Exception as e:
         conn.rollback()
-        print(f"DEBUG excepcion en save: {e}")
         return HTMLResponse(content=f"Error al guardar: {e}", status_code=500)
 
     user = Lina132.get_current_user(request)
@@ -425,13 +393,7 @@ async def recode_article(
 
     nd = resultado["normalized_data"]
     try:
-        cur = conn.cursor()
-        cur.execute(
-            "UPDATE linaarti SET articodi = %s WHERE emprcodi = %s AND articodi = %s",
-            (nd["new_code"], ctx_empr.get(), nd["articodi"]),
-        )
-        updated = cur.rowcount
-        cur.close()
+        updated = LinaArti.update_pk({"articodi": nd["articodi"]}, nd["new_code"], conn)
     except IntegrityError as e:
         if owns_conn:
             conn.rollback()

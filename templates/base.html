@@ -81,8 +81,7 @@
                           data-empr-code="{{ empr.code }}"
                           data-empr-name="{{ empr.name }}"
                           title="Empresa activa (F2)"
-                          aria-expanded="false"
-                          onclick="linaToggleCompanyPicker(event)">
+                          aria-expanded="false">
                     {{ empr.code }} · {{ empr.name }}
                   </button>
                   <div id="session-company-panel" class="ctx-picker-panel"
@@ -97,8 +96,8 @@
                       {% endfor %}
                     </select>
                     <div class="d-flex justify-content-end gap-1 mt-2">
-                      <button type="button" class="btn btn-sm btn-primary" onclick="linaApplySessionCompany()">Aplicar</button>
-                      <button type="button" class="btn btn-sm btn-secondary" onclick="linaCloseCompanyPicker(true)">Cancelar</button>
+                      <button type="button" id="btn-empr-apply" class="btn btn-sm btn-primary">Aplicar</button>
+                      <button type="button" id="btn-empr-cancel" class="btn btn-sm btn-secondary">Cancelar</button>
                     </div>
                   </div>
                 </span>
@@ -113,8 +112,7 @@
                   <button id="btn-fecha" type="button" class="btn-ctx"
                           data-date-iso="{{ get_session_date_iso() }}"
                           title="Fecha de sesión (F3)"
-                          aria-expanded="false"
-                          onclick="linaToggleSessionDatePicker(event)">
+                          aria-expanded="false">
                     {{ get_session_date() }}
                   </button>
                   <div id="session-date-panel" class="ctx-picker-panel"
@@ -123,8 +121,8 @@
                     <input id="session-date-input" type="date" class="form-control form-control-sm"
                            value="{{ get_session_date_iso() }}">
                     <div class="d-flex justify-content-end gap-1 mt-2">
-                      <button type="button" class="btn btn-sm btn-primary" onclick="linaApplySessionDate()">Aplicar</button>
-                      <button type="button" class="btn btn-sm btn-secondary" onclick="linaCloseSessionDatePicker(true)">Cancelar</button>
+                      <button type="button" id="btn-fecha-apply" class="btn btn-sm btn-primary">Aplicar</button>
+                      <button type="button" id="btn-fecha-cancel" class="btn btn-sm btn-secondary">Cancelar</button>
                     </div>
                   </div>
                 </span>
@@ -170,8 +168,8 @@
       <span class="lina-msgbar-icon" id="lina-msgbar-icon" title=""></span>
       <span class="lina-msgbar-text" id="lina-msgbar-text"
             title="Doble clic para ver detalle"
-            ondblclick="linaOpenMsgDetail()"></span>
-      <button class="lina-msgbar-ack" id="lina-msgbar-ack" title="Aceptar" onclick="linaAckMsg()">✔</button>
+            ></span>
+      <button class="lina-msgbar-ack" id="lina-msgbar-ack" title="Aceptar">✔</button>
     </div>
 
     <!-- Contenido de las pestañas -->

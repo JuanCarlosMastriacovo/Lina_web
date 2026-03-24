@@ -20,6 +20,22 @@
       new bootstrap.Popover(el, { trigger: 'focus', html: false });
     });
 
+    // Botones de empresa.
+    const btnEmpr = document.getElementById('btn-empr');
+    if (btnEmpr) btnEmpr.addEventListener('click', linaToggleCompanyPicker);
+    const btnEmprApply = document.getElementById('btn-empr-apply');
+    if (btnEmprApply) btnEmprApply.addEventListener('click', linaApplySessionCompany);
+    const btnEmprCancel = document.getElementById('btn-empr-cancel');
+    if (btnEmprCancel) btnEmprCancel.addEventListener('click', function () { linaCloseCompanyPicker(true); });
+
+    // Botones de fecha de sesión.
+    const btnFecha = document.getElementById('btn-fecha');
+    if (btnFecha) btnFecha.addEventListener('click', linaToggleSessionDatePicker);
+    const btnFechaApply = document.getElementById('btn-fecha-apply');
+    if (btnFechaApply) btnFechaApply.addEventListener('click', linaApplySessionDate);
+    const btnFechaCancel = document.getElementById('btn-fecha-cancel');
+    if (btnFechaCancel) btnFechaCancel.addEventListener('click', function () { linaCloseSessionDatePicker(true); });
+
     // Atajos de teclado dentro del selector de empresa.
     const companyInput = document.getElementById('session-company-input');
     if (companyInput) {

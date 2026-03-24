@@ -7,12 +7,15 @@ from datetime import date, datetime
 from io import BytesIO
 
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment
 
 from CapaBRL.linabase import linabase
+from CapaBRL.formatters import fmt_money
 from CapaDAL.tablebase import get_table_model
-from CapaDAL.dataconn import ctx_empr
 from CapaDAL.config import APP_CONFIG
+from CapaUI.xlsx_styles import (
+    TITLE_FONT, SUBTITLE_FONT, HEADER_FONT, HEADER_FILL, HEADER_ALIGN,
+    CURRENCY_FORMAT, DATE_FMT,
+)
 
 # ==================== CONSTANTES Y ROUTER ====================
 
@@ -21,10 +24,7 @@ PROG_CODE  = "LINA1331"
 ROUTE_BASE = "/lina1331"
 
 LinaArti          = get_table_model("linaarti")
-LinaEmpr          = get_table_model("linaempr")
 ARTICLE_KEY_FIELD = LinaArti.get_business_key_field()   # articodi
-EMPR_CODE_FIELD   = LinaEmpr.require_column("emprcodi")
-EMPR_NAME_FIELD   = LinaEmpr.require_column("emprname")
 
 pdf_templates_dir = Path(__file__).parent.parent / "templates"
 pdf_jinja_env     = Environment(loader=FileSystemLoader(str(pdf_templates_dir)))
@@ -41,9 +41,6 @@ pdf_jinja_env     = Environment(loader=FileSystemLoader(str(pdf_templates_dir)))
 _PRICE_IDX = (4, 7)
 _DATE_IDX  = (6, 8)
 
-_XLSX_PRICE_FMT = '#,##0.00;-#,##0.00'
-_XLSX_DATE_FMT  = 'DD/MM/YYYY'
-
 _HEADERS_CODIGO = ["Código", "Descripción", "Rubro", "PMP", "Precio", "Ex.Ant.", "Fe.Ex.Ant.", "Últ.Costo", "Fe.Últ.C.", "Últ.C.Cant."]
 _HEADERS_RUBRO  = ["Rubro", "Código", "Descripción", "PMP", "Precio", "Ex.Ant.", "Fe.Ex.Ant.", "Últ.Costo", "Fe.Últ.C.", "Últ.C.Cant."]
 
@@ -59,13 +56,6 @@ class Lina1331(linabase):
 
 
 # ==================== FUNCIONES AUXILIARES ====================
-
-def _get_empr_info():
-    empr_code = ctx_empr.get() or "01"
-    empr_rec  = LinaEmpr.row_get({EMPR_CODE_FIELD: empr_code})
-    empr_name = str(empr_rec.get(EMPR_NAME_FIELD) or "").strip() if empr_rec else ""
-    return empr_code, empr_name
-
 
 def _parse_date(val):
     """Convierte un valor de BD a date, o None si no es válido."""
@@ -134,19 +124,14 @@ def _get_articulos(conn, desde: str, hasta: str, orden: str = "codigo"):
     return filas
 
 
-def _fmt_price(val: float) -> str:
-    """Formatea precio con punto de miles y coma decimal: 1.234,56"""
-    return f"{val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
-
 def _filas_for_pdf(filas):
     """Convierte los valores raw a strings para el template PDF."""
     result = []
     for f in filas:
         row = list(f)
-        row[4] = _fmt_price(row[4])
+        row[4] = fmt_money(row[4])
         row[6] = row[6].strftime("%d/%m/%Y") if row[6] else ""
-        row[7] = _fmt_price(row[7])
+        row[7] = fmt_money(row[7])
         row[8] = row[8].strftime("%d/%m/%Y") if row[8] else ""
         result.append(row)
     return result
@@ -189,7 +174,7 @@ async def lina1331_pdf(
             {"request": request, "error": "El valor 'Desde' no puede ser mayor que 'Hasta'."},
         )
 
-    empr_code, empr_name = _get_empr_info()
+    empr_code, empr_name = Lina1331.get_empr_info()
     conn  = Lina1331.get_task_conn(request, readonly=True)
     filas = _filas_for_pdf(_get_articulos(conn, desde, hasta, orden))
 
@@ -242,7 +227,7 @@ async def lina1331_xlsx(
             {"request": request, "error": "El valor 'Desde' no puede ser mayor que 'Hasta'."},
         )
 
-    empr_code, empr_name = _get_empr_info()
+    empr_code, empr_name = Lina1331.get_empr_info()
     conn  = Lina1331.get_task_conn(request, readonly=True)
     filas = _get_articulos(conn, desde, hasta, orden)   # raw values
 
@@ -254,11 +239,11 @@ async def lina1331_xlsx(
     ws = wb.active
     ws.title = "Artículos"
 
-    header_font   = Font(bold=True, color="FFFFFF", size=9)
-    header_fill   = PatternFill("solid", fgColor="4472C4")
-    header_align  = Alignment(horizontal="left", vertical="center")
-    title_font    = Font(bold=True, size=12)
-    subtitle_font = Font(size=8, color="555555")
+    header_font   = HEADER_FONT
+    header_fill   = HEADER_FILL
+    header_align  = HEADER_ALIGN
+    title_font    = TITLE_FONT
+    subtitle_font = SUBTITLE_FONT
 
     ncols    = 10
     last_col = openpyxl.utils.get_column_letter(ncols)
@@ -287,11 +272,11 @@ async def lina1331_xlsx(
     for row_num, fila in enumerate(filas, start=6):
         ws.append(fila)
         for col_idx in _PRICE_IDX:
-            ws.cell(row=row_num, column=col_idx + 1).number_format = _XLSX_PRICE_FMT
+            ws.cell(row=row_num, column=col_idx + 1).number_format = CURRENCY_FORMAT
         for col_idx in _DATE_IDX:
             cell = ws.cell(row=row_num, column=col_idx + 1)
             if cell.value is not None:
-                cell.number_format = _XLSX_DATE_FMT
+                cell.number_format = DATE_FMT
 
     for idx, w in enumerate(widths):
         ws.column_dimensions[openpyxl.utils.get_column_letter(idx + 1)].width = w

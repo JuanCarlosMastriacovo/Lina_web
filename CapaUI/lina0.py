@@ -18,6 +18,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from CapaDAL.dataconn import sess_conns, ctx_user, ctx_empr, ctx_date
 from CapaBRL.linabase import linabase
+from CapaBRL.config import DEFAULT_EMPR_CODE
 from CapaDAL.tablebase import get_table_model
 
 from CapaUI.linaapi import router as linaapi_router
@@ -173,11 +174,11 @@ async def session_context_middleware(request: Request, call_next):
     """Inyecta usuario, empresa y fecha de sesión en el contexto de variables de contexto."""
     try:
         user         = request.session.get("user_code")
-        empr         = request.session.get("empr_code", "01")
+        empr         = request.session.get("empr_code", DEFAULT_EMPR_CODE)
         session_date = request.session.get("session_date", "")
     except Exception:
         user         = None
-        empr         = "01"
+        empr         = DEFAULT_EMPR_CODE
         session_date = ""
 
     token_user = ctx_user.set(user)
@@ -442,7 +443,7 @@ async def login_submit(
         if empr_rows:
             user_company_code = str(empr_rows[0].get(EMPR_CODE_FIELD) or "").strip()
     if not user_company_code:
-        user_company_code = "01"
+        user_company_code = DEFAULT_EMPR_CODE
 
     request.session["user_code"]    = final_user_code
     request.session["empr_code"]    = user_company_code

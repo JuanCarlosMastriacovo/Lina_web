@@ -17,6 +17,25 @@ APP_CONFIG = {
     "version":         "1.0.0",
 }
 
+DEFAULT_EMPR_CODE = "01"
+
+# ==================== CONSTANTES DE NEGOCIO ====================
+
+CODM_REMI   = "REMI"   # Código de movimiento: Remitos de venta
+CODM_RECI   = "RECI"   # Código de movimiento: Recibos de cobro
+CLIE_AJUSTE = 9000     # Cliente especial para ajustes de stock (precio unitario = 0)
+
+# Límites operativos
+MAX_LINEAS_REMITO = 40   # Máximo de renglones en un remito de venta
+SELECTOR_MAX_ROWS = 200  # Máximo de filas devueltas por el selector modal
+
+# Formato de numeración de comprobantes (f"{nro:{FMT_NROCOMP}}")
+FMT_NROCOMP = "06d"
+
+# Longitudes de campo (deben coincidir con el esquema de la BD)
+LEN_TEXTO_LARGO = 40   # fvheobse, fvdedesc, codedesc, etc.
+LEN_CONC_CAJA   = 30   # cajaconc / bancconc
+
 # ==================== ESTILO GLOBAL ====================
 
 DEFAULT_FONT_FAMILY = "Microsoft Sans Serif, sans-serif"

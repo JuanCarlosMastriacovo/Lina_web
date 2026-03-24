@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Query, HTTPException
 from fastapi.responses import JSONResponse
 
 from CapaBRL.linabase import linabase
+from CapaBRL.config import SELECTOR_MAX_ROWS
 from CapaDAL.tablebase import get_table_model
 
 router = APIRouter()
@@ -50,30 +51,13 @@ async def selector_buscar(
     buscar_norm = (buscar or "").strip()
     try:
         if buscar_norm:
-            like = f"%{buscar_norm}%"
-            company_field = Modelo.get_company_field_required()
-            from CapaDAL.dataconn import sess_conns, ctx_empr
-            conn = sess_conns.get_conn(readonly=True)
-            try:
-                cur = conn.cursor(dictionary=True)
-                cur.execute(
-                    f"SELECT {campo_codigo_val}, {campo_desc_val} "
-                    f"FROM {Modelo.TABLE_NAME} "
-                    f"WHERE {company_field} = %s "
-                    f"AND ({campo_desc_val} LIKE %s OR CAST({campo_codigo_val} AS CHAR) LIKE %s) "
-                    f"ORDER BY {campo_codigo_val} "
-                    f"LIMIT 200",
-                    (ctx_empr.get(), like, like),
-                )
-                rows = cur.fetchall()
-            finally:
-                sess_conns.release_conn(conn)
+            rows = Modelo.search_by_fields(campo_codigo_val, campo_desc_val, buscar_norm)
         else:
             rows = Modelo.list_all(
                 order_by=campo_codigo_val,
                 fields=[campo_codigo_val, campo_desc_val],
             )
-            rows = rows[:200]
+            rows = rows[:SELECTOR_MAX_ROWS]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en búsqueda: {e}")
 

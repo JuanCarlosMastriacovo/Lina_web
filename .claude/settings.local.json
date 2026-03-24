@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(xargs grep:*)",
-      "Bash(grep -n \"CREATE TABLE \\\\`linafvhe\\\\`\\\\|CREATE TABLE \\\\`linafvde\\\\`\\\\|CREATE TABLE \\\\`linactcl\\\\`\\\\|CREATE TABLE \\\\`linacohe\\\\`\\\\|CREATE TABLE \\\\`linacode\\\\`\\\\|CREATE TABLE \\\\`linacaja\\\\`\\\\|CREATE TABLE \\\\`linabanc\\\\`\" \"Datos MySQL/LinaDB_Full_Dump.sql\")"
+      "Bash(grep -n \"CREATE TABLE \\\\`linafvhe\\\\`\\\\|CREATE TABLE \\\\`linafvde\\\\`\\\\|CREATE TABLE \\\\`linactcl\\\\`\\\\|CREATE TABLE \\\\`linacohe\\\\`\\\\|CREATE TABLE \\\\`linacode\\\\`\\\\|CREATE TABLE \\\\`linacaja\\\\`\\\\|CREATE TABLE \\\\`linabanc\\\\`\" \"Datos MySQL/LinaDB_Full_Dump.sql\")",
+      "Bash(grep -n \"artr_selector\\\\|artrcodi\" d:/desarrollo_web/lina_web/templates/lina132/*.html)",
+      "Bash(python -c \":*)"
     ]
   }
 }

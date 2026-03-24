@@ -3,10 +3,9 @@ Clase base para todos los módulos de programa (LINA111, LINA112, etc.)
 Proporciona configuración global y funciones comunes inyectadas desde lina0.py
 """
 
-import json
 from typing import Optional, Callable, Dict, Any, Type
 from fastapi import Request
-from fastapi.responses import Response, JSONResponse
+from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from CapaDAL.dataconn import ctx_user, ctx_empr, sess_conns
 from CapaBRL import config as lina_config
@@ -34,6 +33,16 @@ class linabase:
     def get_curr_emprcodi(cls) -> str:
         """Obtiene el código de la empresa actual del contexto de sesión."""
         return ctx_empr.get()
+
+    @classmethod
+    def get_empr_info(cls) -> tuple:
+        """Retorna (empr_code, empr_name) de la empresa activa en la sesión."""
+        from CapaDAL.tablebase import get_table_model
+        LinaEmpr  = get_table_model("linaempr")
+        empr_code = ctx_empr.get() or lina_config.DEFAULT_EMPR_CODE
+        empr_rec  = LinaEmpr.row_get({"emprcodi": empr_code})
+        empr_name = str(empr_rec.get("emprname") or "").strip() if empr_rec else ""
+        return empr_code, empr_name
     
     @classmethod
     def set_templates(cls, tmpl: Jinja2Templates) -> None:
@@ -86,27 +95,6 @@ class linabase:
         """Formatea el título de la pestaña con progcodi (trimmed) + descripción."""
         code_trimmed = prog_code.strip() if prog_code else ""
         return f"{code_trimmed} - {prog_desc}" if code_trimmed else prog_desc
-
-    @staticmethod
-    def attach_msg(response: Response, text: str, level: str = "info", extra: str = "") -> Response:
-        """
-        BR-006: Adjunta un evento 'lina:msg' al header HX-Trigger de la respuesta.
-        El front-end captura este evento y lo muestra en la barra de mensajes.
-
-        level: 'info' | 'warn' | 'error'
-        extra: texto adicional que se mostrará en el modal de detalle.
-        """
-        level = level.lower() if level.lower() in ("info", "warn", "error") else "info"
-        payload = json.dumps({"lina:msg": {"text": text, "level": level, "extra": extra}})
-        existing = response.headers.get("HX-Trigger")
-        if existing:
-            try:
-                merged = {**json.loads(existing), **json.loads(payload)}
-                payload = json.dumps(merged)
-            except Exception:
-                pass
-        response.headers["HX-Trigger"] = payload
-        return response
 
     @classmethod
     def get_program_min_viewport(cls, prog_code: Optional[str]) -> Dict[str, int]:

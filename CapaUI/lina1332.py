@@ -8,13 +8,17 @@ from io import BytesIO
 from itertools import groupby as _groupby
 
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.styles import Alignment
 
 from CapaBRL.linabase import linabase
 from CapaBRL.listaprecios_brl import aplicar_reglas
+from CapaBRL.formatters import fmt_money
 from CapaDAL.tablebase import get_table_model
-from CapaDAL.dataconn import ctx_empr
 from CapaDAL.config import APP_CONFIG
+from CapaUI.xlsx_styles import (
+    TITLE_FONT, SUBTITLE_FONT, HEADER_FONT, HEADER_FILL, HEADER_ALIGN,
+    GROUP_FONT, GROUP_FILL, RIGHT_ALIGN, CURRENCY_FORMAT,
+)
 
 # ==================== CONSTANTES Y ROUTER ====================
 
@@ -24,11 +28,8 @@ ROUTE_BASE = "/lina1332"
 
 LinaArti          = get_table_model("linaarti")
 LinaArtr          = get_table_model("linaartr")
-LinaEmpr          = get_table_model("linaempr")
 ARTICLE_KEY_FIELD = LinaArti.get_business_key_field()
 ARTR_KEY_FIELD    = LinaArtr.get_business_key_field()
-EMPR_CODE_FIELD   = LinaEmpr.require_column("emprcodi")
-EMPR_NAME_FIELD   = LinaEmpr.require_column("emprname")
 
 pdf_templates_dir = Path(__file__).parent.parent / "templates"
 pdf_jinja_env     = Environment(loader=FileSystemLoader(str(pdf_templates_dir)))
@@ -42,18 +43,6 @@ class Lina1332(linabase):
 
 
 # ==================== FUNCIONES AUXILIARES ====================
-
-def _get_empr_info():
-    empr_code = ctx_empr.get() or "01"
-    empr_rec  = LinaEmpr.row_get({EMPR_CODE_FIELD: empr_code})
-    empr_name = str(empr_rec.get(EMPR_NAME_FIELD) or "").strip() if empr_rec else ""
-    return empr_code, empr_name
-
-
-def _fmt_price(val: float) -> str:
-    """Precio con punto de miles y coma decimal: 1.234,56"""
-    return f"{val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
 
 def _get_grupos(conn):
     """
@@ -123,14 +112,14 @@ async def lina1332_pdf(request: Request):
     if not user:
         return RedirectResponse("/login")
 
-    empr_code, empr_name = _get_empr_info()
+    empr_code, empr_name = Lina1332.get_empr_info()
     conn   = Lina1332.get_task_conn(request, readonly=True)
     grupos = _get_grupos(conn)
 
     # Formatear precios para PDF
     for g in grupos:
         for fila in g["filas"]:
-            fila[2] = _fmt_price(fila[2])
+            fila[2] = fmt_money(fila[2])
 
     total_articulos = sum(len(g["filas"]) for g in grupos)
 
@@ -165,7 +154,7 @@ async def lina1332_xlsx(request: Request):
     if not user:
         return RedirectResponse("/login")
 
-    empr_code, empr_name = _get_empr_info()
+    empr_code, empr_name = Lina1332.get_empr_info()
     conn   = Lina1332.get_task_conn(request, readonly=True)
     grupos = _get_grupos(conn)
 
@@ -173,16 +162,14 @@ async def lina1332_xlsx(request: Request):
     ws = wb.active
     ws.title = "Lista de Precios"
 
-    title_font    = Font(bold=True, size=12)
-    subtitle_font = Font(size=8, color="555555")
-    header_font   = Font(bold=True, color="FFFFFF", size=9)
-    header_fill   = PatternFill("solid", fgColor="4472C4")
-    header_align  = Alignment(horizontal="left", vertical="center")
-    grupo_font    = Font(bold=True, size=9, color="1F3864")
-    grupo_fill    = PatternFill("solid", fgColor="BDD7EE")
-    price_align   = Alignment(horizontal="right")
-
-    PRICE_FMT = '#,##0.00;-#,##0.00'
+    title_font    = TITLE_FONT
+    subtitle_font = SUBTITLE_FONT
+    header_font   = HEADER_FONT
+    header_fill   = HEADER_FILL
+    header_align  = HEADER_ALIGN
+    grupo_font    = GROUP_FONT
+    grupo_fill    = GROUP_FILL
+    price_align   = RIGHT_ALIGN
 
     ws.merge_cells("A1:C1")
     ws["A1"]      = "Lista de Precios"
@@ -223,7 +210,7 @@ async def lina1332_xlsx(request: Request):
         for fila in grupo["filas"]:
             ws.append(fila)
             data_row = ws.max_row
-            ws.cell(row=data_row, column=3).number_format = PRICE_FMT
+            ws.cell(row=data_row, column=3).number_format = CURRENCY_FORMAT
             ws.cell(row=data_row, column=3).alignment     = price_align
 
     ws.column_dimensions["A"].width = 12

@@ -134,3 +134,9 @@ En remitos de venta: lina21.py
     Cuando se ingresa "*" el campo "descripcion" deja de ser readonly y se edita, 
     por eso se incluye fvdedesc en linafvde, para guardar estos datos que no son artidesc
     
+******
+BR-014
+******
+Los listados podrán presentarse en pdf, xlsx y txt, excepto cuando se especifique lo contrario
+El formato txt usará una fuente de ancho fijo, por ejemplo ms sans serif, 
+tamaño adecuado al ancho del registro para que entre en A4 vertical o apaisado

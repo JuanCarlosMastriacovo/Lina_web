@@ -7,12 +7,16 @@ from datetime import date, datetime
 from io import BytesIO
 
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment
 
 from CapaBRL.linabase import linabase
+from CapaBRL.formatters import fmt_money
+from CapaBRL.stock_brl import get_existencias_batch, get_ventas_periodo
 from CapaDAL.tablebase import get_table_model
-from CapaDAL.dataconn import ctx_empr, sess_conns
 from CapaDAL.config import APP_CONFIG
+from CapaUI.xlsx_styles import (
+    TITLE_FONT, SUBTITLE_FONT, HEADER_FONT, HEADER_FILL, HEADER_ALIGN,
+    TOTAL_FONT, CURRENCY_FORMAT,
+)
 
 # ==================== CONSTANTES Y ROUTER ====================
 
@@ -21,10 +25,7 @@ PROG_CODE  = "LINA1335"
 ROUTE_BASE = "/lina1335"
 
 LinaArti          = get_table_model("linaarti")
-LinaEmpr          = get_table_model("linaempr")
 ARTICLE_KEY_FIELD = LinaArti.get_business_key_field()
-EMPR_CODE_FIELD   = LinaEmpr.require_column("emprcodi")
-EMPR_NAME_FIELD   = LinaEmpr.require_column("emprname")
 
 pdf_templates_dir = Path(__file__).parent.parent / "templates"
 pdf_jinja_env     = Environment(loader=FileSystemLoader(str(pdf_templates_dir)))
@@ -38,18 +39,6 @@ class Lina1335(linabase):
 
 
 # ==================== FUNCIONES AUXILIARES ====================
-
-def _get_empr_info():
-    empr_code = ctx_empr.get() or "01"
-    empr_rec  = LinaEmpr.row_get({EMPR_CODE_FIELD: empr_code})
-    empr_name = str(empr_rec.get(EMPR_NAME_FIELD) or "").strip() if empr_rec else ""
-    return empr_code, empr_name
-
-
-def _fmt_price(val: float) -> str:
-    """Precio con punto de miles y coma decimal: 1.234,56"""
-    return f"{val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
 
 def _get_filas(fecha_ini: date, fecha_fin: date) -> list:
     """
@@ -67,50 +56,11 @@ def _get_filas(fecha_ini: date, fecha_fin: date) -> list:
     if not arts:
         return []
 
-    articodis    = [str(a.get("articodi") or "").strip() for a in arts]
-    placeholders = ",".join(["%s"] * len(articodis))
+    articodis = [str(a.get("articodi") or "").strip() for a in arts]
+    venta_map = get_ventas_periodo(articodis, fecha_ini, fecha_fin)
 
-    conn = sess_conns.get_conn(readonly=True)
-    try:
-        cur = conn.cursor()
-        try:
-            # Unidades vendidas por artículo en el período
-            cur.execute(
-                f"SELECT articodi, SUM(fvdecant) "
-                f"  FROM linafvde "
-                f" WHERE fvdecant > 0 "
-                f"   AND fvhefech >= %s AND fvhefech <= %s "
-                f"   AND articodi IN ({placeholders}) "
-                f" GROUP BY articodi",
-                [fecha_ini, fecha_fin] + articodis,
-            )
-            venta_map = {
-                str(row[0] or "").strip(): int(row[1] or 0)
-                for row in cur.fetchall()
-            }
-
-            # Existencia al fecha_fin (cardex)
-            cur.execute(
-                f"""SELECT a.articodi,
-                           COALESCE(a.artiexan, 0)
-                           + COALESCE((SELECT SUM(e.fcdecant) FROM linafcde e
-                                        WHERE e.articodi = a.articodi
-                                          AND e.fchefech <= %s), 0)
-                           - COALESCE((SELECT SUM(s.fvdecant) FROM linafvde s
-                                        WHERE s.articodi = a.articodi
-                                          AND s.fvhefech <= %s), 0)
-                      FROM linaarti a
-                     WHERE a.articodi IN ({placeholders})""",
-                [fecha_fin, fecha_fin] + articodis,
-            )
-            exist_map = {
-                str(row[0] or "").strip(): (int(row[1]) if row[1] is not None else 0)
-                for row in cur.fetchall()
-            }
-        finally:
-            cur.close()
-    finally:
-        sess_conns.release_conn(conn)
+    # Existencia al fecha_fin (cardex)
+    exist_map = get_existencias_batch(articodis, fecha_fin)
 
     filas = []
     for a in arts:
@@ -170,13 +120,13 @@ async def lina1335_pdf(
             {"request": request, "error": "La fecha inicial no puede ser mayor que la final.", "hoy": hoy.isoformat()},
         )
 
-    empr_code, empr_name = _get_empr_info()
+    empr_code, empr_name = Lina1335.get_empr_info()
     filas = _get_filas(fi, ff)
 
     total_valor = sum(f[4] for f in filas)
 
     filas_pdf = [
-        [f[0], f[1], f[2], _fmt_price(f[3]), _fmt_price(f[4]), f[5], f[6]]
+        [f[0], f[1], f[2], fmt_money(f[3]), fmt_money(f[4]), f[5], f[6]]
         for f in filas
     ]
 
@@ -194,7 +144,7 @@ async def lina1335_pdf(
         fecha       = hoy.strftime("%d/%m/%Y"),
         hora        = datetime.now().strftime("%H:%M"),
         filas       = filas_pdf,
-        total_valor = _fmt_price(total_valor),
+        total_valor = fmt_money(total_valor),
     )
 
     pdf = HTML(string=html_str).write_pdf()
@@ -232,20 +182,19 @@ async def lina1335_xlsx(
             {"request": request, "error": "La fecha inicial no puede ser mayor que la final.", "hoy": hoy.isoformat()},
         )
 
-    empr_code, empr_name = _get_empr_info()
+    empr_code, empr_name = Lina1335.get_empr_info()
     filas = _get_filas(fi, ff)
 
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Ventas por Período"
 
-    title_font    = Font(bold=True, size=12)
-    subtitle_font = Font(size=8, color="555555")
-    header_font   = Font(bold=True, color="FFFFFF", size=9)
-    header_fill   = PatternFill("solid", fgColor="4472C4")
-    header_align  = Alignment(horizontal="left", vertical="center")
-    total_font    = Font(bold=True, size=9)
-    PRICE_FMT     = '#,##0.00;-#,##0.00'
+    title_font    = TITLE_FONT
+    subtitle_font = SUBTITLE_FONT
+    header_font   = HEADER_FONT
+    header_fill   = HEADER_FILL
+    header_align  = HEADER_ALIGN
+    total_font    = TOTAL_FONT
 
     ncols    = 7
     last_col = openpyxl.utils.get_column_letter(ncols)
@@ -278,16 +227,16 @@ async def lina1335_xlsx(
         row_num = DATA_START + i
         # A=articodi B=artidesc C=vendidas D=artiprec E=valor F=artipmpe G=exis
         ws.append([fila[0], fila[1], fila[2], fila[3], None, fila[5], fila[6]])
-        ws.cell(row=row_num, column=4).number_format = PRICE_FMT
+        ws.cell(row=row_num, column=4).number_format = CURRENCY_FORMAT
         ws.cell(row=row_num, column=5).value         = f"=C{row_num}*D{row_num}"
-        ws.cell(row=row_num, column=5).number_format = PRICE_FMT
+        ws.cell(row=row_num, column=5).number_format = CURRENCY_FORMAT
 
     total_row = DATA_START + len(filas)
     last_data = total_row - 1
     ws.append(["", "TOTAL", "", "", f"=SUM(E{DATA_START}:E{last_data})", "", ""])
     for cell in ws[total_row]:
         cell.font = total_font
-    ws.cell(row=total_row, column=5).number_format = PRICE_FMT
+    ws.cell(row=total_row, column=5).number_format = CURRENCY_FORMAT
 
     ws.column_dimensions["A"].width = 12
     ws.column_dimensions["B"].width = 42
