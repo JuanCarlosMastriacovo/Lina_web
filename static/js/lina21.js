@@ -336,7 +336,7 @@
     .then(function(r) { return r.json(); })
     .then(function(d) {
       if (d.ok) {
-        alert(d.message);
+        window.open('/cpbte/pdf?clpr=C&codm=REMI&nume=' + d.fvhenume, '_blank');
         reiniciar();
       } else {
         alert('Error: ' + (d.error || 'desconocido'));

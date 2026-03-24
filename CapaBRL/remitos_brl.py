@@ -1,9 +1,10 @@
 """
-Lógica de negocio para emisión de remitos de venta con cobro.
+Lógica de negocio para emisión y anulación de remitos de venta.
 Extraído de CapaUI/lina21.py (punto 3: cross-layer entanglement).
 """
 from decimal import Decimal
-from CapaBRL.config import FMT_NROCOMP, LEN_TEXTO_LARGO, LEN_CONC_CAJA
+from CapaBRL.config import FMT_NROCOMP, LEN_TEXTO_LARGO, LEN_CONC_CAJA, DEFAULT_EMPR_CODE
+from CapaDAL.dataconn import sess_conns, ctx_empr
 
 
 def _insertar_renglon_recibo(cur, empr, codm, cohenume, codereng, desc, unit):
@@ -185,3 +186,73 @@ def crear_remito_con_cobro(
         cur.close()
 
     return fvhenume, cohenume
+
+
+def anular_remito(codm: str, nro: int) -> dict:
+    """
+    Anula un remito de venta (lógica de anulcomp en LINA22.PRG).
+
+    Pasos (dentro de una transacción):
+      1. Elimina todos los renglones (linafvde).
+      2. Blanquea la cabecera (linafvhe): cliecodi=0, fvhetota=0, fvhereci=0,
+         fvheobse='*** ANULADO ***'.
+      3. Elimina el movimiento de cuenta corriente DEBE (linactcl).
+
+    Retorna {"ok": True} o {"ok": False, "error": "..."}.
+    """
+    empr = ctx_empr.get() or DEFAULT_EMPR_CODE
+    conn = sess_conns.get_conn(readonly=False)
+    try:
+        cur = conn.cursor(dictionary=True)
+        # Leer cabecera actual
+        cur.execute(
+            "SELECT cliecodi, fvhefech, fvhetota, fvheobse"
+            "  FROM linafvhe"
+            " WHERE emprcodi=%s AND codmcodi=%s AND fvhenume=%s",
+            (empr, codm, nro),
+        )
+        row = cur.fetchone()
+        cur.close()
+
+        if not row:
+            return {"ok": False, "error": "Comprobante no encontrado."}
+        if str(row.get("fvheobse") or "").startswith("*** ANULAD"):
+            return {"ok": False, "error": "El comprobante ya fue anulado."}
+
+        cliecodi = int(row["cliecodi"] or 0)
+        fvhefech = row["fvhefech"]
+        fvhetota = float(row["fvhetota"] or 0)
+
+        cur = conn.cursor()
+        # 1. Eliminar renglones
+        cur.execute(
+            "DELETE FROM linafvde"
+            " WHERE emprcodi=%s AND codmcodi=%s AND fvhenume=%s",
+            (empr, codm, nro),
+        )
+        # 2. Blanquear cabecera
+        cur.execute(
+            "UPDATE linafvhe"
+            "   SET cliecodi=0, fvhetota=0, fvhereci=0, fvheobse=%s"
+            " WHERE emprcodi=%s AND codmcodi=%s AND fvhenume=%s",
+            ("*** ANULADO ***", empr, codm, nro),
+        )
+        # 3. Eliminar movimiento de ctcl (DEBE)
+        cur.execute(
+            "DELETE FROM linactcl"
+            " WHERE emprcodi=%s AND cliecodi=%s AND ctclfech=%s"
+            "   AND codmcodi=%s AND ctclnumc=%s AND ctcldebe=%s"
+            " LIMIT 1",
+            (empr, cliecodi, fvhefech, codm, nro, fvhetota),
+        )
+        cur.close()
+        conn.commit()
+        return {"ok": True}
+    except Exception as e:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        return {"ok": False, "error": str(e)}
+    finally:
+        sess_conns.release_conn(conn)

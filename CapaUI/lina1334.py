@@ -11,6 +11,7 @@ import openpyxl
 from CapaBRL.linabase import linabase
 from CapaBRL.formatters import fmt_money
 from CapaBRL.stock_brl import get_existencias_batch
+from CapaBRL.txt_brl import generar_txt, col as txt_col
 from CapaDAL.tablebase import get_table_model
 from CapaDAL.config import APP_CONFIG
 from CapaUI.xlsx_styles import (
@@ -231,4 +232,63 @@ async def lina1334_xlsx(
         content    = buffer.read(),
         media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers    = {"Content-Disposition": "attachment; filename=articulos_bajo_pmp.xlsx"},
+    )
+
+
+_COLUMNAS_TXT = [
+    txt_col("Rubro",      6,  "L"),
+    txt_col("Código",     9,  "L"),
+    txt_col("Descripción",32, "L"),
+    txt_col("Exist.",     8,  "R"),
+    txt_col("PMP",        6,  "R"),
+    txt_col("Faltan",     7,  "R"),
+    txt_col("Precio",     12, "R"),
+    txt_col("Valor",      12, "R"),
+]
+
+
+@router.get("/txt")
+async def lina1334_txt(
+    request: Request,
+    fecha_hasta: str = Query(default=""),
+):
+    Lina1334.set_prog_code(PROG_CODE)
+    user = Lina1334.get_current_user(request)
+    if not user:
+        return RedirectResponse("/login")
+
+    try:
+        fh = date.fromisoformat(fecha_hasta) if fecha_hasta else date.today()
+    except ValueError:
+        fh = date.today()
+
+    empr_code, empr_name = Lina1334.get_empr_info()
+    filas = _get_filas(fh)
+
+    total_valor = sum(f[7] for f in filas)
+
+    filas_txt = [
+        [f[0], f[1], f[2], str(f[3]), str(f[4]), str(f[5]), fmt_money(f[6]), fmt_money(f[7])]
+        for f in filas
+    ]
+    totales_txt = ["", "", "TOTAL", "", "", "", "", fmt_money(total_valor)]
+
+    txt = generar_txt(
+        titulo    = "Artículos Bajo Punto Mínimo de Pedido",
+        subtitulo = f"Al {fh.strftime('%d/%m/%Y')}",
+        columnas  = _COLUMNAS_TXT,
+        filas     = filas_txt,
+        app_name  = APP_CONFIG.get("app_name", ""),
+        empr_code = empr_code,
+        empr_name = empr_name,
+        usuario   = user,
+        fecha     = date.today().strftime("%d/%m/%Y"),
+        hora      = datetime.now().strftime("%H:%M"),
+        totales   = totales_txt,
+    )
+
+    return Response(
+        content    = txt.encode("utf-8"),
+        media_type = "text/plain; charset=utf-8",
+        headers    = {"Content-Disposition": "inline; filename=articulos_bajo_pmp.txt"},
     )

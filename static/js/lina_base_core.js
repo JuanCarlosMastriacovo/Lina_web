@@ -259,8 +259,13 @@ if (_linaViewportCfgEl) {
             const paneElement = document.getElementById('pane-' + tabId);
             if (!paneElement) return;
             paneElement.innerHTML = html;
-            // innerHTML no ejecuta scripts: re-crearlos para que corran
+            // innerHTML no ejecuta scripts: re-crearlos para que corran.
+            // Se omiten scripts con type no ejecutable (ej. application/json)
+            // para evitar errores de sintaxis y para que conserven su id en el DOM.
             paneElement.querySelectorAll('script').forEach(function(oldScript) {
+              var type = (oldScript.type || '').trim().toLowerCase();
+              var executable = !type || type === 'text/javascript' || type === 'module' || type === 'application/javascript';
+              if (!executable) return;
               var newScript = document.createElement('script');
               newScript.textContent = oldScript.textContent;
               oldScript.parentNode.replaceChild(newScript, oldScript);

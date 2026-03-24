@@ -13,6 +13,7 @@ from openpyxl.styles import Alignment
 from CapaBRL.linabase import linabase
 from CapaBRL.listaprecios_brl import aplicar_reglas
 from CapaBRL.formatters import fmt_money
+from CapaBRL.txt_brl import generar_txt_grupos, col as txt_col
 from CapaDAL.tablebase import get_table_model
 from CapaDAL.config import APP_CONFIG
 from CapaUI.xlsx_styles import (
@@ -225,4 +226,54 @@ async def lina1332_xlsx(request: Request):
         content    = buffer.read(),
         media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers    = {"Content-Disposition": "attachment; filename=lista_precios.xlsx"},
+    )
+
+
+_COLUMNAS_TXT = [
+    txt_col("Código",      9,  "L"),
+    txt_col("Descripción", 38, "L"),
+    txt_col("Precio",      12, "R"),
+]
+
+
+@router.get("/txt")
+async def lina1332_txt(request: Request):
+    """Genera el TXT de la lista de precios (BR-014)."""
+    Lina1332.set_prog_code(PROG_CODE)
+    user = Lina1332.get_current_user(request)
+    if not user:
+        return RedirectResponse("/login")
+
+    empr_code, empr_name = Lina1332.get_empr_info()
+    conn   = Lina1332.get_task_conn(request, readonly=True)
+    grupos = _get_grupos(conn)
+
+    grupos_txt = [
+        {
+            "label": (g["artrcodi"] + (" " + g["artrdesc"] if g["artrdesc"] else "")),
+            "filas": [
+                [fila[0], fila[1], fmt_money(fila[2])]
+                for fila in g["filas"]
+            ],
+        }
+        for g in grupos
+    ]
+
+    txt = generar_txt_grupos(
+        titulo    = "Lista de Precios",
+        subtitulo = "",
+        columnas  = _COLUMNAS_TXT,
+        grupos    = grupos_txt,
+        app_name  = APP_CONFIG.get("app_name", ""),
+        empr_code = empr_code,
+        empr_name = empr_name,
+        usuario   = user,
+        fecha     = date.today().strftime("%d/%m/%Y"),
+        hora      = datetime.now().strftime("%H:%M"),
+    )
+
+    return Response(
+        content    = txt.encode("utf-8"),
+        media_type = "text/plain; charset=utf-8",
+        headers    = {"Content-Disposition": "inline; filename=lista_precios.txt"},
     )

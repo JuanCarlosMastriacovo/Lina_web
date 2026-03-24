@@ -220,4 +220,10 @@
 </div><!-- fin root -->
 
 <script id="lina21-config" type="application/json">{"maxLineas": {{ max_lineas }}}</script>
-<script defer src="/static/js/lina21.js"></script>
+<script>
+  (function () {
+    var s = document.createElement('script');
+    s.src = '/static/js/lina21.js';
+    document.head.appendChild(s);
+  })();
+</script>

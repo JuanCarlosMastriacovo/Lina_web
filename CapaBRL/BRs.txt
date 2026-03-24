@@ -140,3 +140,14 @@ BR-014
 Los listados podrán presentarse en pdf, xlsx y txt, excepto cuando se especifique lo contrario
 El formato txt usará una fuente de ancho fijo, por ejemplo ms sans serif, 
 tamaño adecuado al ancho del registro para que entre en A4 vertical o apaisado
+
+******
+BR-015
+******
+Periódicamente encargar a Claude buscar
+Código duplicado
+Dead code
+JS embebido
+Capas cruzadas
+Hardcode parametrizable hacerlo
+Hardcode no parametrizable todo junto a config.py

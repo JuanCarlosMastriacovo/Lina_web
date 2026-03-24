@@ -22,6 +22,7 @@ from CapaBRL.config import DEFAULT_EMPR_CODE
 from CapaDAL.tablebase import get_table_model
 
 from CapaUI.linaapi import router as linaapi_router
+from CapaUI.linacpbte import router as linacpbte_router
 
 
 
@@ -345,6 +346,7 @@ def discover_program_modules() -> Dict[str, Dict[str, str]]:
     return modules
 
 app.include_router(linaapi_router)
+app.include_router(linacpbte_router, prefix="/cpbte", tags=["cpbte"])
 
 def register_program_routers(app_instance: FastAPI, modules: Dict[str, Dict[str, str]]) -> None:
     """Incluye en la app los routers descubiertos dinámicamente."""

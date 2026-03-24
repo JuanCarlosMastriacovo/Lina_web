@@ -9,6 +9,7 @@ from io import BytesIO
 import openpyxl
 
 from CapaBRL.linabase import linabase
+from CapaBRL.txt_brl import generar_txt, col as txt_col
 from CapaDAL.tablebase import get_table_model
 from CapaDAL.config import APP_CONFIG
 from CapaUI.xlsx_styles import (
@@ -178,4 +179,52 @@ async def lina112_xlsx(
         content    = buffer.read(),
         media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers    = {"Content-Disposition": "attachment; filename=clientes.xlsx"},
+    )
+
+
+_COLUMNAS_TXT = [
+    txt_col("Código", 6, "R"),
+    txt_col("Nombre", 40, "L"),
+]
+
+
+@router.get("/txt")
+async def lina112_txt(
+    request: Request,
+    desde: int = Query(default=0),
+    hasta: int = Query(default=9999),
+):
+    """Genera el TXT del listado de clientes (BR-014)."""
+    Lina112.set_prog_code(PROG_CODE)
+    user = Lina112.get_current_user(request)
+    if not user:
+        return RedirectResponse("/login")
+
+    if desde > hasta:
+        return Lina112.templates.TemplateResponse(
+            "lina112/seleccion.html",
+            {"request": request, "error": "El valor 'Desde' no puede ser mayor que 'Hasta'."},
+        )
+
+    empr_code, empr_name = Lina112.get_empr_info()
+    conn  = Lina112.get_task_conn(request, readonly=True)
+    filas = _get_clientes(conn, desde, hasta)
+
+    txt = generar_txt(
+        titulo    = "Listado de Clientes",
+        subtitulo = f"Clientes {str(desde).zfill(4)} al {str(hasta).zfill(4)}",
+        columnas  = _COLUMNAS_TXT,
+        filas     = filas,
+        app_name  = APP_CONFIG.get("app_name", ""),
+        empr_code = empr_code,
+        empr_name = empr_name,
+        usuario   = user,
+        fecha     = date.today().strftime("%d/%m/%Y"),
+        hora      = datetime.now().strftime("%H:%M"),
+    )
+
+    return Response(
+        content    = txt.encode("utf-8"),
+        media_type = "text/plain; charset=utf-8",
+        headers    = {"Content-Disposition": "inline; filename=clientes.txt"},
     )

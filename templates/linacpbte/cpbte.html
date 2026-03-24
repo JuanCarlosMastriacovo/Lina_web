@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {
+      size: A4 portrait;
+      margin-top:    1.5cm;
+      margin-left:   1.5cm;
+      margin-right:  1.5cm;
+      margin-bottom: 1.5cm;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      margin: 0;
+    }
+
+    /* ── Encabezado del comprobante ── */
+    .cpbte-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #333;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    .cpbte-header-left .titulo1 {
+      font-size: 13pt;
+      font-weight: bold;
+      margin: 0 0 2px 0;
+    }
+    .cpbte-header-left .titulo2 {
+      font-size: 10pt;
+      font-weight: bold;
+      margin: 0 0 3px 0;
+      color: #333;
+    }
+    .cpbte-header-left .contacto {
+      font-size: 9pt;
+      margin: 0;
+    }
+    .cpbte-header-right {
+      font-size: 7.5pt;
+      color: #666;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* ── Tabla de renglones ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      background: #4472C4;
+      color: white;
+      padding: 3px 6px;
+      font-size: 8.5pt;
+      text-align: left;
+    }
+    th.r { text-align: right; }
+    td {
+      padding: 2px 6px;
+      border-bottom: 1px solid #e8e8e8;
+      font-size: 8.5pt;
+    }
+    td.r {
+      text-align: right;
+      font-family: monospace;
+    }
+    tr:nth-child(even) td {
+      background: #f5f7fb;
+    }
+
+    /* ── Totales ── */
+    .totals-block {
+      margin-top: 8px;
+      border-top: 2px solid #333;
+      padding-top: 5px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 20px;
+      font-size: 9pt;
+    }
+    .totals-block .total-label { color: #555; }
+    .totals-block .total-value {
+      font-weight: bold;
+      font-family: monospace;
+      font-size: 10pt;
+    }
+
+    /* ── Pie del comprobante ── */
+    .footer-lines {
+      margin-top: 12px;
+      font-size: 8.5pt;
+      border-top: 1px solid #ccc;
+      padding-top: 6px;
+    }
+    .footer-lines div { margin-bottom: 3px; }
+    .footer-lines .saldo-line {
+      font-weight: bold;
+      color: #1a3a6a;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Encabezado -->
+  <div class="cpbte-header">
+    <div class="cpbte-header-left">
+      <div class="titulo1">{{ titulo1 }}</div>
+      <div class="titulo2">{{ titulo2 }}</div>
+      <div class="contacto">Sr(es) <strong>{{ contacto_nom }}</strong> ({{ contacto_cod }})</div>
+    </div>
+    <div class="cpbte-header-right">
+      {{ app_name }}<br>
+      {{ empr_code }} — {{ empr_name }}<br>
+      Usuario: {{ usuario }}<br>
+      {{ fecha }} {{ hora }}
+    </div>
+  </div>
+
+  {% if es_remi %}
+  <!-- ══ REMITO ══ -->
+  <table>
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Descripción</th>
+        <th class="r">Cant.</th>
+        <th class="r">Unitario</th>
+        <th class="r">Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in filas %}
+      <tr>
+        <td>{{ r.articodi }}</td>
+        <td>{{ r.desc }}</td>
+        <td class="r">{{ r.cant }}</td>
+        <td class="r">{{ r.unit }}</td>
+        <td class="r">{{ r.subtotal }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="totals-block">
+    <span class="total-label">Total unidades:</span>
+    <span class="total-value">{{ total_cant }}</span>
+    <span class="total-label" style="margin-left:16px;">TOTAL $</span>
+    <span class="total-value">{{ total }}</span>
+  </div>
+
+  {% else %}
+  <!-- ══ RECIBO ══ -->
+  <table>
+    <thead>
+      <tr>
+        <th>Concepto</th>
+        <th class="r">Importe</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in filas %}
+      <tr>
+        <td>{{ r.desc }}</td>
+        <td class="r">{{ r.unit }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="totals-block">
+    <span class="total-label">TOTAL $</span>
+    <span class="total-value">{{ total }}</span>
+  </div>
+  {% endif %}
+
+  <!-- Pie -->
+  <div class="footer-lines">
+    {% if reci_vinculado_num %}
+    <div>Recibido pago Nro. <strong>{{ reci_vinculado_num }}</strong> por $ {{ reci_vinculado_total }}</div>
+    {% endif %}
+    {% if saldo is not none %}
+    <div class="saldo-line">Saldo de su Cuenta a la fecha: $ {{ saldo }}</div>
+    {% endif %}
+    {% if obse %}
+    <div>Obs.: {{ obse }}</div>
+    {% endif %}
+  </div>
+
+</body>
+</html>

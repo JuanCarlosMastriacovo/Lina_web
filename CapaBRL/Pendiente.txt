@@ -1,6 +1,5 @@
-
+BR-013
 - modulo imprimir comprobantes: migrado de zprtC.prg
-- Listados a txt
 - CurrEmpr
     En seleccion de empresa no actualiza desde linaempr al arranque
     Que hacer al cambiar empresa:
@@ -52,3 +51,4 @@ DESCARTADO Validaciones de campos en CapaDAL y localmente para el prog en CapaUI
 ***OK *** buscar hardcode y consultar parametrizacion
 ***OK *** que siga en brl def get_existencias_batch usa sql crudo teniendo fn_calc_exis para una individual o si tiene que usar sql crudo migrar fn a CapaDAL
 ***OK *** FMT_NROCOMP = "08d" debe ser "06d"
+***OK *** Listados a txt

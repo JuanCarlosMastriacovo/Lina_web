@@ -10,6 +10,7 @@ import openpyxl
 
 from CapaBRL.linabase import linabase
 from CapaBRL.formatters import fmt_money
+from CapaBRL.txt_brl import generar_txt, col as txt_col
 from CapaDAL.tablebase import get_table_model
 from CapaDAL.config import APP_CONFIG
 from CapaUI.xlsx_styles import (
@@ -289,4 +290,81 @@ async def lina1331_xlsx(
         content    = buffer.read(),
         media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers    = {"Content-Disposition": "attachment; filename=articulos_detallado.xlsx"},
+    )
+
+
+_COLUMNAS_TXT_CODIGO = [
+    txt_col("Código",     9,  "L"),
+    txt_col("Descripción",34, "L"),
+    txt_col("Rubro",      6,  "L"),
+    txt_col("PMP",        5,  "R"),
+    txt_col("Precio",     12, "R"),
+    txt_col("Ex.Ant.",    7,  "R"),
+    txt_col("Fe.Ex.Ant.", 10, "R"),
+    txt_col("Últ.Costo",  12, "R"),
+    txt_col("Fe.Últ.C.",  10, "R"),
+    txt_col("Últ.C.Cant", 11, "R"),
+]
+
+_COLUMNAS_TXT_RUBRO = [
+    txt_col("Rubro",      6,  "L"),
+    txt_col("Código",     9,  "L"),
+    txt_col("Descripción",34, "L"),
+    txt_col("PMP",        5,  "R"),
+    txt_col("Precio",     12, "R"),
+    txt_col("Ex.Ant.",    7,  "R"),
+    txt_col("Fe.Ex.Ant.", 10, "R"),
+    txt_col("Últ.Costo",  12, "R"),
+    txt_col("Fe.Últ.C.",  10, "R"),
+    txt_col("Últ.C.Cant", 11, "R"),
+]
+
+
+@router.get("/txt")
+async def lina1331_txt(
+    request: Request,
+    desde: str = Query(default=""),
+    hasta: str = Query(default="ZZZZZZZZZ"),
+    orden: str = Query(default="codigo"),
+):
+    """Genera el TXT del listado detallado de artículos (BR-014)."""
+    Lina1331.set_prog_code(PROG_CODE)
+    user = Lina1331.get_current_user(request)
+    if not user:
+        return RedirectResponse("/login")
+
+    desde = desde.strip().upper()
+    hasta = hasta.strip().upper()
+    orden = orden if orden in ("codigo", "rubro") else "codigo"
+
+    if desde and hasta and desde > hasta:
+        return Lina1331.templates.TemplateResponse(
+            "lina1331/seleccion.html",
+            {"request": request, "error": "El valor 'Desde' no puede ser mayor que 'Hasta'."},
+        )
+
+    empr_code, empr_name = Lina1331.get_empr_info()
+    conn  = Lina1331.get_task_conn(request, readonly=True)
+    filas = _filas_for_pdf(_get_articulos(conn, desde, hasta, orden))
+
+    columnas  = _COLUMNAS_TXT_RUBRO if orden == "rubro" else _COLUMNAS_TXT_CODIGO
+    subtitulo = f"Artículos {desde or '(inicio)'} al {hasta or '(fin)'}"
+
+    txt = generar_txt(
+        titulo    = "Listado Detallado de Artículos",
+        subtitulo = subtitulo,
+        columnas  = columnas,
+        filas     = filas,
+        app_name  = APP_CONFIG.get("app_name", ""),
+        empr_code = empr_code,
+        empr_name = empr_name,
+        usuario   = user,
+        fecha     = date.today().strftime("%d/%m/%Y"),
+        hora      = datetime.now().strftime("%H:%M"),
+    )
+
+    return Response(
+        content    = txt.encode("utf-8"),
+        media_type = "text/plain; charset=utf-8",
+        headers    = {"Content-Disposition": "inline; filename=articulos_detallado.txt"},
     )

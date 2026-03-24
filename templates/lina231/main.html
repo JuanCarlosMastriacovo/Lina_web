@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {
+      size: A4 portrait;
+      margin-top:    2.8cm;
+      margin-left:   1.2cm;
+      margin-right:  1.2cm;
+      margin-bottom: 1.5cm;
+      @top-left {
+        content: element(header-left);
+        vertical-align: bottom;
+      }
+      @top-right {
+        content: "{{ app_name }}: {{ app_description }}\A {{ prog_code }} — Usuario: {{ usuario }} — {{ fecha }} {{ hora }}\A Pág. " counter(page) " de " counter(pages);
+        white-space: pre;
+        font-family: Arial, sans-serif;
+        font-size: 7.5pt;
+        color: #555;
+        text-align: right;
+        vertical-align: bottom;
+      }
+    }
+
+    body { font-family: Arial, sans-serif; font-size: 8pt; margin: 0; }
+
+    .header-left {
+      position: running(header-left);
+      font-family: Arial, sans-serif;
+      text-align: left;
+    }
+    .header-left .empr-line { font-size: 8pt; color: #555; margin: 0 0 1px 0; white-space: nowrap; }
+    .header-left h1         { font-size: 11pt; font-weight: bold; margin: 0 0 1px 0; white-space: nowrap; }
+    .header-left .subtitulo { font-size: 8pt; color: #555; margin: 0; white-space: nowrap; }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background-color: #4472C4; color: white;
+      padding: 3px 5px; text-align: left; font-size: 8pt; white-space: nowrap;
+    }
+    thead th.num { text-align: right; }
+    td { padding: 2px 5px; border-bottom: 1px solid #ddd; font-size: 8pt; }
+    tr:nth-child(even) td { background-color: #f2f2f2; }
+    td.num  { text-align: right; font-family: monospace; }
+    td.ctr  { text-align: center; }
+    td.anulado { color: #999; background-color: #f5e6e6 !important; }
+
+    tr.total-row td {
+      border-top: 2px solid #4472C4; border-bottom: none;
+      font-weight: bold; background-color: #E9EFF9;
+    }
+
+    col.c-codm   { width:  6%; }
+    col.c-nro    { width:  9%; }
+    col.c-fecha  { width: 11%; }
+    col.c-cta    { width:  6%; }
+    col.c-clie   { width: 54%; }
+    col.c-impo   { width: 14%; }
+  </style>
+</head>
+<body>
+
+  <div class="header-left">
+    <div class="empr-line">{{ empr_code }} - {{ empr_name }}</div>
+    <h1>{{ titulo }}</h1>
+    <div class="subtitulo">{{ subtitulo }}</div>
+  </div>
+
+  <table>
+    <colgroup>
+      <col class="c-codm">
+      <col class="c-nro">
+      <col class="c-fecha">
+      <col class="c-cta">
+      <col class="c-clie">
+      <col class="c-impo">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Cpbt</th>
+        <th class="num">Número</th>
+        <th style="text-align:center;">Fecha</th>
+        <th class="num">Cta.</th>
+        <th>Cliente</th>
+        <th class="num">Importe</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for fila in filas %}
+      <tr>
+        <td>{{ fila[0] }}</td>
+        <td class="num">{{ fila[1] }}</td>
+        <td class="ctr">{{ fila[2] }}</td>
+        <td class="num">{{ fila[3] }}</td>
+        <td>{{ fila[4] }}</td>
+        <td class="num">{{ fila[5] }}</td>
+      </tr>
+      {% endfor %}
+      <tr class="total-row">
+        <td colspan="5" class="num">TOTAL</td>
+        <td class="num">{{ total_importe }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="font-size: 7.5pt; color: #555; margin: 6px 0 0 0;">
+    {{ filas|length }} comprobante{{ 's' if filas|length != 1 else '' }}.
+  </p>
+
+</body>
+</html>
