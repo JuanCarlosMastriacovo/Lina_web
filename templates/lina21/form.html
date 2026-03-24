@@ -1,0 +1,524 @@
+<!-- ══ MENÚ CONTEXTUAL ══ -->
+<div id="lina21-ctx"
+     style="display:none; position:fixed; z-index:9999; background:#fff;
+            border:1px solid #bbb; border-radius:3px; box-shadow:2px 2px 8px rgba(0,0,0,.25);
+            font-family:Arial; font-size:8.5pt; min-width:110px;">
+  <div id="lina21-ctx-modificar"
+       style="padding:5px 14px; cursor:pointer;"
+       onmouseover="this.style.background='#e8f0fe'" onmouseout="this.style.background=''">
+    ✏ Modificar
+  </div>
+  <div style="border-top:1px solid #eee;"></div>
+  <div id="lina21-ctx-subir"
+       style="padding:5px 14px; cursor:pointer;"
+       onmouseover="this.style.background='#e8f0fe'" onmouseout="this.style.background=''">
+    ↑ Subir
+  </div>
+  <div id="lina21-ctx-bajar"
+       style="padding:5px 14px; cursor:pointer;"
+       onmouseover="this.style.background='#e8f0fe'" onmouseout="this.style.background=''">
+    ↓ Bajar
+  </div>
+  <div style="border-top:1px solid #eee;"></div>
+  <div id="lina21-ctx-eliminar"
+       style="padding:5px 14px; cursor:pointer; color:#c00;"
+       onmouseover="this.style.background='#ffeaea'" onmouseout="this.style.background=''">
+    🗑 Eliminar
+  </div>
+</div>
+
+<!-- ══ RAÍZ DEL FORMULARIO ══ -->
+<div id="lina21-root" class="d-flex flex-column h-100"
+     style="background-color:cornsilk; min-height:0; font-family:Arial; font-size:8.5pt;">
+
+  <!-- BARRA SUPERIOR -->
+  <div class="border-bottom px-2 py-1" style="background:#f5f5f5; flex-shrink:0;">
+    <span style="font-weight:bold; font-size:9pt;">Nuevo Remito de Venta</span>
+    <span class="ms-2 text-muted" style="font-size:7.5pt;">REMI</span>
+  </div>
+
+  <!-- ══ FASE 1: ingreso de cliente ══ -->
+  <div id="lina21-fase1" class="flex-grow-1 p-3" style="min-height:0;">
+    <div class="d-flex align-items-center gap-2">
+      <label style="font-size:8pt; color:#555; white-space:nowrap;">
+        N° Cliente <span style="color:#888;">(F4)</span>:
+      </label>
+      <input type="text" id="lina21-cliecodi" maxlength="6"
+             data-selector-tabla="linaclie"
+             data-selector-campo-cod="cliecodi"
+             data-selector-campo-desc="cliename"
+             data-selector-titulo="Buscar Cliente"
+             style="width:70px; padding:3px 6px; border:1px solid #ccc;
+                    border-radius:3px; font-size:9pt; text-align:right;">
+      <span id="lina21-cliename" style="font-size:9pt;"></span>
+    </div>
+  </div>
+
+  <!-- ══ FASE 2: grilla + ingreso de renglones (oculta al inicio) ══ -->
+  <div id="lina21-fase2" class="d-flex flex-column flex-grow-1"
+       style="min-height:0; display:none !important;">
+
+    <!-- Resumen cliente -->
+    <div class="px-2 py-1 border-bottom"
+         style="flex-shrink:0; background:#fffff0; font-size:8pt;">
+      Cliente: <strong id="lina21-clie-resumen"></strong>
+    </div>
+
+    <!-- GRILLA DE LÍNEAS INGRESADAS -->
+    <div style="overflow-y:auto; flex:1 1 0; min-height:60px;">
+      <table id="lina21-grid"
+             style="width:100%; border-collapse:collapse; font-size:8pt; table-layout:fixed;">
+        <colgroup>
+          <col style="width:30px;">
+          <col style="width:90px;">
+          <col style="width:110px;"><!-- descripción -->
+          <col style="width:50px;">
+          <col style="width:60px;">
+          <col style="width:75px;">
+          <col style="width:80px;">
+        </colgroup>
+        <thead>
+          <tr style="background:#4472C4; color:white; position:sticky; top:0;">
+            <th style="padding:2px 4px; text-align:center;">#</th>
+            <th style="padding:2px 4px;">Código</th>
+            <th style="padding:2px 4px;">Descripción</th>
+            <th style="padding:2px 4px; text-align:right;">Exist.</th>
+            <th style="padding:2px 4px; text-align:right;">Cant.</th>
+            <th style="padding:2px 4px; text-align:right;">Precio</th>
+            <th style="padding:2px 4px; text-align:right;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody id="lina21-tbody">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BARRA DE TOTAL (siempre visible, fuera del scroll) -->
+    <div style="flex-shrink:0; background:#e9eff9; border-top:2px solid #4472C4;
+                border-bottom:1px solid #ccc; padding:2px 6px;
+                display:flex; justify-content:flex-end; align-items:center; gap:16px;
+                font-size:8pt; font-weight:bold;">
+      <span style="color:#555;">TOTAL unid.:</span>
+      <span id="lina21-total-cant" style="font-family:monospace; min-width:40px; text-align:right;">0</span>
+      <span style="color:#555; margin-left:12px;">TOTAL $:</span>
+      <span id="lina21-total-importe" style="font-family:monospace; font-size:9pt; min-width:80px; text-align:right;">$ 0,00</span>
+    </div>
+
+    <!-- SEPARADOR -->
+    <div style="flex-shrink:0; height:5px; background:#f0ede0;"></div>
+
+    <!-- FILA DE INGRESO (mismas columnas que la grilla) -->
+    <div style="flex-shrink:0; padding:3px 0;">
+      <table id="lina21-input-table"
+             style="width:100%; border-collapse:collapse; font-size:8pt; table-layout:fixed;">
+        <colgroup>
+          <col style="width:30px;">
+          <col style="width:90px;">
+          <col style="width:220px;">
+          <col style="width:50px;">
+          <col style="width:60px;">
+          <col style="width:75px;">
+          <col style="width:80px;">
+        </colgroup>
+        <tbody>
+          <tr>
+            <!-- # renglón -->
+            <td style="padding:1px 4px; text-align:center; color:#888; font-size:8pt;">
+              <span id="inp-reng">1</span>
+            </td>
+            <!-- Código -->
+            <td style="padding:1px 3px;">
+              <input type="text" id="inp-articodi" maxlength="9"
+                     data-selector-tabla="linaarti"
+                     data-selector-campo-cod="articodi"
+                     data-selector-campo-desc="artidesc"
+                     data-selector-titulo="Buscar Artículo"
+                     placeholder="Código (F4)"
+                     style="width:100%; padding:1px 3px; border:1px solid #aaa;
+                            border-radius:2px; font-size:8pt; text-transform:uppercase;
+                            background:#fffff8;">
+            </td>
+            <!-- Descripción (auto-fill, readonly) -->
+            <td style="padding:1px 3px;">
+              <input type="text" id="inp-desc" readonly tabindex="-1"
+                     style="width:100%; padding:1px 3px; border:1px solid #ddd;
+                            border-radius:2px; font-size:8pt; background:#f0f0f0;">
+            </td>
+            <!-- Existencia -->
+            <td style="padding:1px 4px; text-align:right; font-family:monospace; font-size:8pt;">
+              <span id="inp-exis" style="color:#555;"></span>
+            </td>
+            <!-- Cantidad (único campo editable por el operador) -->
+            <td style="padding:1px 3px;">
+              <input type="number" id="inp-cant" min="0" step="1" value=""
+                     placeholder="Cant."
+                     style="width:100%; padding:1px 3px; border:1px solid #aaa;
+                            border-radius:2px; font-size:8pt; text-align:right;
+                            background:#fffff8;">
+            </td>
+            <!-- Precio (auto-fill) -->
+            <td style="padding:1px 4px; text-align:right; font-family:monospace; font-size:8pt; color:#444;">
+              <span id="inp-unit"></span>
+            </td>
+            <!-- Subtotal (calculado) -->
+            <td style="padding:1px 4px; text-align:right; font-family:monospace; font-size:8pt; font-weight:bold; color:#333;">
+              <span id="inp-subtotal"></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div><!-- fin fase2 -->
+
+  <!-- BARRA INFERIOR -->
+  <div class="border-top px-2 py-1 d-flex gap-2 align-items-center"
+       style="background:#f5f5f5; flex-shrink:0;">
+    <!-- Botones fase 1 -->
+    <span id="lina21-btns-fase1">
+      <button id="lina21-btn-proseguir" disabled
+              style="padding:3px 14px; background:#4472C4; color:white; border:none;
+                     border-radius:4px; cursor:pointer; font-size:8.5pt; opacity:0.5;">
+        ✓ Proseguir
+      </button>
+    </span>
+    <!-- Botones fase 2 (ocultos al inicio) -->
+    <span id="lina21-btns-fase2" style="display:none;">
+      <button id="lina21-btn-guardar" disabled
+              style="padding:3px 14px; background:#4472C4; color:white; border:none;
+                     border-radius:4px; cursor:pointer; font-size:8.5pt; opacity:0.5;">
+        💾 Guardar Remito
+      </button>
+    </span>
+    <button id="lina21-btn-cancelar"
+            style="padding:3px 12px; background:#fff; color:#555;
+                   border:1px solid #ccc; border-radius:4px; cursor:pointer; font-size:8.5pt;">
+      ✕ Cancelar
+    </button>
+  </div>
+
+</div><!-- fin root -->
+
+<script>
+(function () {
+
+  // ── Estado ────────────────────────────────────────────────────────────────
+  var lineas      = [];          // {reng, articodi, desc, exis, cant, unit}
+  var editingIdx  = null;        // null = nueva línea; N = modificando lineas[N]
+  var cliecodi    = '';
+  var cliename    = '';
+  var ctxTargetIdx = null;       // índice de fila bajo el menú contextual
+
+  // ── Elementos DOM ─────────────────────────────────────────────────────────
+  var elCodi     = document.getElementById('lina21-cliecodi');
+  var elNombre   = document.getElementById('lina21-cliename');
+  var elBtnP     = document.getElementById('lina21-btn-proseguir');
+  var elBtnG     = document.getElementById('lina21-btn-guardar');
+  var elBtnC     = document.getElementById('lina21-btn-cancelar');
+  var elFase1    = document.getElementById('lina21-fase1');
+  var elFase2    = document.getElementById('lina21-fase2');
+  var elBtnsF1   = document.getElementById('lina21-btns-fase1');
+  var elBtnsF2   = document.getElementById('lina21-btns-fase2');
+  var elTbody    = document.getElementById('lina21-tbody');
+  var elResumen  = document.getElementById('lina21-clie-resumen');
+  var elTotalC   = document.getElementById('lina21-total-cant');
+  var elTotalI   = document.getElementById('lina21-total-importe');
+  var elCtx      = document.getElementById('lina21-ctx');
+  var inpReng    = document.getElementById('inp-reng');
+  var inpArti    = document.getElementById('inp-articodi');
+  var inpDesc    = document.getElementById('inp-desc');
+  var inpExis    = document.getElementById('inp-exis');
+  var inpCant    = document.getElementById('inp-cant');
+  var inpUnit    = document.getElementById('inp-unit');
+  var inpSubt    = document.getElementById('inp-subtotal');
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function fmtN(v) {
+    var n = parseFloat(v) || 0;
+    return n.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  function cerrarCtx() { elCtx.style.display = 'none'; ctxTargetIdx = null; }
+
+  // ── FASE 1: validar cliente ───────────────────────────────────────────────
+  function validarClie() {
+    var cod = (elCodi.value || '').trim();
+    if (!cod) {
+      elNombre.textContent = ''; elBtnP.disabled = true; elBtnP.style.opacity = '0.5';
+      cliecodi = ''; cliename = '';
+      return;
+    }
+    fetch('/lina21/clie/info?cliecodi=' + encodeURIComponent(cod))
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.ok) {
+          cliecodi = cod; cliename = d.cliename;
+          elNombre.textContent  = d.cliename;
+          elNombre.style.color  = '#1a5c1a';
+          elNombre.style.fontWeight = 'bold';
+          elBtnP.disabled  = false;
+          elBtnP.style.opacity = '1';
+        } else {
+          cliecodi = ''; cliename = '';
+          elNombre.textContent  = 'No encontrado';
+          elNombre.style.color  = '#c00';
+          elNombre.style.fontWeight = 'normal';
+          elBtnP.disabled  = true;
+          elBtnP.style.opacity = '0.5';
+        }
+      })
+      .catch(function() {
+        elNombre.textContent = 'Error de red';
+        elNombre.style.color = '#c00';
+        elBtnP.disabled = true; elBtnP.style.opacity = '0.5';
+      });
+  }
+
+  // ── Transición a FASE 2 ───────────────────────────────────────────────────
+  function irFase2() {
+    elFase1.style.display  = 'none';
+    elFase2.style.setProperty('display', 'flex', 'important');
+    elBtnsF1.style.display = 'none';
+    elBtnsF2.style.display = '';
+    elResumen.textContent  = cliecodi + ' — ' + cliename;
+    renderGrid();
+    inpArti.focus();
+  }
+
+  // ── Grilla: renderizar ────────────────────────────────────────────────────
+  var MIN_ROWS = 40;   // grilla fija de 40 renglones (datos + vacíos)
+
+  function renderGrid() {
+    while (elTbody.firstChild) elTbody.removeChild(elTbody.firstChild);
+
+    // Filas con datos
+    lineas.forEach(function(l, idx) {
+      var tr = document.createElement('tr');
+      tr.style.background = idx % 2 === 0 ? '#fff' : '#f7f7f7';
+      tr.style.cursor = 'default';
+      if (editingIdx === idx) {
+        tr.style.background = '#fff8dc';
+        tr.style.opacity = '0.6';
+      }
+      tr.innerHTML =
+        '<td style="padding:1px 4px;text-align:center;color:#888;">' + l.reng + '</td>' +
+        '<td style="padding:1px 4px;font-family:monospace;">' + esc(l.articodi) + '</td>' +
+        '<td style="padding:1px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(l.desc) + '</td>' +
+        '<td style="padding:1px 4px;text-align:right;font-family:monospace;color:#666;">' + (l.exis !== '' ? l.exis : '') + '</td>' +
+        '<td style="padding:1px 4px;text-align:right;font-family:monospace;">' + l.cant + '</td>' +
+        '<td style="padding:1px 4px;text-align:right;font-family:monospace;color:#444;">' + fmtN(l.unit) + '</td>' +
+        '<td style="padding:1px 4px;text-align:right;font-family:monospace;font-weight:bold;">' + fmtN(l.cant * l.unit) + '</td>';
+      (function(i) {
+        tr.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+          ctxTargetIdx = i;
+          elCtx.style.display = 'block';
+          elCtx.style.left = e.clientX + 'px';
+          elCtx.style.top  = e.clientY + 'px';
+        });
+      })(idx);
+      elTbody.appendChild(tr);
+    });
+
+    // Filas vacías hasta MIN_ROWS
+    var vacías = Math.max(0, MIN_ROWS - lineas.length);
+    for (var v = 0; v < vacías; v++) {
+      var rn = lineas.length + v + 1;
+      var bg = (lineas.length + v) % 2 === 0 ? '#fff' : '#f7f7f7';
+      var trv = document.createElement('tr');
+      trv.style.background = bg;
+      trv.innerHTML =
+        '<td style="padding:1px 4px;text-align:center;color:#ccc;font-size:7.5pt;">' + rn + '</td>' +
+        '<td></td><td></td><td></td><td></td><td></td><td></td>';
+      elTbody.appendChild(trv);
+    }
+
+    // Actualizar fila renglón en input
+    inpReng.textContent = editingIdx !== null ? lineas[editingIdx].reng : lineas.length + 1;
+
+    // Totales
+    var totC = 0, totI = 0;
+    lineas.forEach(function(l) {
+      totC += parseInt(l.cant) || 0;
+      totI += (parseInt(l.cant) || 0) * (parseFloat(l.unit) || 0);
+    });
+    elTotalC.textContent = totC;
+    elTotalI.textContent = '$ ' + fmtN(totI);
+
+    // Guardar habilitado si hay renglones
+    elBtnG.disabled    = lineas.length === 0;
+    elBtnG.style.opacity = lineas.length === 0 ? '0.5' : '1';
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Fila de ingreso: buscar artículo ──────────────────────────────────────
+  function buscarArti() {
+    var cod = (inpArti.value || '').trim().toUpperCase();
+    inpArti.value = cod;
+    if (!cod) { limpiarInp(false); return; }
+    if (cod === '*') {
+      inpDesc.value = ''; inpExis.textContent = ''; inpUnit.textContent = ''; inpSubt.textContent = '';
+      inpCant.focus();
+      return;
+    }
+    fetch('/lina21/arti/info?articodi=' + encodeURIComponent(cod))
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.ok) {
+          inpDesc.value        = d.artidesc;
+          inpExis.textContent  = d.existencia;
+          inpExis.style.color  = '#555';
+          inpUnit.textContent  = fmtN(d.artiprec);
+          inpUnit.dataset.val  = d.artiprec;
+          inpSubt.textContent  = '';
+          inpCant.value        = '';
+          inpCant.focus();
+          inpCant.select();
+        } else {
+          alert('Artículo "' + cod + '" no encontrado.');
+          inpArti.value = ''; inpArti.focus();
+        }
+      })
+      .catch(function() { alert('Error al buscar artículo.'); inpArti.focus(); });
+  }
+
+  function actualizarSubtotal() {
+    var cant  = parseInt(inpCant.value) || 0;
+    var unit  = parseFloat(inpUnit.dataset && inpUnit.dataset.val) || 0;
+    var exis  = parseInt(inpExis.textContent);
+    inpSubt.textContent = cant > 0 ? fmtN(cant * unit) : '';
+    inpExis.style.color = (!isNaN(exis) && cant > exis) ? '#c00' : '#555';
+  }
+
+  // ── Confirmar renglón ─────────────────────────────────────────────────────
+  function confirmarRenglon() {
+    var cod  = (inpArti.value || '').trim().toUpperCase();
+    var cant = parseInt(inpCant.value) || 0;
+    var unit = parseFloat(inpUnit.dataset && inpUnit.dataset.val) || 0;
+    if (!cod)  { alert('Ingrese el código de artículo.'); inpArti.focus(); return; }
+    if (cant <= 0) { alert('La cantidad debe ser mayor a cero.'); inpCant.focus(); return; }
+    if (lineas.length >= 40 && editingIdx === null) {
+      alert('Se alcanzó el máximo de 40 renglones.'); return;
+    }
+    var linea = {
+      reng:     editingIdx !== null ? lineas[editingIdx].reng : lineas.length + 1,
+      articodi: cod,
+      desc:     inpDesc.value,
+      exis:     inpExis.textContent,
+      cant:     cant,
+      unit:     unit,
+    };
+    if (editingIdx !== null) {
+      lineas[editingIdx] = linea;
+      editingIdx = null;
+    } else {
+      lineas.push(linea);
+    }
+    limpiarInp(true);
+    renderGrid();
+    inpArti.focus();
+  }
+
+  function limpiarInp(full) {
+    if (full) inpArti.value = '';
+    inpDesc.value           = '';
+    inpExis.textContent     = '';
+    inpUnit.textContent     = '';
+    inpUnit.dataset.val     = '';
+    inpSubt.textContent     = '';
+    inpCant.value           = '';
+  }
+
+  // ── Menú contextual ───────────────────────────────────────────────────────
+  document.getElementById('lina21-ctx-eliminar').addEventListener('click', function() {
+    if (ctxTargetIdx === null) { cerrarCtx(); return; }
+    lineas.splice(ctxTargetIdx, 1);
+    // Renumerar
+    lineas.forEach(function(l, i) { l.reng = i + 1; });
+    if (editingIdx !== null) editingIdx = null;
+    cerrarCtx();
+    renderGrid();
+  });
+
+  document.getElementById('lina21-ctx-subir').addEventListener('click', function() {
+    if (ctxTargetIdx === null || ctxTargetIdx === 0) { cerrarCtx(); return; }
+    var tmp = lineas[ctxTargetIdx - 1];
+    lineas[ctxTargetIdx - 1] = lineas[ctxTargetIdx];
+    lineas[ctxTargetIdx]     = tmp;
+    lineas.forEach(function(l, i) { l.reng = i + 1; });
+    cerrarCtx();
+    renderGrid();
+  });
+
+  document.getElementById('lina21-ctx-bajar').addEventListener('click', function() {
+    if (ctxTargetIdx === null || ctxTargetIdx >= lineas.length - 1) { cerrarCtx(); return; }
+    var tmp = lineas[ctxTargetIdx + 1];
+    lineas[ctxTargetIdx + 1] = lineas[ctxTargetIdx];
+    lineas[ctxTargetIdx]     = tmp;
+    lineas.forEach(function(l, i) { l.reng = i + 1; });
+    cerrarCtx();
+    renderGrid();
+  });
+
+  document.getElementById('lina21-ctx-modificar').addEventListener('click', function() {
+    if (ctxTargetIdx === null) { cerrarCtx(); return; }
+    var l = lineas[ctxTargetIdx];
+    editingIdx         = ctxTargetIdx;
+    inpArti.value      = l.articodi;
+    inpDesc.value      = l.desc;
+    inpExis.textContent = l.exis;
+    inpUnit.textContent = fmtN(l.unit);
+    inpUnit.dataset.val = l.unit;
+    inpCant.value      = l.cant;
+    actualizarSubtotal();
+    cerrarCtx();
+    renderGrid();
+    inpCant.focus(); inpCant.select();
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!elCtx.contains(e.target)) cerrarCtx();
+  });
+
+  // ── Cancelar / Cerrar tab ─────────────────────────────────────────────────
+  function cancelar() {
+    var mgr = window.linaTabsManager;
+    if (mgr && mgr.activeTab) mgr.closeTab(mgr.activeTab);
+  }
+
+  // ── Event listeners ───────────────────────────────────────────────────────
+
+  // Fase 1 — cliente
+  elCodi.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); validarClie(); }
+  });
+  elCodi.addEventListener('change', function() { validarClie(); });
+
+  elBtnP.addEventListener('click', function() { if (!elBtnP.disabled) irFase2(); });
+
+  // Fase 2 — código artículo
+  inpArti.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); buscarArti(); }
+  });
+  inpArti.addEventListener('change', function() { buscarArti(); });
+
+  // Fase 2 — cantidad
+  inpCant.addEventListener('input',   actualizarSubtotal);
+  inpCant.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); confirmarRenglon(); }
+  });
+
+  // Cancelar / Escape
+  elBtnC.addEventListener('click', cancelar);
+  document.addEventListener('keydown', function handler(e) {
+    if (e.key === 'Escape') { cancelar(); document.removeEventListener('keydown', handler); }
+  });
+
+  // Foco inicial
+  elCodi.focus();
+
+})();
+</script>

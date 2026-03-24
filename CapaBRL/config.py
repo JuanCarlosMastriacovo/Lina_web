@@ -33,4 +33,5 @@ PROGRAM_MIN_VIEWPORTS: dict = {
     "LINA111": {"width": 1120, "height": 620},
     "LINA131": {"width": 1120, "height": 620},
     "LINA132": {"width": 1120, "height": 620},
+    "LINA21":  {"width": 1120, "height": 660},
 }

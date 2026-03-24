@@ -25,30 +25,30 @@ DROP TABLE IF EXISTS `linaarti`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linaarti` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `articodi` char(9) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO ARTICULO TIPO SP-9999',
-  `artrcodi` char(9) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'RUBRO DEL ARTICULO',
-  `artidesc` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'DESCRIPCION',
-  `artiexan` int NOT NULL DEFAULT '0' COMMENT 'EXISTENCIA ANTERIOR CANTIDAD',
-  `artiexfe` date NOT NULL DEFAULT '1900-01-01' COMMENT 'EXISTENCIA ANTERIOR FECHA',
-  `artipmpe` int NOT NULL DEFAULT '0' COMMENT 'PUNTO MINIMO DE PEDIDO',
-  `artiucco` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'COSTO ULTIMA COMPRA',
-  `artiucfe` date NOT NULL DEFAULT '1900-01-01' COMMENT 'FECHA ULTIMA COMPRA',
-  `artiucca` int NOT NULL DEFAULT '0' COMMENT 'CANTIDAD ULTIMA COMPRA',
-  `artiprec` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'PRECIO DE VENTA',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `articodi` char(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo Articulo',
+  `artrcodi` char(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Rubro del Articulo',
+  `artidesc` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Descripción del Articulo',
+  `artiexan` int NOT NULL DEFAULT '0' COMMENT 'Existencia Anterior Cantidad',
+  `artiexfe` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Existencia Anterior Fecha',
+  `artipmpe` int NOT NULL DEFAULT '0' COMMENT 'Punto Minimo de Pedido',
+  `artiucco` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Costo Ultima Compra',
+  `artiucfe` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha Ultima Compra',
+  `artiucca` int NOT NULL DEFAULT '0' COMMENT 'Cantidad Ultima Compra',
+  `artiprec` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Precio de Venta',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`emprcodi`,`articodi`),
   KEY `idx_arti_articodi` (`articodi`),
   KEY `fk_arti_artr` (`emprcodi`,`artrcodi`),
   CONSTRAINT `fk_arti_artr` FOREIGN KEY (`emprcodi`, `artrcodi`) REFERENCES `linaartr` (`emprcodi`, `artrcodi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_arti_emprcodi` FOREIGN KEY (`emprcodi`) REFERENCES `linaempr` (`emprcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Artículos';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -59,25 +59,25 @@ DROP TABLE IF EXISTS `linaartr`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linaartr` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `artrcodi` char(9) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE RUBRO',
-  `artrdesc` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'DESCRIPCION',
-  `artrsalp` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'SALTO DE PAGINA (S/N)',
-  `artrsala` int NOT NULL DEFAULT '0' COMMENT 'RENGLONES ANTES',
-  `artrsald` int NOT NULL DEFAULT '0' COMMENT 'RENGLONES DESPUES',
-  `artrsubr` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CARACTER DE SUBRAYADO',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `artrcodi` char(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Rubro',
+  `artrdesc` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Descripcion del Rubro',
+  `artrsalp` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Salto de Pagina (S/N)',
+  `artrsala` int NOT NULL DEFAULT '0' COMMENT 'Renglones Antes',
+  `artrsald` int NOT NULL DEFAULT '0' COMMENT 'Renglones Despues',
+  `artrsubr` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Caracter de Subrayado',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`emprcodi`,`artrcodi`),
   KEY `idx_artr_emprcodi` (`emprcodi`),
   KEY `idx_artr_artrcodi` (`artrcodi`),
   CONSTRAINT `fk_artr_emprcodi` FOREIGN KEY (`emprcodi`) REFERENCES `linaempr` (`emprcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Rubros de Artículos';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -134,28 +134,28 @@ DROP TABLE IF EXISTS `linabanc`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linabanc` (
-  `bancid` int NOT NULL AUTO_INCREMENT,
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'EMPRESA',
-  `cliecodi` int NOT NULL DEFAULT '0',
-  `provcodi` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE CUENTA',
-  `bancfech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'FECHA',
-  `bancnumc` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE COMPROBANTE ORIGEN',
-  `bancconc` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CONCEPTO',
-  `bancdebe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'IMPORTE DEBITO',
-  `banchabe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'IMPORTE CREDITO',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `bancid` int NOT NULL AUTO_INCREMENT COMMENT 'PK autoincremental linabanc',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Código de Empresa',
+  `cliecodi` int NOT NULL DEFAULT '0' COMMENT 'Código de Cliente',
+  `provcodi` int NOT NULL DEFAULT '0' COMMENT 'Codigo de Proveedor',
+  `bancfech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha Movimiento',
+  `bancnumc` int NOT NULL DEFAULT '0' COMMENT 'Numero de Comprobante Origen',
+  `bancconc` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Concepto',
+  `bancdebe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Importe Debito',
+  `banchabe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Importe Credito',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`bancid`),
   KEY `fk_banc_clie` (`emprcodi`,`cliecodi`),
   KEY `fk_banc_prov` (`emprcodi`,`provcodi`),
   CONSTRAINT `fk_banc_clie` FOREIGN KEY (`emprcodi`, `cliecodi`) REFERENCES `linaclie` (`emprcodi`, `cliecodi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_banc_prov` FOREIGN KEY (`emprcodi`, `provcodi`) REFERENCES `linaprov` (`emprcodi`, `provcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=143 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=143 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Movimientos de Bancos';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -212,28 +212,28 @@ DROP TABLE IF EXISTS `linacaja`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linacaja` (
-  `cajaid` int NOT NULL AUTO_INCREMENT,
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'EMPRESA',
-  `cliecodi` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE CUENTA',
-  `provcodi` int NOT NULL,
-  `cajafech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'FECHA',
-  `cajanumc` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE COMPROBANTE ORIGEN',
-  `cajaconc` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CONCEPTO',
-  `cajadebe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'IMPORTE DEBITO',
-  `cajahabe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'IMPORTE CREDITO',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `cajaid` int NOT NULL AUTO_INCREMENT COMMENT 'PK autoincremental linacaja',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Código de Empresa',
+  `cliecodi` int NOT NULL DEFAULT '0' COMMENT 'Codigo de Cliente',
+  `provcodi` int NOT NULL COMMENT 'Codigo de Proveedor',
+  `cajafech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha Movmiento',
+  `cajanumc` int NOT NULL DEFAULT '0' COMMENT 'Numero de Comprobante Origen',
+  `cajaconc` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Concepto',
+  `cajadebe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Importe Debito',
+  `cajahabe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Importe Credito',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`cajaid`),
   KEY `fk_caja_clie` (`emprcodi`,`cliecodi`),
   KEY `fk_caja_prov` (`emprcodi`,`provcodi`),
   CONSTRAINT `fk_caja_clie` FOREIGN KEY (`emprcodi`, `cliecodi`) REFERENCES `linaclie` (`emprcodi`, `cliecodi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_caja_prov` FOREIGN KEY (`emprcodi`, `provcodi`) REFERENCES `linaprov` (`emprcodi`, `provcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1288 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1288 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Movimientos de Caja';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -290,22 +290,22 @@ DROP TABLE IF EXISTS `linaclie`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linaclie` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `cliecodi` int NOT NULL DEFAULT '0' COMMENT 'CODIGO DE CLIENTE',
-  `cliename` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'NOMBRE',
-  `cliesala` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'SALDO ANTERIOR',
-  `cliefesa` date NOT NULL DEFAULT '1900-01-01' COMMENT 'FECHA SALDO ANTERIOR',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `cliecodi` int NOT NULL DEFAULT '0' COMMENT 'Codigo de Cliente',
+  `cliename` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Nombre del Cliente',
+  `cliesala` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Saldo Anterior',
+  `cliefesa` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha Saldo Anterior',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`emprcodi`,`cliecodi`),
   KEY `idx_clie_cliecodi` (`cliecodi`),
   CONSTRAINT `fk_clie_emprcodi` FOREIGN KEY (`emprcodi`) REFERENCES `linaempr` (`emprcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Clientes';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -362,23 +362,23 @@ DROP TABLE IF EXISTS `linacode`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linacode` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `codmcodi` char(4) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE MOVIMIENTO',
-  `cohenume` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE COMPROBANTE',
-  `codereng` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE RENGLON',
-  `codedesc` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'DESCRIPCION CONCEPTO',
-  `codeunit` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'UNITARIO',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `codmcodi` char(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Movimiento',
+  `cohenume` int NOT NULL DEFAULT '0' COMMENT 'Numero de Comprobante',
+  `codereng` int NOT NULL DEFAULT '0' COMMENT 'Numero de Renglon',
+  `codedesc` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Descripcion del Concepto',
+  `codeunit` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Precio Unitario',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`cohenume`,`codereng`,`emprcodi`,`codmcodi`),
   KEY `fk_code_cohe` (`emprcodi`,`codmcodi`,`cohenume`),
   CONSTRAINT `fk_code_cohe` FOREIGN KEY (`emprcodi`, `codmcodi`, `cohenume`) REFERENCES `linacohe` (`emprcodi`, `codmcodi`, `cohenume`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cobranzas - Detalle';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -435,21 +435,21 @@ DROP TABLE IF EXISTS `linacodm`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linacodm` (
-  `codmclpr` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '<c>LIENTE O <P>ROVEEDOR',
-  `codmdecr` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '<D>EBITO O <C>REDITO',
-  `codmcodi` char(4) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE MOVIMIENTO',
-  `codmdesc` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'DESCRIPCION',
-  `codmultn` int NOT NULL DEFAULT '0' COMMENT 'ULTIMO NUMERO USADO',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `codmclpr` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Aplica a <C>liente ó a <P>roveedor',
+  `codmdecr` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Es <D>ébito ó <C>rédito',
+  `codmcodi` char(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Movimiento',
+  `codmdesc` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Descripcion',
+  `codmultn` int NOT NULL DEFAULT '0' COMMENT 'Ultimo Numero Usado',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`codmclpr`,`codmdecr`,`codmcodi`),
   KEY `idx_codm_codmcodi` (`codmcodi`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Códigos de Movimiento';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -506,27 +506,27 @@ DROP TABLE IF EXISTS `linacohe`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linacohe` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `codmcodi` char(4) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE MOVIMIENTO',
-  `cohenume` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE COMPROBANTE',
-  `cohefech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'FECHA COMPROBANTE',
-  `cliecodi` int NOT NULL DEFAULT '0' COMMENT 'CODIGO DE CUENTA',
-  `cohetota` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'TOTAL COMPROBANTE',
-  `coheefec` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'COBRADO EN EFECTIVO',
-  `cohebanc` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'COBRADO EN TRANSF. O DEPOSITO',
-  `coheobse` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'PERSONA QUE PAGO',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `codmcodi` char(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Movimiento',
+  `cohenume` int NOT NULL DEFAULT '0' COMMENT 'Numero de Comprobante',
+  `cohefech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha Comprobante',
+  `cliecodi` int NOT NULL DEFAULT '0' COMMENT 'Codigo de Cliente',
+  `cohetota` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Total Comprobante',
+  `coheefec` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Cobrado en Efectivo',
+  `cohebanc` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Cobrado en Transf. o Deposito',
+  `coheobse` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Observaciones',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`codmcodi`,`cohenume`,`emprcodi`),
   KEY `idx_cohe_empr_clie` (`emprcodi`,`cliecodi`) /*!80000 INVISIBLE */,
   KEY `idx_cohe_code` (`emprcodi`,`codmcodi`,`cohenume`),
   CONSTRAINT `fk_cohe_clie` FOREIGN KEY (`emprcodi`, `cliecodi`) REFERENCES `linaclie` (`emprcodi`, `cliecodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cobranzas - Cabeceras';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -583,25 +583,25 @@ DROP TABLE IF EXISTS `linactcl`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linactcl` (
-  `ctclid` int NOT NULL AUTO_INCREMENT,
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `cliecodi` int NOT NULL DEFAULT '0' COMMENT 'CODIGO DE CLIENTE',
-  `ctclfech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'FECHA MOVIMIENTO',
-  `codmcodi` char(4) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE MOVIMIENTO',
-  `ctclnumc` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE COMPROBANTE',
-  `ctcldebe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'IMPORTE AL DEBE',
-  `ctclhabe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'IMPORTE AL HABER',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `ctclid` int NOT NULL AUTO_INCREMENT COMMENT 'PK autoincremental linactcl',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `cliecodi` int NOT NULL DEFAULT '0' COMMENT 'Codigo de Cliente',
+  `ctclfech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha Movimiento',
+  `codmcodi` char(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Movimiento',
+  `ctclnumc` int NOT NULL DEFAULT '0' COMMENT 'Numero de Comprobante',
+  `ctcldebe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Importe al Debe',
+  `ctclhabe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Importe al Haber',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`ctclid`),
   KEY `fk_ctcl__clie` (`emprcodi`,`cliecodi`),
   CONSTRAINT `fk_ctcl__clie` FOREIGN KEY (`emprcodi`, `cliecodi`) REFERENCES `linaclie` (`emprcodi`, `cliecodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2534 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2534 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cuentas Corrientes de Clientes';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -659,24 +659,24 @@ DROP TABLE IF EXISTS `linactpr`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linactpr` (
   `ctprid` int NOT NULL AUTO_INCREMENT,
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `provcodi` int NOT NULL DEFAULT '0' COMMENT 'CODIGO DE PROVEEDOR',
-  `ctprfech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'FECHA MOVIMIENTO',
-  `codmcodi` char(4) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE MOVIMIENTO',
-  `ctprnumc` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE COMPROBANTE',
-  `ctprdebe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'IMPORTE AL DEBE',
-  `ctprhabe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'IMPORTE AL HABER',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `provcodi` int NOT NULL DEFAULT '0' COMMENT 'Codigo de Proveedor',
+  `ctprfech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha Movimiento',
+  `codmcodi` char(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Movimiento',
+  `ctprnumc` int NOT NULL DEFAULT '0' COMMENT 'Numero de Comprobante',
+  `ctprdebe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Importe al Debe',
+  `ctprhabe` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Importe al Haber',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`ctprid`),
   KEY `fk_ctpr_prov` (`emprcodi`,`provcodi`),
   CONSTRAINT `fk_ctpr_prov` FOREIGN KEY (`emprcodi`, `provcodi`) REFERENCES `linaprov` (`emprcodi`, `provcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=421 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=421 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cuentas Corrientes de Proveedores';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -733,26 +733,26 @@ DROP TABLE IF EXISTS `linaempr`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linaempr` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE EMPRESA',
-  `emprname` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'RAZON SOCIAL',
-  `emprdire` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'DIRECCION',
-  `emprcodp` char(5) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO POSTAL',
-  `emprloca` varchar(34) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'LOCALIDAD',
-  `emprtele` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'TELEFONO',
-  `emprciva` int NOT NULL DEFAULT '0' COMMENT 'CONDICION FRENTE A IVA',
-  `emprcgan` int NOT NULL DEFAULT '0' COMMENT 'CONDICION FRENTE A GANANCIAS',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Empresa',
+  `emprname` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Razon Social',
+  `emprdire` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Direccion',
+  `emprcodp` char(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo Postal',
+  `emprloca` varchar(34) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Localidad',
+  `emprtele` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Telefono',
+  `emprciva` int NOT NULL DEFAULT '0' COMMENT 'Condicion frente a IVA',
+  `emprcgan` int NOT NULL DEFAULT '0' COMMENT 'Condicion frente a Ganancias',
   `emprcuit` decimal(11,0) NOT NULL DEFAULT '0' COMMENT 'CUIT',
-  `emprunid` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'UNIDAD DE TRABAJO',
-  `emprnume` int NOT NULL DEFAULT '0' COMMENT 'CONTROL (NAME+DIRE)',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprunid` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Unidad de Trabajo',
+  `emprnume` int NOT NULL DEFAULT '0' COMMENT 'Control (Name+Dire)',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`emprcodi`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Empresas';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -809,28 +809,28 @@ DROP TABLE IF EXISTS `linaerro`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linaerro` (
-  `erroid` int NOT NULL AUTO_INCREMENT,
-  `errowstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `errouser` char(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `errodate` date NOT NULL DEFAULT '1900-01-01',
-  `errotime` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `erroempr` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `erronume` int NOT NULL DEFAULT '0',
-  `erromssg` varchar(78) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `errosour` varchar(78) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `erroline` int NOT NULL DEFAULT '0',
-  `erroprg0` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `erroprg1` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `erroprg2` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `erroprg3` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `erroprg4` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `erroprg5` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `erroprg6` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `erroprg7` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `erroprg8` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `erroprg9` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `erroid` int NOT NULL AUTO_INCREMENT COMMENT 'PK autoincremental linaerro',
+  `errowstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Id. Error',
+  `errouser` char(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Usuario',
+  `errodate` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha',
+  `errotime` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Hora',
+  `erroempr` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Empresa',
+  `erronume` int NOT NULL DEFAULT '0' COMMENT 'Número de Error',
+  `erromssg` varchar(78) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Mensaje',
+  `errosour` varchar(78) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Código fuente',
+  `erroline` int NOT NULL DEFAULT '0' COMMENT 'Línea',
+  `erroprg0` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Programa Nivel 0',
+  `erroprg1` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Programa Nivel 1',
+  `erroprg2` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Programa Nivel 2',
+  `erroprg3` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Programa Nivel 3',
+  `erroprg4` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Programa Nivel 4',
+  `erroprg5` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Programa Nivel 5',
+  `erroprg6` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Programa Nivel 6',
+  `erroprg7` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Programa Nivel 7',
+  `erroprg8` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Programa Nivel 8',
+  `erroprg9` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   PRIMARY KEY (`erroid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Errores de Ejecución';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -841,28 +841,28 @@ DROP TABLE IF EXISTS `linafcde`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linafcde` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `codmcodi` char(4) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE MOVIMIENTO',
-  `fchenume` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE COMPROBANTE',
-  `fcdereng` int NOT NULL DEFAULT '0' COMMENT 'RENGLON DEL COMPROBANTE',
-  `fcdefech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'FECHA MOVIMIENTO PARA CARDEX',
-  `articodi` char(9) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE ARTICULO',
-  `fcdedesc` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'DESCRIPCION DE ITEM',
-  `fcdecant` int NOT NULL DEFAULT '0' COMMENT 'CANTIDAD',
-  `fcdeunit` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'UNITARIO',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `codmcodi` char(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Movimiento',
+  `fchenume` int NOT NULL DEFAULT '0' COMMENT 'Numero de Comprobante',
+  `fcdereng` int NOT NULL DEFAULT '0' COMMENT 'Renglon del Comprobante',
+  `fchefech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha Movimiento para CARDEX',
+  `articodi` char(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Articulo',
+  `fcdedesc` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Descripcion del Item',
+  `fcdecant` int NOT NULL DEFAULT '0' COMMENT 'Cantidad',
+  `fcdeunit` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Precio Unitario',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`emprcodi`,`fchenume`,`fcdereng`,`codmcodi`),
   KEY `fk_fcde_articodi` (`articodi`),
   KEY `fk_fcde_fche` (`emprcodi`,`codmcodi`,`fchenume`),
   CONSTRAINT `fk_fcde_articodi` FOREIGN KEY (`articodi`) REFERENCES `linaarti` (`articodi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_fcde_fche` FOREIGN KEY (`emprcodi`, `codmcodi`, `fchenume`) REFERENCES `linafche` (`emprcodi`, `codmcodi`, `fchenume`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Facturación Compras - Detalle';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -919,25 +919,25 @@ DROP TABLE IF EXISTS `linafche`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linafche` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `codmcodi` char(4) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE MOVIMIENTO',
-  `fchenume` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE COMPROBANTE',
-  `fchefech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'FECHA COMPROBANTE',
-  `provcodi` int NOT NULL DEFAULT '0' COMMENT 'CODIGO DE CUENTA',
-  `fchetota` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'TOTAL COMPROBANTE',
-  `fcheobse` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'OBSERVACIONES',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `codmcodi` char(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Movimiento',
+  `fchenume` int NOT NULL DEFAULT '0' COMMENT 'Numero de Comprobante',
+  `fchefech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha Comprobante',
+  `provcodi` int NOT NULL DEFAULT '0' COMMENT 'Codigo de Proveedor',
+  `fchetota` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Total Comprobante',
+  `fcheobse` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Observaciones',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`fchenume`,`emprcodi`,`codmcodi`),
   KEY `idx_fche_fcde` (`emprcodi`,`codmcodi`,`fchenume`),
   KEY `fk_fche_prov` (`emprcodi`,`provcodi`),
   CONSTRAINT `fk_fche_prov` FOREIGN KEY (`emprcodi`, `provcodi`) REFERENCES `linaprov` (`emprcodi`, `provcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Facturación Compras - Cabeceras';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -994,27 +994,27 @@ DROP TABLE IF EXISTS `linafvde`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linafvde` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `codmcodi` char(4) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE MOVIMIENTO',
-  `fvhenume` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE COMPROBANTE',
-  `fvdereng` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE RENGLON',
-  `fvhefech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'FECHA MOVIMIENTO PARA CARDEX',
-  `articodi` char(9) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE ARTICULO',
-  `fvdedesc` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'DESCRIPCION DEL ITEM',
-  `fvdecant` int NOT NULL DEFAULT '0' COMMENT 'CANTIDAD',
-  `fvdeunit` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'UNITARIO',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `codmcodi` char(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Movimiento',
+  `fvhenume` int NOT NULL DEFAULT '0' COMMENT 'Numero de Comprobante',
+  `fvdereng` int NOT NULL DEFAULT '0' COMMENT 'Numero de Renglon',
+  `fvhefech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha Movimiento para CARDEX',
+  `articodi` char(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Articulo',
+  `fvdedesc` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Descripcion del Item',
+  `fvdecant` int NOT NULL DEFAULT '0' COMMENT 'Cantidad',
+  `fvdeunit` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Unitario',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`emprcodi`,`codmcodi`,`fvhenume`,`fvdereng`),
   KEY `idx_fvde_articodi` (`articodi`),
   CONSTRAINT `fk_fvde_articodi` FOREIGN KEY (`articodi`) REFERENCES `linaarti` (`articodi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_fvde_fvhe` FOREIGN KEY (`emprcodi`, `codmcodi`, `fvhenume`) REFERENCES `linafvhe` (`emprcodi`, `codmcodi`, `fvhenume`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Facturación Ventas - Detalle';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1071,20 +1071,20 @@ DROP TABLE IF EXISTS `linafvhe`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linafvhe` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `codmcodi` char(4) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE MOVIMIENTO',
-  `fvhenume` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE COMPROBANTE',
-  `fvhefech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'FECHA COMPROBANTE',
-  `cliecodi` int NOT NULL DEFAULT '0' COMMENT 'CODIGO DE CUENTA',
-  `fvhetota` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'TOTAL COMPROBANTE',
-  `fvheobse` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'PERSONA QUE RETIRA',
-  `fvhereci` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE RECIBO SIMULTANEO A FACT.',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `codmcodi` char(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Movimiento',
+  `fvhenume` int NOT NULL DEFAULT '0' COMMENT 'Numero de Comprobante',
+  `fvhefech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha Comprobante',
+  `cliecodi` int NOT NULL DEFAULT '0' COMMENT 'Codigo de Cliente',
+  `fvhetota` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Total Comprobante',
+  `fvheobse` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Observaciones',
+  `fvhereci` int NOT NULL DEFAULT '0' COMMENT 'Numero de Recibo Simultaneo a Factura',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`fvhenume`,`emprcodi`,`codmcodi`),
   KEY `idx_fvhe_codmcodi` (`codmcodi`),
@@ -1092,7 +1092,7 @@ CREATE TABLE `linafvhe` (
   KEY `fk_fvde_clie` (`emprcodi`,`cliecodi`),
   CONSTRAINT `fk_fvde_clie` FOREIGN KEY (`emprcodi`, `cliecodi`) REFERENCES `linaclie` (`emprcodi`, `cliecodi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_fvhe_codmcodi` FOREIGN KEY (`codmcodi`) REFERENCES `linacodm` (`codmcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Facturación Ventas - Cabeceraa';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1149,11 +1149,11 @@ DROP TABLE IF EXISTS `linamixt`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linamixt` (
-  `mixtclav` char(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `mixtdato` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `mixtclav` char(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `mixtdato` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`mixtclav`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Mixto de Configuración';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1164,22 +1164,22 @@ DROP TABLE IF EXISTS `linapade`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linapade` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `codmcodi` char(4) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE MOVIMIENTO',
-  `pahenume` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE COMPROBANTE',
-  `padereng` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE RENGLON',
-  `padedesc` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'DESCRIPCION CONCEPTO',
-  `padeunit` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'UNITARIO',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `codmcodi` char(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Movimiento',
+  `pahenume` int NOT NULL DEFAULT '0' COMMENT 'Numero de Comprobante',
+  `padereng` int NOT NULL DEFAULT '0' COMMENT 'Numero de Renglon',
+  `padedesc` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Descripcion del Concepto',
+  `padeunit` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Unitario',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`emprcodi`,`codmcodi`,`pahenume`,`padereng`),
   CONSTRAINT `fk_pade_pahe` FOREIGN KEY (`emprcodi`, `codmcodi`, `pahenume`) REFERENCES `linapahe` (`emprcodi`, `codmcodi`, `pahenume`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Pagos - Detalle';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1236,27 +1236,27 @@ DROP TABLE IF EXISTS `linapahe`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linapahe` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `codmcodi` char(4) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE MOVIMIENTO',
-  `pahenume` int NOT NULL DEFAULT '0' COMMENT 'NUMERO DE COMPROBANTE',
-  `pahefech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'FECHA COMPROBANTE',
-  `provcodi` int NOT NULL DEFAULT '0' COMMENT 'CODIGO DE CUENTA',
-  `pahetota` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'TOTAL COMPROBANTE',
-  `paheefec` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'PAGADO EN EFECTIVO',
-  `pahebanc` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'PAGADO CON TRANSFERENCIA',
-  `paheobse` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'PERSONA QUE RECIBIO EL PAGO',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `codmcodi` char(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Movimiento',
+  `pahenume` int NOT NULL DEFAULT '0' COMMENT 'Numero de Comprobante',
+  `pahefech` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha Comprobante',
+  `provcodi` int NOT NULL DEFAULT '0' COMMENT 'Codigo de Proveedor',
+  `pahetota` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Total Comprobante',
+  `paheefec` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Pagado en Efectivo',
+  `pahebanc` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Pagado con Transferencia ó Depósito',
+  `paheobse` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Observaciones',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`emprcodi`,`pahenume`,`codmcodi`),
   KEY `idx_pahe_pade` (`emprcodi`,`codmcodi`,`pahenume`),
   KEY `fk_pahe_prov` (`emprcodi`,`provcodi`),
   CONSTRAINT `fk_pahe_prov` FOREIGN KEY (`emprcodi`, `provcodi`) REFERENCES `linaprov` (`emprcodi`, `provcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Pagos - Cabecera';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1313,21 +1313,21 @@ DROP TABLE IF EXISTS `linaprog`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linaprog` (
-  `progcodi` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE PROGRAMA',
-  `progcall` char(3) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'TIPO DE MIEMBRO',
-  `progdesc` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'DESCRIPCION',
-  `progowne` char(3) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'PROGRAMA PARTICULAR DE ESTE OWNER',
-  `progexsu` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'SI PUEDE EJECUTARSE DESDE SUCU#01',
-  `progexre` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'SI PUEDE EJECUTARSE REMOTAMENTE',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `progcodi` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Programa',
+  `progcall` char(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Tipo de Miembro',
+  `progdesc` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Descripcion',
+  `progowne` char(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Programa Particular de Este Owner',
+  `progexsu` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Si Puede Ejecutarse Desde SUCU#01',
+  `progexre` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Si Puede Ejecutarse Remotamente',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`progcodi`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Programas del Sistema';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1433,22 +1433,22 @@ DROP TABLE IF EXISTS `linaprov`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linaprov` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `provcodi` int NOT NULL DEFAULT '0' COMMENT 'CODIGO DE PROVEEDOR',
-  `provname` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'NOMBRE',
-  `provsala` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'SALDO ANTERIOR',
-  `provfesa` date NOT NULL DEFAULT '1900-01-01' COMMENT 'FECHA SALDO ANTERIOR',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `provcodi` int NOT NULL DEFAULT '0' COMMENT 'Codigo de Proveedor',
+  `provname` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Nombre',
+  `provsala` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT 'Saldo Anterior',
+  `provfesa` date NOT NULL DEFAULT '1900-01-01' COMMENT 'Fecha Saldo Anterior',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`emprcodi`,`provcodi`),
   KEY `idx_prov_provcodi` (`provcodi`),
   CONSTRAINT `fk_prov_emprcodi` FOREIGN KEY (`emprcodi`) REFERENCES `linaempr` (`emprcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Proveedores';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1505,25 +1505,25 @@ DROP TABLE IF EXISTS `linasafe`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linasafe` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `usercodi` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `progcodi` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'ID. PROGRAMA',
-  `safealta` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'AUTORIZACION PARA ALTAS',
-  `safebaja` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'AUTORIZACION PARA BAJAS',
-  `safemodi` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'AUTORIZACION PARA MODIFICACIONES',
-  `safecons` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'AUTORIZACION PARA CONSULTAS',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `usercodi` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `progcodi` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Código de Programa en linaprog',
+  `safealta` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Autorizacion para Altas',
+  `safebaja` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Autorizacion para Bajas',
+  `safemodi` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Autorizacion para Modificaciones',
+  `safecons` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Autorizacion para Consultas',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`emprcodi`,`usercodi`,`progcodi`),
   KEY `fk_safe_progcodi` (`progcodi`),
   CONSTRAINT `fk_safe_progcodi` FOREIGN KEY (`progcodi`) REFERENCES `linaprog` (`progcodi`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_safe_user` FOREIGN KEY (`emprcodi`, `usercodi`) REFERENCES `linauser` (`emprcodi`, `usercodi`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Permisos de Usuarios';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1573,6 +1573,30 @@ DELIMITER ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
+-- Table structure for table `linastrs`
+--
+
+DROP TABLE IF EXISTS `linastrs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `linastrs` (
+  `strstable` char(32) NOT NULL DEFAULT '',
+  `strsordinal` tinyint NOT NULL DEFAULT '0',
+  `strsfield` char(32) DEFAULT '',
+  `strstype` char(16) DEFAULT 'C',
+  `strslen` tinyint DEFAULT '10',
+  `strsdec` tinyint DEFAULT '0',
+  `strscolkey` char(3) DEFAULT '',
+  `strscomment` varchar(45) DEFAULT '',
+  `strsdefault` varchar(45) DEFAULT '',
+  `strsboundlow` varchar(45) DEFAULT '',
+  `strsboundupper` varchar(45) DEFAULT '',
+  `strsuppercased` tinyint DEFAULT '0',
+  PRIMARY KEY (`strstable`,`strsordinal`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `linatabl`
 --
 
@@ -1580,11 +1604,11 @@ DROP TABLE IF EXISTS `linatabl`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linatabl` (
-  `tablcodi` char(6) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'CODIGO DE TABLA (ALIAS)',
-  `tabltipo` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'TIPO DE TABLA [S]ISTEMA O [E]MPRESA',
-  `tabldesc` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'DESCRIPCION',
+  `tablcodi` char(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Tabla (Alias)',
+  `tabltipo` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Tipo de Tabla [S]istema o [E]Mpresa',
+  `tabldesc` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Descripcion',
   PRIMARY KEY (`tablcodi`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tablas del Sistema';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1595,22 +1619,22 @@ DROP TABLE IF EXISTS `linauser`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `linauser` (
-  `emprcodi` char(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `usercodi` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `username` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'NOMBRE',
-  `userpass` char(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'PASSWORD SHA2-256',
-  `userremo` int NOT NULL DEFAULT '0' COMMENT 'SI ES USUARIO REMOTO',
-  `user` char(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `date` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `time` char(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `oper` char(1) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `emprcodi` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Código de Empresa',
+  `usercodi` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `username` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Nombre',
+  `userpass` char(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Password SHA2-256',
+  `userremo` int NOT NULL DEFAULT '0' COMMENT 'Si Es Usuario Remoto',
+  `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `oper` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `prog` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `wstn` char(2) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `wstn` char(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `nume` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`emprcodi`,`usercodi`),
   KEY `idx_safe_usercodi` (`usercodi`),
   CONSTRAINT `fk_user_emprcodi` FOREIGN KEY (`emprcodi`) REFERENCES `linaempr` (`emprcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Usuarios del Sistema';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1726,7 +1750,7 @@ DELIMITER ;
 --
 -- Dumping routines for database 'lina'
 --
-/*!50003 DROP PROCEDURE IF EXISTS `ADMIN_show_full_process_list` */;
+/*!50003 DROP FUNCTION IF EXISTS `fn_calc_exis` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
@@ -1736,9 +1760,440 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `ADMIN_show_full_process_list`()
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_calc_exis`(p_articodi CHAR(9), p_fecha_hasta DATE) RETURNS int
+    READS SQL DATA
 BEGIN
-SHOW FULL PROCESSLIST;
+    DECLARE v_exan     INT DEFAULT NULL;
+    DECLARE v_entradas INT DEFAULT 0;
+    DECLARE v_salidas  INT DEFAULT 0;
+
+    SELECT artiexan
+      INTO v_exan
+      FROM linaarti
+     WHERE articodi = p_articodi;
+
+    IF v_exan IS NULL THEN
+        RETURN -1;
+    END IF;
+
+    SELECT COALESCE(SUM(fcdecant), 0)
+      INTO v_entradas
+      FROM linafcde
+     WHERE articodi = p_articodi
+       AND fchefech <= p_fecha_hasta;
+
+    SELECT COALESCE(SUM(fvdecant), 0)
+      INTO v_salidas
+      FROM linafvde
+     WHERE articodi = p_articodi
+       AND fvhefech <= p_fecha_hasta;
+
+    RETURN v_exan + v_entradas - v_salidas;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP FUNCTION IF EXISTS `fn_clie_sald` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_clie_sald`(
+    p_cliecodi INT,
+    p_fecha_hasta DATE
+) RETURNS decimal(10,2)
+    READS SQL DATA
+    DETERMINISTIC
+BEGIN
+    DECLARE v_sala  DECIMAL DEFAULT NULL;
+    DECLARE ret_val DECIMAL;
+
+    -- 1. Obtener saldo inicial
+    SELECT cliesala
+      INTO v_sala
+      FROM linaclie
+     WHERE cliecodi = p_cliecodi;
+
+    -- 2. Validación y Cálculo
+    IF v_sala IS NULL THEN
+        SET ret_val = null;
+    ELSE
+        SELECT COALESCE(SUM(ctcldebe-ctclhabe)+v_sala, 0)
+          INTO ret_val
+          FROM linactcl
+         WHERE cliecodi = p_cliecodi
+           AND ctclfech <= p_fecha_hasta;
+    END IF;
+    RETURN ret_val;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP FUNCTION IF EXISTS `fn_prov_sald` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_prov_sald`(
+    p_provcodi INT,
+    p_fecha_hasta DATE
+) RETURNS decimal(10,2)
+    READS SQL DATA
+    DETERMINISTIC
+BEGIN
+    DECLARE v_sala  DECIMAL DEFAULT NULL;
+    DECLARE ret_val DECIMAL;
+
+    -- 1. Obtener saldo inicial
+    SELECT provsala
+      INTO v_sala
+      FROM linaprov
+     WHERE provcodi = p_provcodi;
+
+    -- 2. Validación y Cálculo
+    IF v_sala IS NULL THEN
+        SET ret_val = null;
+    ELSE
+    
+        -- SELECT COALESCE(SUM(ctprdebe-ctprhabe)+v_sala, 0)
+        SELECT SUM(ctprdebe-ctprhabe)
+          INTO ret_val
+          FROM linactpr
+         WHERE provcodi = p_provcodi
+           AND ctprfech <= p_fecha_hasta;
+    END IF;
+    set ret_val=ret_val+v_sala;
+    RETURN ret_val;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `@_Fill_LinaStrs` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `@_Fill_LinaStrs`()
+BEGIN
+    -- 1. Vaciar la tabla (Equivalente a TRUNCATE)
+    -- Nota: TRUNCATE en MySQL causa un commit implícito, 
+    -- por lo que no se puede revertir con ROLLBACK.
+    TRUNCATE TABLE linastrs;
+
+    -- 2. Insertar los nuevos datos
+    -- En MySQL consultamos 'information_schema' en lugar de 'sys.tables'
+    INSERT INTO linastrs (
+        strstable,
+        strsordinal,
+        strsfield,
+        strstype,
+        strslen,
+        strsdec,
+        strscolkey,
+        strscomment,
+        strsdefault
+    )
+    SELECT 
+        TABLE_NAME, 
+        ORDINAL_POSITION,
+        COLUMN_NAME, 
+        DATA_TYPE, 
+        COALESCE(CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION, 0),
+        COALESCE(NUMERIC_SCALE, 0),
+        COLUMN_KEY,
+        COALESCE(COLUMN_COMMENT, ''), -- Evita nulos en comentarios
+        COALESCE(COLUMN_DEFAULT, '')  -- <--- Cambio solicitado: Si es NULL, inserta ''
+    FROM information_schema.columns
+    WHERE TABLE_SCHEMA = DATABASE(); -- Solo la base de datos actual
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `@_List_Columns` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `@_List_Columns`()
+BEGIN
+	select table_name,
+    ordinal_position,
+    column_name, 
+    column_default,
+    data_type,
+    character_maximum_length,
+    numeric_precision,
+    numeric_scale,
+    column_key, 
+    column_comment
+from information_schema.columns 
+where table_schema= database()
+order by table_name, ordinal_position;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `@_List_Foreign_keys` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `@_List_Foreign_keys`()
+BEGIN
+select DISTINCT `k`.`CONSTRAINT_NAME` AS `Constraint_Name`,
+`k`.`TABLE_NAME` AS `Table_Name`,
+`k`.`COLUMN_NAME` AS `Column_Name`,
+`k`.`ORDINAL_POSITION` AS `Ordinal_Position`,
+`k`.`REFERENCED_TABLE_NAME` AS `Referenced_Table_Name`,
+`k`.`REFERENCED_COLUMN_NAME` AS `Referenced_Column_Name`,
+`r`.`UPDATE_RULE` AS `Update_Rule`,
+`r`.`DELETE_RULE` AS `Delete_Rule`,
+`k`.`CONSTRAINT_SCHEMA`
+from (`information_schema`.`key_column_usage` `k` 
+join `information_schema`.`referential_constraints` `r`) 
+where (
+(`k`.`CONSTRAINT_SCHEMA` = database()) 
+and (`k`.`CONSTRAINT_NAME` <> 'primary') 
+and (`k`.`CONSTRAINT_NAME` = `r`.`CONSTRAINT_NAME`))
+order by table_name,referenced_table_name,constraint_name;
+
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `@_List_Functions` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `@_List_Functions`()
+BEGIN
+	SELECT 
+		ROUTINE_NAME,
+		ROUTINE_TYPE,
+		DTD_IDENTIFIER,
+		ROUTINE_DEFINITION,
+		IS_DETERMINISTIC,
+		SQL_DATA_ACCESS,
+		SECURITY_TYPE,
+		CREATED,
+		LAST_ALTERED,
+		DEFINER
+	FROM information_schema.routines
+	WHERE ROUTINE_SCHEMA = database() AND ROUTINE_TYPE = 'FUNCTION'
+	ORDER BY ROUTINE_NAME;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `@_List_Indexes` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `@_List_Indexes`()
+BEGIN
+SELECT 
+    TABLE_NAME AS 'Tabla',
+    INDEX_NAME AS 'Nombre del Índice',
+    COLUMN_NAME AS 'Columna',
+    SEQ_IN_INDEX AS 'Posición en Índice',
+    IF(NON_UNIQUE = 0, 'SÍ', 'NO') AS 'Es Único',
+    IF(INDEX_NAME = 'PRIMARY', 'SÍ', 'NO') AS 'Es Clave Primaria',
+    INDEX_TYPE AS 'Tipo de Índice',
+    CARDINALITY AS 'Cardinalidad (Est.)'
+FROM 
+    information_schema.statistics
+WHERE 
+    TABLE_SCHEMA = database()
+ORDER BY 
+    TABLE_NAME, 
+    INDEX_NAME, 
+    SEQ_IN_INDEX;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `@_List_Procedures` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `@_List_Procedures`()
+BEGIN
+	SELECT 
+		ROUTINE_NAME,
+		ROUTINE_TYPE,
+		DTD_IDENTIFIER,
+		ROUTINE_DEFINITION,
+		IS_DETERMINISTIC,
+		SQL_DATA_ACCESS,
+		SECURITY_TYPE,
+		CREATED,
+		LAST_ALTERED,
+		DEFINER
+	FROM information_schema.routines
+	WHERE ROUTINE_SCHEMA = database() AND ROUTINE_TYPE = 'PROCEDURE'
+	ORDER BY ROUTINE_NAME;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `@_List_Tables` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `@_List_Tables`()
+BEGIN
+	Select 
+    table_name,
+    table_comment 
+    from information_schema.TABLES 
+    where table_schema=database() and table_type='BASE TABLE';
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `@_List_Triggers` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `@_List_Triggers`()
+BEGIN
+	SELECT 
+		TRIGGER_NAME,
+		EVENT_OBJECT_TABLE,
+		ACTION_TIMING,
+		EVENT_MANIPULATION,
+		ACTION_STATEMENT,
+		CREATED,
+		SQL_MODE,
+		DEFINER
+	FROM information_schema.triggers
+	WHERE TRIGGER_SCHEMA = database()
+	ORDER BY EVENT_OBJECT_TABLE, ACTION_TIMING;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_calc_exist` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_calc_exist`(
+    IN  p_articodi    CHAR(9),
+    IN  p_fecha_hasta DATE,
+    OUT ret_val       INT
+)
+BEGIN
+    DECLARE v_exan     INT DEFAULT NULL;
+    DECLARE v_entradas INT DEFAULT 0;
+    DECLARE v_salidas  INT DEFAULT 0;
+
+    SELECT artiexan
+      INTO v_exan
+      FROM linaarti
+     WHERE articodi = p_articodi;
+
+    IF v_exan IS NULL THEN
+        SET ret_val = -1;
+    ELSE
+        SELECT COALESCE(SUM(fcdecant), 0)
+          INTO v_entradas
+          FROM linafcde
+         WHERE articodi = p_articodi
+           AND fchefech <= p_fecha_hasta;
+
+        SELECT COALESCE(SUM(fvdecant), 0)
+          INTO v_salidas
+          FROM linafvde
+         WHERE articodi = p_articodi
+           AND fvhefech <= p_fecha_hasta;
+
+        SET ret_val = v_exan + v_entradas - v_salidas;
+    END IF;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1815,6 +2270,163 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_count_hijos` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_count_hijos`(
+    IN  p_schema       VARCHAR(64)  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN  p_tabla_padre  VARCHAR(64)  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN  p_val1         VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN  p_val2         VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN  p_val3         VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN  p_val4         VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    OUT out_total_hijos INT
+)
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE v_constraint_name VARCHAR(64);
+    DECLARE v_tabla_hija      VARCHAR(64);
+    DECLARE v_acumulado       INT DEFAULT 0;
+
+    -- Cursor para encontrar las FKs
+    DECLARE cur_fks CURSOR FOR 
+        SELECT DISTINCT CONSTRAINT_NAME, TABLE_NAME
+        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+        WHERE REFERENCED_TABLE_SCHEMA = p_schema
+          AND REFERENCED_TABLE_NAME = p_tabla_padre;
+          
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    SET v_acumulado = 0;
+
+    OPEN cur_fks;
+
+    read_loop: LOOP
+        FETCH cur_fks INTO v_constraint_name, v_tabla_hija;
+        IF done THEN 
+            LEAVE read_loop; 
+        END IF;
+
+        SET @where_clause = '';
+        
+        -- Construcción del WHERE dinámico con COLLATE explícito
+        SELECT GROUP_CONCAT(
+            CONCAT('`', COLUMN_NAME, '` = ', 
+                CASE ORDINAL_POSITION 
+                    WHEN 1 THEN CONCAT(QUOTE(p_val1), ' COLLATE utf8mb4_unicode_ci')
+                    WHEN 2 THEN CONCAT(QUOTE(p_val2), ' COLLATE utf8mb4_unicode_ci')
+                    WHEN 3 THEN CONCAT(QUOTE(p_val3), ' COLLATE utf8mb4_unicode_ci')
+                    WHEN 4 THEN CONCAT(QUOTE(p_val4), ' COLLATE utf8mb4_unicode_ci')
+                END
+            ) SEPARATOR ' AND '
+        ) INTO @where_clause
+        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+        WHERE CONSTRAINT_NAME = v_constraint_name 
+          AND TABLE_SCHEMA = p_schema;
+
+        -- Ejecución dinámica con backticks para seguridad de nombres
+        SET @sql_text = CONCAT('SELECT COUNT(*) INTO @v_count_temp FROM `', p_schema, '`.`', v_tabla_hija, '` WHERE ', @where_clause);
+        
+        PREPARE stmt FROM @sql_text;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+
+        SET v_acumulado = v_acumulado + IFNULL(@v_count_temp, 0);
+
+    END LOOP;
+    
+    CLOSE cur_fks;
+
+    -- Asignación final al parámetro OUT
+    SET out_total_hijos = v_acumulado;
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_InsertRow` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_InsertRow`(
+    IN p_schema_name VARCHAR(64),
+    IN p_sql_insert TEXT
+)
+BloquePrincipal: BEGIN
+    DECLARE v_status INT DEFAULT 0;
+    DECLARE v_msg TEXT DEFAULT 'OK';
+    DECLARE v_db_error_msg TEXT DEFAULT '';
+    DECLARE v_fk_name VARCHAR(64);
+    DECLARE v_parent_table VARCHAR(64);
+
+    -- 1. Manejador para DUPLICADOS (Status 1)
+    DECLARE CONTINUE HANDLER FOR 1062
+    BEGIN
+        SET v_status = 1;
+        SET v_msg = 'Error: Registro ya existe en la tabla destino (PK Duplicada)';
+    END;
+
+    -- 2. Manejador para LLAVES FORÁNEAS (Status 2)
+    DECLARE CONTINUE HANDLER FOR 1452
+    BEGIN
+        -- Capturamos el mensaje original del sistema
+        GET DIAGNOSTICS CONDITION 1 v_db_error_msg = MESSAGE_TEXT;
+        
+        -- Extraemos el nombre de la FK del mensaje (ej: `fk_ventas_clientes`)
+        SET v_fk_name = SUBSTRING_INDEX(SUBSTRING_INDEX(v_db_error_msg, 'CONSTRAINT `', -1), '`', 1);
+        
+        -- Buscamos a qué tabla pertenece esa FK en el diccionario de datos
+        SELECT REFERENCED_TABLE_NAME INTO v_parent_table
+        FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+        WHERE CONSTRAINT_SCHEMA = p_schema_name 
+          AND CONSTRAINT_NAME = v_fk_name
+        LIMIT 1;
+
+        SET v_status = 2;
+        SET v_msg = CONCAT('Error FK: No existe el registro relacionado en la tabla padre: ', 
+                           COALESCE(v_parent_table, v_fk_name), '');
+    END;
+
+    -- 3. Manejador para ERRORES GENERALES (Status 3)
+    DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+    BEGIN
+        IF v_status = 0 THEN
+            GET DIAGNOSTICS CONDITION 1 v_db_error_msg = MESSAGE_TEXT;
+            SET v_status = 3;
+            SET v_msg = CONCAT('Error Sintaxis/Sistema: ', v_db_error_msg);
+        END IF;
+    END;
+
+    -- EJECUCIÓN DEL SQL DINÁMICO
+    SET @sql_query = p_sql_insert;
+    PREPARE stmt FROM @sql_query;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+
+    -- RESULTADO FINAL
+    SELECT v_status AS status, v_msg AS mensaje;
+
+END BloquePrincipal ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_sync_linasafe` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1873,4 +2485,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-16 15:04:18
+-- Dump completed on 2026-03-23 20:27:42

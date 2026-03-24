@@ -259,6 +259,12 @@ if (_linaViewportCfgEl) {
             const paneElement = document.getElementById('pane-' + tabId);
             if (!paneElement) return;
             paneElement.innerHTML = html;
+            // innerHTML no ejecuta scripts: re-crearlos para que corran
+            paneElement.querySelectorAll('script').forEach(function(oldScript) {
+              var newScript = document.createElement('script');
+              newScript.textContent = oldScript.textContent;
+              oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
             try {
               if (window.Alpine) Alpine.initTree(paneElement);
             } catch (err) {
@@ -309,8 +315,8 @@ if (_linaViewportCfgEl) {
     }
 
     document.addEventListener('htmx:afterSwap', function(evt) {
-      if (window.Alpine) Alpine.initTree(evt.detail.target);
       htmx.process(evt.detail.target);
+      if (window.Alpine) Alpine.initTree(evt.detail.target);
       const tabsRoot = window.linaTabsManager || null;
       const pane = evt.detail.target.closest('.tab-pane') || evt.detail.target;
       if (tabsRoot && typeof tabsRoot.registerDirtyTrackers === 'function') {
