@@ -248,15 +248,23 @@ async def lina21_save(request: Request):
 
         # ── Payment ──────────────────────────────────────────────────────────
         cohenume = None
-        if efec + banc > 0:
+        if not is_ajuste:
+            ctacte = fvhetota - efec - banc
+            if ctacte < 0:
+                ctacte = Decimal(0)
+            efec_f   = float(efec)
+            banc_f   = float(banc)
+            ctacte_f = float(ctacte)
+            total_f  = float(fvhetota)
+
             cur.execute(
                 "SELECT COALESCE(MAX(cohenume), 0) + 1 FROM linacohe WHERE emprcodi=%s AND codmcodi=%s",
                 (empr, CODM_RECI),
             )
-            cohenume      = cur.fetchone()[0]
-            total_cobrado = float(efec + banc)
-            efec_f        = float(efec)
-            banc_f        = float(banc)
+            cohenume = cur.fetchone()[0]
+
+            cobrado   = efec + banc
+            cobrado_f = float(cobrado)
 
             cur.execute(
                 "INSERT INTO linacohe"
@@ -264,18 +272,20 @@ async def lina21_save(request: Request):
                 "   cohetota, coheefec, cohebanc, coheobse)"
                 " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                 (empr, CODM_RECI, cohenume, fvhefech, cliecodi,
-                 total_cobrado, efec_f, banc_f, fvheobse),
+                 cobrado_f, efec_f, banc_f, fvheobse),
             )
 
+            # linacode reng 1: siempre
             codereng = 1
             cur.execute(
                 "INSERT INTO linacode"
                 "  (emprcodi, codmcodi, cohenume, codereng, codedesc, codeunit)"
                 " VALUES (%s, %s, %s, %s, %s, %s)",
                 (empr, CODM_RECI, cohenume, codereng,
-                 f"Recibido con {CODM_REMI} N° {fvhenume:08d}"[:40], total_cobrado),
+                 f"Recibido con {CODM_REMI} N° {fvhenume:08d} $ {cobrado_f:,.0f}"[:40], cobrado_f),
             )
 
+            # linacode reng 2: efectivo (si > 0)
             if efec > 0:
                 codereng += 1
                 cur.execute(
@@ -283,9 +293,10 @@ async def lina21_save(request: Request):
                     "  (emprcodi, codmcodi, cohenume, codereng, codedesc, codeunit)"
                     " VALUES (%s, %s, %s, %s, %s, 0)",
                     (empr, CODM_RECI, cohenume, codereng,
-                     f"{efec_f:,.2f} en Efectivo"[:40]),
+                     f"{efec_f:,.0f} en Efectivo"[:40]),
                 )
 
+            # linacode reng 3: transferencia (si > 0)
             if banc > 0:
                 codereng += 1
                 cur.execute(
@@ -293,18 +304,21 @@ async def lina21_save(request: Request):
                     "  (emprcodi, codmcodi, cohenume, codereng, codedesc, codeunit)"
                     " VALUES (%s, %s, %s, %s, %s, 0)",
                     (empr, CODM_RECI, cohenume, codereng,
-                     f"{banc_f:,.2f} en Transf. o Depósito"[:40]),
+                     f"{banc_f:,.0f} en Transf. o Depósito"[:40]),
                 )
 
-            cur.execute(
-                "INSERT INTO linactcl"
-                "  (emprcodi, cliecodi, ctclfech, codmcodi, ctclnumc, ctcldebe, ctclhabe)"
-                " VALUES (%s, %s, %s, %s, %s, 0, %s)",
-                (empr, cliecodi, fvhefech, CODM_RECI, cohenume, total_cobrado),
-            )
+            # linactcl HABER = efec + banc (si > 0); deja ctacte como saldo deudor
+            if cobrado > 0:
+                cur.execute(
+                    "INSERT INTO linactcl"
+                    "  (emprcodi, cliecodi, ctclfech, codmcodi, ctclnumc, ctcldebe, ctclhabe)"
+                    " VALUES (%s, %s, %s, %s, %s, 0, %s)",
+                    (empr, cliecodi, fvhefech, CODM_RECI, cohenume, float(cobrado)),
+                )
 
+            # linacaja (si efectivo > 0)
             if efec > 0:
-                conc = f"{CODM_RECI} {cohenume:08d}"[:30]
+                conc = f"RECI Nº {cohenume:08d}"[:30]
                 cur.execute(
                     "INSERT INTO linacaja"
                     "  (emprcodi, cliecodi, provcodi, cajafech, cajanumc, cajaconc, cajadebe, cajahabe)"
@@ -312,8 +326,9 @@ async def lina21_save(request: Request):
                     (empr, cliecodi, fvhefech, cohenume, conc, efec_f),
                 )
 
+            # linabanc (si banco > 0)
             if banc > 0:
-                conc = f"{CODM_RECI} {cohenume:08d}"[:30]
+                conc = f"RECI Nº {cohenume:08d}"[:30]
                 cur.execute(
                     "INSERT INTO linabanc"
                     "  (emprcodi, cliecodi, provcodi, bancfech, bancnumc, bancconc, bancdebe, banchabe)"

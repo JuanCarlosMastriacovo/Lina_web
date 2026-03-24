@@ -65,7 +65,7 @@
     </div>
 
     <!-- GRILLA DE LÍNEAS INGRESADAS -->
-    <div style="overflow-y:auto; flex:1 1 0; min-height:60px;">
+    <div style="overflow-y:auto; flex:1 1 0; min-height:300px;">
       <table id="lina21-grid"
              style="width:100%; border-collapse:collapse; font-size:8pt; table-layout:fixed;">
         <colgroup>
@@ -108,13 +108,13 @@
     <div style="flex-shrink:0; height:5px; background:#f0ede0;"></div>
 
     <!-- FILA DE INGRESO (mismas columnas que la grilla) -->
-    <div style="flex-shrink:0; padding:3px 0;">
+    <div id="lina21-ingreso" style="flex-shrink:0; padding:3px 0;">
       <table id="lina21-input-table"
              style="width:100%; border-collapse:collapse; font-size:8pt; table-layout:fixed;">
         <colgroup>
           <col style="width:30px;">
           <col style="width:90px;">
-          <col style="width:220px;">
+          <col style="width:110px;">
           <col style="width:50px;">
           <col style="width:60px;">
           <col style="width:75px;">
@@ -169,27 +169,63 @@
       </table>
     </div>
 
+    <!-- PANEL DE PAGO (oculto hasta que se pulse Guardar Remito) -->
+    <div id="lina21-pago" style="display:none; flex-shrink:0; padding:4px 8px;
+         background:#fffff0; border-top:1px solid #ccc;">
+      <div class="d-flex align-items-center gap-3" style="font-size:8.5pt;">
+        <strong>Cobro:</strong>
+        <label style="white-space:nowrap;">Efectivo $
+          <input type="number" id="pago-efec" min="0" step="0.01" value="0"
+                 style="width:90px; padding:1px 4px; border:1px solid #aaa;
+                        border-radius:2px; font-size:8.5pt; text-align:right;
+                        background:#fffff8;">
+        </label>
+        <label style="white-space:nowrap;">Transferencia $
+          <input type="number" id="pago-banc" min="0" step="0.01" value="0"
+                 style="width:90px; padding:1px 4px; border:1px solid #aaa;
+                        border-radius:2px; font-size:8.5pt; text-align:right;
+                        background:#fffff8;">
+        </label>
+        <span style="white-space:nowrap; color:#555;">Cta. Cte. $
+          <strong id="pago-ctacte" style="font-family:monospace; font-size:9pt; color:#1a3a6a;">0,00</strong>
+        </span>
+        <label style="white-space:nowrap; margin-left:12px; color:#555;">Comentario:
+          <input type="text" id="pago-obse" maxlength="40"
+                 style="width:200px; padding:1px 4px; border:1px solid #aaa;
+                        border-radius:2px; font-size:8.5pt; background:#fffff8;">
+        </label>
+      </div>
+    </div>
+
   </div><!-- fin fase2 -->
 
   <!-- BARRA INFERIOR -->
   <div class="border-top px-2 py-1 d-flex gap-2 align-items-center"
        style="background:#f5f5f5; flex-shrink:0;">
-    <!-- Botones fase 1 -->
-    <span id="lina21-btns-fase1">
-      <button id="lina21-btn-proseguir" disabled
-              style="padding:3px 14px; background:#4472C4; color:white; border:none;
-                     border-radius:4px; cursor:pointer; font-size:8.5pt; opacity:0.5;">
-        ✓ Proseguir
-      </button>
-    </span>
-    <!-- Botones fase 2 (ocultos al inicio) -->
+
+    <!-- Botones fase 2: ingreso de renglones -->
     <span id="lina21-btns-fase2" style="display:none;">
       <button id="lina21-btn-guardar" disabled
               style="padding:3px 14px; background:#4472C4; color:white; border:none;
                      border-radius:4px; cursor:pointer; font-size:8.5pt; opacity:0.5;">
-        💾 Guardar Remito
+        → Continuar
       </button>
     </span>
+
+    <!-- Botones fase 3: confirmación de pago -->
+    <span id="lina21-btns-fase3" style="display:none; gap:6px;">
+      <button id="lina21-btn-confirmar"
+              style="padding:3px 14px; background:#2e7d32; color:white; border:none;
+                     border-radius:4px; cursor:pointer; font-size:8.5pt;">
+        ✓ Guardar
+      </button>
+      <button id="lina21-btn-corregir"
+              style="padding:3px 12px; background:#e65100; color:white; border:none;
+                     border-radius:4px; cursor:pointer; font-size:8.5pt; margin-left:4px;">
+        ✎ Corregir
+      </button>
+    </span>
+
     <button id="lina21-btn-cancelar"
             style="padding:3px 12px; background:#fff; color:#555;
                    border:1px solid #ccc; border-radius:4px; cursor:pointer; font-size:8.5pt;">
@@ -212,13 +248,20 @@
   // ── Elementos DOM ─────────────────────────────────────────────────────────
   var elCodi     = document.getElementById('lina21-cliecodi');
   var elNombre   = document.getElementById('lina21-cliename');
-  var elBtnP     = document.getElementById('lina21-btn-proseguir');
   var elBtnG     = document.getElementById('lina21-btn-guardar');
   var elBtnC     = document.getElementById('lina21-btn-cancelar');
+  var elBtnConf  = document.getElementById('lina21-btn-confirmar');
+  var elBtnCorr  = document.getElementById('lina21-btn-corregir');
   var elFase1    = document.getElementById('lina21-fase1');
   var elFase2    = document.getElementById('lina21-fase2');
-  var elBtnsF1   = document.getElementById('lina21-btns-fase1');
   var elBtnsF2   = document.getElementById('lina21-btns-fase2');
+  var elBtnsF3   = document.getElementById('lina21-btns-fase3');
+  var elIngreso  = document.getElementById('lina21-ingreso');
+  var elPago     = document.getElementById('lina21-pago');
+  var pagoEfec   = document.getElementById('pago-efec');
+  var pagoBanc   = document.getElementById('pago-banc');
+  var pagoCtacte = document.getElementById('pago-ctacte');
+  var pagoObse   = document.getElementById('pago-obse');
   var elTbody    = document.getElementById('lina21-tbody');
   var elResumen  = document.getElementById('lina21-clie-resumen');
   var elTotalC   = document.getElementById('lina21-total-cant');
@@ -244,8 +287,7 @@
   function validarClie() {
     var cod = (elCodi.value || '').trim();
     if (!cod) {
-      elNombre.textContent = ''; elBtnP.disabled = true; elBtnP.style.opacity = '0.5';
-      cliecodi = ''; cliename = '';
+      elNombre.textContent = ''; cliecodi = ''; cliename = '';
       return;
     }
     fetch('/lina21/clie/info?cliecodi=' + encodeURIComponent(cod))
@@ -253,24 +295,17 @@
       .then(function(d) {
         if (d.ok) {
           cliecodi = cod; cliename = d.cliename;
-          elNombre.textContent  = d.cliename;
-          elNombre.style.color  = '#1a5c1a';
-          elNombre.style.fontWeight = 'bold';
-          elBtnP.disabled  = false;
-          elBtnP.style.opacity = '1';
+          irFase2();
         } else {
           cliecodi = ''; cliename = '';
           elNombre.textContent  = 'No encontrado';
           elNombre.style.color  = '#c00';
           elNombre.style.fontWeight = 'normal';
-          elBtnP.disabled  = true;
-          elBtnP.style.opacity = '0.5';
         }
       })
       .catch(function() {
         elNombre.textContent = 'Error de red';
         elNombre.style.color = '#c00';
-        elBtnP.disabled = true; elBtnP.style.opacity = '0.5';
       });
   }
 
@@ -278,7 +313,6 @@
   function irFase2() {
     elFase1.style.display  = 'none';
     elFase2.style.setProperty('display', 'flex', 'important');
-    elBtnsF1.style.display = 'none';
     elBtnsF2.style.display = '';
     elResumen.textContent  = cliecodi + ' — ' + cliename;
     renderGrid();
@@ -419,7 +453,7 @@
     }
     limpiarInp(true);
     renderGrid();
-    inpArti.focus();
+    setTimeout(function() { inpArti.focus(); }, 0);
   }
 
   function limpiarInp(full) {
@@ -483,6 +517,84 @@
     if (!elCtx.contains(e.target)) cerrarCtx();
   });
 
+  // ── FASE 3: panel de pago ────────────────────────────────────────────────
+  function totalRemito() {
+    return lineas.reduce(function(s, l) { return s + (parseInt(l.cant) || 0) * (parseFloat(l.unit) || 0); }, 0);
+  }
+
+  function actualizarCtacte() {
+    var efec  = parseFloat(pagoEfec.value)  || 0;
+    var banc  = parseFloat(pagoBanc.value)  || 0;
+    var ctacte = totalRemito() - efec - banc;
+    pagoCtacte.textContent = fmtN(ctacte);
+    pagoCtacte.style.color = ctacte < 0 ? '#c00' : '#1a3a6a';
+  }
+
+  function irPago() {
+    elIngreso.style.display  = 'none';
+    elPago.style.display     = '';
+    elBtnsF2.style.display   = 'none';
+    elBtnsF3.style.display   = '';
+    pagoEfec.value = '0'; pagoBanc.value = '0'; pagoObse.value = '';
+    actualizarCtacte();
+    setTimeout(function() { pagoEfec.focus(); pagoEfec.select(); }, 0);
+  }
+
+  function irCorregir() {
+    elPago.style.display     = 'none';
+    elIngreso.style.display  = '';
+    elBtnsF3.style.display   = 'none';
+    elBtnsF2.style.display   = '';
+    setTimeout(function() { inpArti.focus(); }, 0);
+  }
+
+  function guardarRemito() {
+    elBtnConf.disabled = true;
+    var efec = parseFloat(pagoEfec.value) || 0;
+    var banc = parseFloat(pagoBanc.value) || 0;
+    var obse = pagoObse.value.trim().slice(0, 40);
+    var payload = {
+      cliecodi:  cliecodi,
+      efec:      efec,
+      banc:      banc,
+      fvheobse:  obse,
+      lineas:   lineas.map(function(l) {
+        return { articodi: l.articodi, desc: l.desc, cant: l.cant, unit: l.unit };
+      })
+    };
+    fetch('/lina21/save', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.ok) {
+        alert(d.message);
+        reiniciar();
+      } else {
+        alert('Error: ' + (d.error || 'desconocido'));
+        elBtnConf.disabled = false;
+      }
+    })
+    .catch(function(err) {
+      alert('Error de red: ' + err);
+      elBtnConf.disabled = false;
+    });
+  }
+
+  function reiniciar() {
+    lineas = []; editingIdx = null; cliecodi = ''; cliename = '';
+    elPago.style.display    = 'none';
+    elIngreso.style.display = '';
+    elBtnsF3.style.display  = 'none';
+    elBtnsF2.style.display  = 'none';
+    elFase2.style.setProperty('display', 'none', 'important');
+    elFase1.style.display   = '';
+    elCodi.value = ''; elNombre.textContent = '';
+    setTimeout(function() { elCodi.focus(); }, 0);
+  }
+
   // ── Cancelar / Cerrar tab ─────────────────────────────────────────────────
   function cancelar() {
     var mgr = window.linaTabsManager;
@@ -497,8 +609,6 @@
   });
   elCodi.addEventListener('change', function() { validarClie(); });
 
-  elBtnP.addEventListener('click', function() { if (!elBtnP.disabled) irFase2(); });
-
   // Fase 2 — código artículo
   inpArti.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') { e.preventDefault(); buscarArti(); }
@@ -511,10 +621,28 @@
     if (e.key === 'Enter') { e.preventDefault(); confirmarRenglon(); }
   });
 
-  // Cancelar / Escape
-  elBtnC.addEventListener('click', cancelar);
-  document.addEventListener('keydown', function handler(e) {
-    if (e.key === 'Escape') { cancelar(); document.removeEventListener('keydown', handler); }
+  // Fase 2 — botón Guardar Remito → ir a pago
+  elBtnG.addEventListener('click', function() { if (!elBtnG.disabled) irPago(); });
+
+  // Fase 3 — botones
+  elBtnConf.addEventListener('click', guardarRemito);
+  elBtnCorr.addEventListener('click', irCorregir);
+  pagoEfec.addEventListener('input', actualizarCtacte);
+  pagoBanc.addEventListener('input', actualizarCtacte);
+  pagoEfec.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); pagoBanc.focus(); pagoBanc.select(); }
+  });
+  pagoBanc.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); pagoObse.focus(); pagoObse.select(); }
+  });
+  pagoObse.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); guardarRemito(); }
+  });
+
+  // Cancelar / Escape → reiniciar (no cierra el tab)
+  elBtnC.addEventListener('click', reiniciar);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') reiniciar();
   });
 
   // Foco inicial

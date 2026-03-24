@@ -117,3 +117,20 @@ En la lista de precios LINA1332
 3. Compactar todos los que están bajo el rubro MCOM con el mismo precio y lista un solo renglón, código en blanco, descripción "Todas las medallas comunes"
 4. Compactar en un solo rengón "Medallas laser" a todas las que tengan como descripcion "Medalla laser" y el mismo precio.
 
+******
+BR-012
+******
+En remitos de venta: lina21.py
+    cliente 9000 Ajustes de stock es un cliente particular, los precios de los artículos "vendidos" se toman siempre=0,
+    siempre el total del remito en dinero será=0. De esta manera mueve stock sin mover dinero.
+    En este cliente se admiten cantidades negativas
+
+******
+BR-013
+******
+En remitos de venta: lina21.py
+    El código de artículo "*" no mueve stock, 
+    existe para facturar importes positivos o negativos que no obedecen a movimientos de stock
+    Cuando se ingresa "*" el campo "descripcion" deja de ser readonly y se edita, 
+    por eso se incluye fvdedesc en linafvde, para guardar estos datos que no son artidesc
+    
