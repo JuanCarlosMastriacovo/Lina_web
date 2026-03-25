@@ -82,10 +82,6 @@
 
   document.addEventListener('keydown', function (e) {
 
-    // F2 → Empresa activa, F3 → Fecha de sesión
-    if (e.key === 'F2') { e.preventDefault(); linaToggleCompanyPicker(); return; }
-    if (e.key === 'F3') { e.preventDefault(); linaToggleSessionDatePicker(); return; }
-
     const companyPanel = document.getElementById('session-company-panel');
     const datePanel    = document.getElementById('session-date-panel');
 
@@ -117,6 +113,24 @@
       const key     = e.key.toLowerCase();
       const element = document.querySelector(`[data-hotkey="${key}"]`);
       if (element) { e.preventDefault(); element.click(); }
+    }
+
+    // Ctrl+S → Guardar en formulario de detalle activo
+    if (e.ctrlKey && e.key === 's') {
+      const detailPanel = document.querySelector('.tab-pane.active .md-detail-panel')
+                       || document.querySelector('.md-detail-panel');
+      if (detailPanel) {
+        const saveBtn = detailPanel.querySelector('button[type="submit"][form="detail-form"]:not([disabled])');
+        if (saveBtn && saveBtn.offsetParent !== null) { e.preventDefault(); saveBtn.click(); return; }
+      }
+    }
+
+    // F2 / F7 / F8 → botones de acción (primer botón visible con data-hotkey="Fx")
+    if (e.key === 'F2' || e.key === 'F7' || e.key === 'F8') {
+      const btns = document.querySelectorAll(`button[data-hotkey="${e.key}"]:not([disabled])`);
+      for (const btn of btns) {
+        if (btn.offsetParent !== null) { e.preventDefault(); btn.click(); break; }
+      }
     }
 
     // NumPad + / Enter → avanzar foco; NumPad - → retroceder foco
@@ -163,6 +177,13 @@
     if (!(panel && btn && input)) return;
 
     const willOpen = !panel.classList.contains('visible');
+    if (willOpen) {
+      const mgr = window.linaTabsManager;
+      if (mgr && mgr.tabs && mgr.tabs.length > 0) {
+        linaAlert('Cierre todas las pestañas antes de cambiar la empresa activa.', 'warn');
+        return;
+      }
+    }
     panel.classList.toggle('visible', willOpen);
     btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
     if (willOpen) {
@@ -216,6 +237,13 @@
     if (!(panel && btn && input)) return;
 
     const willOpen = !panel.classList.contains('visible');
+    if (willOpen) {
+      const mgr = window.linaTabsManager;
+      if (mgr && mgr.tabs && mgr.tabs.length > 0) {
+        linaAlert('Cierre todas las pestañas antes de cambiar la fecha de sesión.', 'warn');
+        return;
+      }
+    }
     panel.classList.toggle('visible', willOpen);
     btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
     if (willOpen) {

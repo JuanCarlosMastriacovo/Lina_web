@@ -1,9 +1,7 @@
+- Ver que pasa con linasafe al crear o eliminar empresa
 - lina231 salida en txt campo totales queda chico cuando se listan todos los comprobantes
-- implementar BR-012 y BR-013
-- en todos los menues contextuales sacar el ícono que aparece e la izquierda de la leyenda
-- En seleccion de empresa no actualiza desde linaempr al arranque
-- Verás que la parte de compras Menu lina31 hasta lina373 es homóloga a la parte de ventas, lina21 hasta lina273, que ya tenemos
-    Necesito que generes los programas de lina31 hasta lina373,
+- Verás que la parte de compras Menu lina31 hasta lina372 es homóloga a la parte de ventas, lina21 hasta lina272, que ya tenemos
+    Necesito que generes los programas de lina31 hasta lina372,
     considerando
     Lo que era Ventas, ahora son Compras
     Lo que era Cobranzas ahora son Pagos
@@ -61,3 +59,6 @@ DESCARTADO Validaciones de campos en CapaDAL y localmente para el prog en CapaUI
 ***OK *** FMT_NROCOMP = "08d" debe ser "06d"
 ***OK *** Listados a txt
 ***OK *** modulo imprimir comprobantes: migrado de zprtC.prg
+***OK *** implementar BR-012 y BR-013
+***OK *** en todos los menues contextuales sacar el ícono que aparece a la izquierda de la leyenda
+***OK *** En seleccion de empresa no actualiza desde linaempr al arranque

@@ -50,8 +50,9 @@
                         data-delete-confirm="¿Está seguro de eliminar {{ entity_label }}? ({{ entity_code }} - {{ entity_label_value }})"
                         hx-delete="{{ entity_route_base }}/{{ entity_code }}/delete"
                         hx-target="closest .md-detail-panel" style="font-size: 8.25pt; padding: 0.2rem 0.4rem;"
-                        title="Elimina el registro actual de forma permanente">
-                    🗑️ Eliminar
+                        data-hotkey="F7"
+                        title="Elimina el registro actual de forma permanente [F7]">
+                    Eliminar (F7)
                 </button>
             </div>
             {% endif %}
@@ -95,8 +96,8 @@
 
         <button type="submit" form="detail-form" class="btn btn-primary btn-sm"
                 :disabled="!isDirty()" style="font-size: 7.5pt; padding: 0.2rem 0.4rem;"
-                title="Guarda los cambios realizados en el formulario">
-            ✓ Guardar
+                title="Guarda los cambios realizados en el formulario [Ctrl+S]">
+            Guardar (Ctrl+S)
         </button>
 
 

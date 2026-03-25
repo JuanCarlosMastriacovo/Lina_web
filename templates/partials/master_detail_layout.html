@@ -17,8 +17,9 @@
             <button class="btn btn-sm btn-success{% if add_button_class %} {{ add_button_class }}{% endif %}"
                     hx-get="{{ route_new }}"
                     :hx-target="'#' + $id('wdetail')"
-                    title="Crea un nuevo registro (alta)">
-                + Agregar
+                    data-hotkey="F8"
+                    title="Crea un nuevo registro (alta) [F8]">
+                + Agregar (F8)
             </button>
         </div>
 

@@ -350,6 +350,12 @@
   // Cancelar reinicia (no cierra el tab)
   elBtnC.addEventListener('click', reiniciar);
   document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey && e.key === 's') {
+      e.preventDefault();
+      if (elBtnConf && elBtnConf.offsetParent !== null) { elBtnConf.click(); }
+      else if (elBtnG && !elBtnG.disabled && elBtnG.offsetParent !== null) { elBtnG.click(); }
+      return;
+    }
     if (e.key === 'Escape') reiniciar();
   });
 

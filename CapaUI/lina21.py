@@ -144,7 +144,7 @@ async def lina21_save(request: Request):
     reng       = 0
     for ln in lineas_raw:
         articodi = str(ln.get("articodi", "")).strip().upper()
-        if not articodi or articodi == "*":
+        if not articodi:
             continue
         reng += 1
         desc = str(ln.get("desc", "")).strip()[:LEN_TEXTO_LARGO]
@@ -168,7 +168,7 @@ async def lina21_save(request: Request):
     is_ajuste = (cliecodi == CLIE_AJUSTE)
     fvhetota  = Decimal(0) if is_ajuste else sum(ln["fvdecant"] * ln["fvdeunit"] for ln in lineas)
     if not is_ajuste:
-        if not lineas or fvhetota <= 0:
+        if not lineas or fvhetota == Decimal(0):
             return JSONResponse(
                 {"ok": False, "error": "No se admiten comprobantes vacíos o con total cero."},
                 status_code=400,

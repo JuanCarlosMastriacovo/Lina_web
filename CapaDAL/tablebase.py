@@ -449,7 +449,7 @@ class TableBase:
             if not conn: sess_conns.release_conn(_conn)
 
     @classmethod
-    def list_all(cls, filters: Optional[Dict[str, Any]] = None, order_by: Optional[str] = None, fields: Optional[List[str]] = None, conn=None) -> List[Dict[str, Any]]:
+    def list_all(cls, filters: Optional[Dict[str, Any]] = None, order_by: Optional[str] = None, fields: Optional[List[str]] = None, conn=None, skip_company_filter: bool = False) -> List[Dict[str, Any]]:
         """Obtiene todos los registros, opcionalmente filtrados y ordenados."""
         _conn = conn or sess_conns.get_conn(readonly=False)
         try:
@@ -458,11 +458,11 @@ class TableBase:
             columns = ", ".join(fields) if fields else "*"
             query = f"SELECT {columns} FROM {cls.TABLE_NAME}"
             params = []
-            
+
             # Filtro automático de empresa si aplica
             where_clauses = []
             company_field = cls.get_company_field()
-            if company_field and company_field in cls.PK_FIELDS:
+            if not skip_company_filter and company_field and company_field in cls.PK_FIELDS:
                 where_clauses.append(f"{company_field} = %s")
                 params.append(cls._get_empr())
 

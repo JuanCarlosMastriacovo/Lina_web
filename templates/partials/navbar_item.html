@@ -12,22 +12,11 @@
       {% endfor %}
     </ul>
   {% else %}
-    {% set prog_lower = item.code | lower %}
     {% set prog_title = item.code.strip() ~ " - " ~ item.title %}
-    {% if prog_lower in PROGRAM_MODULES %}
-      {# Programa ejecutable: pasar la ruta directa #}
-      <a class="dropdown-item" href="#" 
-         @click.prevent="openTab('{{ item.code }}', '{{ prog_title }}', '{{ PROGRAM_MODULES[prog_lower].route }}/')"
-         {% if hk %}data-hotkey="{{ hk }}"{% endif %}>
-        {{ display_title | safe }}
-      </a>
-    {% else %}
-      {# Nodo de menú no ejecutable: pasar por /prog/{code} #}
-      <a class="dropdown-item" href="#" 
-         @click.prevent="openTab('{{ item.code }}', '{{ prog_title }}', '/prog/{{ item.code }}')"
-         {% if hk %}data-hotkey="{{ hk }}"{% endif %}>
-        {{ display_title | safe }}
-      </a>
-    {% endif %}
+    <a class="dropdown-item" href="#"
+       @click.prevent="openTab('{{ item.code }}', '{{ prog_title }}', '/prog/{{ item.code }}')"
+       {% if hk %}data-hotkey="{{ hk }}"{% endif %}>
+      {{ display_title | safe }}
+    </a>
   {% endif %}
 </li>

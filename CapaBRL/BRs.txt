@@ -124,6 +124,7 @@ En remitos de venta: lina21.py
     cliente 9000 Ajustes de stock es un cliente particular, los precios de los artículos "vendidos" se toman siempre=0,
     siempre el total del remito en dinero será=0. De esta manera mueve stock sin mover dinero.
     En este cliente se admiten cantidades negativas
+    En este cliente no se admite articodi=*
 
 ******
 BR-013

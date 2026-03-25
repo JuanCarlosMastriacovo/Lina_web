@@ -54,6 +54,27 @@
 
   function isAjuste() { return parseInt(cliecodi) === CLIE_AJUSTE; }
 
+  function parseUnit(s) {
+    return parseFloat((s || '').replace(/\./g, '').replace(',', '.')) || 0;
+  }
+
+  function activarStar() {
+    inpDesc.removeAttribute('readonly'); inpDesc.removeAttribute('tabindex');
+    inpDesc.style.background = '#fffff8'; inpDesc.style.borderColor = '#aaa';
+    inpUnit.removeAttribute('readonly'); inpUnit.removeAttribute('tabindex');
+    inpUnit.style.background = '#fffff8'; inpUnit.style.borderColor = '#aaa';
+    inpUnit.dataset.val = '';
+    inpCant.value = 1; inpCant.disabled = true; inpCant.style.background = '#f0f0f0';
+  }
+
+  function desactivarStar() {
+    inpDesc.setAttribute('readonly', ''); inpDesc.setAttribute('tabindex', '-1');
+    inpDesc.style.background = '#f0f0f0'; inpDesc.style.borderColor = '#ddd';
+    inpUnit.setAttribute('readonly', ''); inpUnit.setAttribute('tabindex', '-1');
+    inpUnit.style.background = '#f0f0f0'; inpUnit.style.borderColor = '#ddd';
+    inpCant.disabled = false; inpCant.style.background = '#fffff8';
+  }
+
   function cerrarCtx() { elCtx.style.display = 'none'; ctxTargetIdx = null; }
 
   // ── FASE 1: validar cliente ───────────────────────────────────────────────
@@ -164,8 +185,14 @@
     inpArti.value = cod;
     if (!cod) { limpiarInp(false); return; }
     if (cod === '*') {
-      inpDesc.value = ''; inpExis.textContent = ''; inpUnit.textContent = ''; inpSubt.textContent = '';
-      inpCant.focus();
+      if (isAjuste()) {
+        alert('El artículo * no está disponible para ajustes de stock.');
+        inpArti.value = ''; inpArti.focus(); return;
+      }
+      inpDesc.value = ''; inpExis.textContent = ''; inpSubt.textContent = '';
+      inpUnit.value = ''; inpUnit.dataset.val = '';
+      activarStar();
+      inpDesc.focus();
       return;
     }
     fetch('/lina21/arti/info?articodi=' + encodeURIComponent(cod))
@@ -176,7 +203,7 @@
           inpExis.textContent  = d.existencia;
           inpExis.style.color  = '#555';
           var precio = isAjuste() ? 0 : d.artiprec;
-          inpUnit.textContent  = fmtN(precio);
+          inpUnit.value        = fmtN(precio);
           inpUnit.dataset.val  = precio;
           inpSubt.textContent  = '';
           inpCant.value        = '';
@@ -192,7 +219,7 @@
 
   function actualizarSubtotal() {
     var cant  = parseInt(inpCant.value) || 0;
-    var unit  = parseFloat(inpUnit.dataset && inpUnit.dataset.val) || 0;
+    var unit  = parseFloat(inpUnit.dataset.val) || 0;
     var exis  = parseInt(inpExis.textContent);
     inpSubt.textContent = cant !== 0 ? fmtN(cant * unit) : '';
     inpExis.style.color = (!isNaN(exis) && cant > 0 && cant > exis) ? '#c00' : '#555';
@@ -202,8 +229,9 @@
   function confirmarRenglon() {
     var cod  = (inpArti.value || '').trim().toUpperCase();
     var cant = parseInt(inpCant.value) || 0;
-    var unit = parseFloat(inpUnit.dataset && inpUnit.dataset.val) || 0;
+    var unit = parseFloat(inpUnit.dataset.val) || 0;
     if (!cod)  { alert('Ingrese el código de artículo.'); inpArti.focus(); return; }
+    if (cod === '*' && unit === 0) { alert('Ingrese el precio del artículo.'); inpUnit.focus(); return; }
     if (isAjuste() ? cant === 0 : cant <= 0) {
       alert(isAjuste() ? 'La cantidad no puede ser cero.' : 'La cantidad debe ser mayor a cero.');
       inpCant.focus(); return;
@@ -234,10 +262,11 @@
     if (full) inpArti.value = '';
     inpDesc.value           = '';
     inpExis.textContent     = '';
-    inpUnit.textContent     = '';
+    inpUnit.value           = '';
     inpUnit.dataset.val     = '';
     inpSubt.textContent     = '';
     inpCant.value           = '';
+    desactivarStar();
   }
 
   // ── Menú contextual ───────────────────────────────────────────────────────
@@ -277,13 +306,18 @@
     inpArti.value      = l.articodi;
     inpDesc.value      = l.desc;
     inpExis.textContent = l.exis;
-    inpUnit.textContent = fmtN(l.unit);
     inpUnit.dataset.val = l.unit;
     inpCant.value      = l.cant;
+    if (l.articodi === '*') {
+      activarStar();
+      inpUnit.value = l.unit;
+    } else {
+      inpUnit.value = fmtN(l.unit);
+    }
     actualizarSubtotal();
     cerrarCtx();
     renderGrid();
-    inpCant.focus(); inpCant.select();
+    if (l.articodi === '*') { inpDesc.focus(); } else { inpCant.focus(); inpCant.select(); }
   });
 
   document.addEventListener('click', function(e) {
@@ -385,9 +419,36 @@
 
   // Fase 2 — código artículo
   inpArti.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') { e.preventDefault(); buscarArti(); }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if ((inpArti.value || '').trim().toUpperCase() === '*') e.stopPropagation();
+      buscarArti();
+    }
   });
   inpArti.addEventListener('change', function() { buscarArti(); });
+
+  // Fase 2 — descripción: cuando es editable (*) Enter/Pad+ avanza a precio
+  inpDesc.addEventListener('keydown', function(e) {
+    if ((e.key === 'Enter' || e.code === 'NumpadAdd') && !inpDesc.readOnly) {
+      e.preventDefault(); e.stopPropagation();
+      inpUnit.focus(); inpUnit.select();
+    }
+  });
+
+  // Fase 2 — precio: cuando es editable (*) Enter/Pad+ avanza a cantidad;
+  //           actualiza valor al escribir
+  inpUnit.addEventListener('keydown', function(e) {
+    if ((e.key === 'Enter' || e.code === 'NumpadAdd') && !inpUnit.readOnly) {
+      e.preventDefault(); e.stopPropagation();
+      confirmarRenglon();
+    }
+  });
+  inpUnit.addEventListener('input', function() {
+    if (!inpUnit.readOnly) {
+      inpUnit.dataset.val = parseUnit(inpUnit.value);
+      actualizarSubtotal();
+    }
+  });
 
   // Fase 2 — cantidad
   inpCant.addEventListener('input',   actualizarSubtotal);
@@ -425,10 +486,28 @@
     if (e.key === 'Enter') { e.preventDefault(); guardarRemito(); }
   });
 
-  // Cancelar / Escape → reiniciar (no cierra el tab)
+  // Cancelar → reiniciar (vuelve a fase1, borra todo)
   elBtnC.addEventListener('click', reiniciar);
+
+  // Escape → un paso atrás según estado actual (sin perder renglones ya confirmados)
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') reiniciar();
+    if (e.ctrlKey && e.key === 's') {
+      e.preventDefault();
+      if (elBtnConf && elBtnConf.offsetParent !== null) { elBtnConf.click(); }
+      else if (elBtnG && !elBtnG.disabled && elBtnG.offsetParent !== null) { elBtnG.click(); }
+      return;
+    }
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    if (elFase1.style.display === 'none') {       // estamos en fase2 o fase3
+      if (elPago.style.display !== 'none') {      // fase3: panel de pago
+        irCorregir();
+      } else {                                    // fase2: ingreso de renglones
+        limpiarInp(true);
+        setTimeout(function() { inpArti.focus(); }, 0);
+      }
+    }
+    // fase1: no hacer nada (ya estamos al inicio)
   });
 
   // Foco inicial

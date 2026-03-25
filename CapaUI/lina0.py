@@ -45,6 +45,7 @@ PROG_CODE_FIELD    = LinaProg.require_column("progcodi")
 PROG_DESC_FIELD    = LinaProg.require_column("progdesc")
 PROG_CALL_FIELD    = LinaProg.require_column("progcall")
 
+SAFE_EMPR_FIELD    = LinaSafe.require_column("emprcodi")
 SAFE_USER_FIELD    = LinaSafe.require_column("usercodi")
 SAFE_PROG_FIELD    = LinaSafe.require_column("progcodi")
 SAFE_ALTA_FIELD    = LinaSafe.require_column("safealta")
@@ -75,9 +76,13 @@ class Permisos:
 # ==================== SEGURIDAD: FUNCIONES ====================
 
 def permisos_por_usuario(user: str) -> Dict[str, Permisos]:
-    """Devuelve un diccionario PROGCODI -> Permisos para el usuario dado usando la CapaDAL."""
+    """Devuelve un diccionario PROGCODI -> Permisos para el usuario y empresa activa."""
     try:
-        rows = LinaSafe.list_all(filters={SAFE_USER_FIELD: user}, order_by=SAFE_PROG_FIELD)
+        empr = ctx_empr.get()
+        rows = LinaSafe.list_all(
+            filters={SAFE_EMPR_FIELD: empr, SAFE_USER_FIELD: user},
+            order_by=SAFE_PROG_FIELD,
+        )
         perms: Dict[str, Permisos] = {}
         for rec in rows:
             prog = str(rec.get(SAFE_PROG_FIELD) or "").strip()
@@ -249,7 +254,7 @@ def get_empr_info_global() -> dict:
 def get_empr_options_global() -> List[dict]:
     """Devuelve la lista de empresas disponibles para el selector de sesión."""
     try:
-        rows = LinaEmpr.list_all(order_by=EMPR_CODE_FIELD)
+        rows = LinaEmpr.list_all(order_by=EMPR_CODE_FIELD, skip_company_filter=True)
         options: List[dict] = []
         for rec in rows:
             code = str(rec.get(EMPR_CODE_FIELD) or "").strip()
@@ -441,7 +446,7 @@ async def login_submit(
     user_company_code = str(user_rec.get(USER_COMPANY_FIELD) or "").strip()
     if not user_company_code:
         # Fallback: tomar la primera empresa disponible
-        empr_rows = LinaEmpr.list_all(order_by=EMPR_CODE_FIELD, fields=[EMPR_CODE_FIELD])
+        empr_rows = LinaEmpr.list_all(order_by=EMPR_CODE_FIELD, fields=[EMPR_CODE_FIELD], skip_company_filter=True)
         if empr_rows:
             user_company_code = str(empr_rows[0].get(EMPR_CODE_FIELD) or "").strip()
     if not user_company_code:
@@ -688,7 +693,7 @@ async def ejecutar_programa(request: Request, code: str) -> HTMLResponse:
             return templates.TemplateResponse("fragments/program_error.html", context)
         return templates.TemplateResponse("program.html", context, status_code=403)
 
-    # Redirigir al módulo si existe
+    # Redirigir al módulo si existe (preservando _tab para tracking de pestañas)
     prog_lower = code.lower()
     if prog_lower in PROGRAM_MODULES:
         config = PROGRAM_MODULES[prog_lower]
@@ -696,6 +701,9 @@ async def ejecutar_programa(request: Request, code: str) -> HTMLResponse:
         route = config["route"]
         if not route.endswith("/"):
             route += "/"
+        tab_id = request.query_params.get("_tab", "")
+        if tab_id:
+            route += f"?_tab={tab_id}"
         return RedirectResponse(url=route, status_code=302)
 
     # Sin módulo asociado

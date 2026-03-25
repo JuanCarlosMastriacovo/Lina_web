@@ -3,12 +3,12 @@
      style="display:none; position:fixed; z-index:9999; background:#fff;
             border:1px solid #bbb; border-radius:3px; box-shadow:2px 2px 8px rgba(0,0,0,.25);
             font-family:Arial; font-size:8.5pt; min-width:110px;">
-  <div id="lina24-ctx-modificar" class="ctx-item">✏ Modificar</div>
+  <div id="lina24-ctx-modificar" class="ctx-item">Modificar</div>
   <div style="border-top:1px solid #eee;"></div>
-  <div id="lina24-ctx-subir"    class="ctx-item">↑ Subir</div>
-  <div id="lina24-ctx-bajar"    class="ctx-item">↓ Bajar</div>
+  <div id="lina24-ctx-subir"    class="ctx-item">Subir</div>
+  <div id="lina24-ctx-bajar"    class="ctx-item">Bajar</div>
   <div style="border-top:1px solid #eee;"></div>
-  <div id="lina24-ctx-eliminar" class="ctx-item-danger">🗑 Eliminar</div>
+  <div id="lina24-ctx-eliminar" class="ctx-item-danger">Eliminar</div>
 </div>
 
 <style>
@@ -164,9 +164,10 @@
 
     <span id="lina24-btns-fase2" style="display:none;">
       <button id="lina24-btn-guardar" disabled
+              data-hotkey="F8"
               style="padding:3px 14px; background:#4472C4; color:white; border:none;
                      border-radius:4px; cursor:pointer; font-size:8.5pt; opacity:0.5;">
-        → Continuar
+        → Continuar (F8)
       </button>
     </span>
 
@@ -174,12 +175,13 @@
       <button id="lina24-btn-confirmar"
               style="padding:3px 14px; background:#2e7d32; color:white; border:none;
                      border-radius:4px; cursor:pointer; font-size:8.5pt;">
-        ✓ Guardar
+        Guardar (Ctrl+S)
       </button>
       <button id="lina24-btn-corregir"
+              data-hotkey="F2"
               style="padding:3px 12px; background:#e65100; color:white; border:none;
                      border-radius:4px; cursor:pointer; font-size:8.5pt; margin-left:4px;">
-        ✎ Corregir
+        Corregir (F2)
       </button>
     </span>
 
