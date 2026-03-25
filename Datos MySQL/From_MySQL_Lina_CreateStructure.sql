@@ -155,7 +155,7 @@ CREATE TABLE `linabanc` (
   KEY `fk_banc_prov` (`emprcodi`,`provcodi`),
   CONSTRAINT `fk_banc_clie` FOREIGN KEY (`emprcodi`, `cliecodi`) REFERENCES `linaclie` (`emprcodi`, `cliecodi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_banc_prov` FOREIGN KEY (`emprcodi`, `provcodi`) REFERENCES `linaprov` (`emprcodi`, `provcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=147 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Movimientos de Bancos';
+) ENGINE=InnoDB AUTO_INCREMENT=158 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Movimientos de Bancos';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -233,7 +233,7 @@ CREATE TABLE `linacaja` (
   KEY `fk_caja_prov` (`emprcodi`,`provcodi`),
   CONSTRAINT `fk_caja_clie` FOREIGN KEY (`emprcodi`, `cliecodi`) REFERENCES `linaclie` (`emprcodi`, `cliecodi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_caja_prov` FOREIGN KEY (`emprcodi`, `provcodi`) REFERENCES `linaprov` (`emprcodi`, `provcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1292 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Movimientos de Caja';
+) ENGINE=InnoDB AUTO_INCREMENT=1306 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Movimientos de Caja';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -601,7 +601,7 @@ CREATE TABLE `linactcl` (
   PRIMARY KEY (`ctclid`),
   KEY `fk_ctcl__clie` (`emprcodi`,`cliecodi`),
   CONSTRAINT `fk_ctcl__clie` FOREIGN KEY (`emprcodi`, `cliecodi`) REFERENCES `linaclie` (`emprcodi`, `cliecodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2542 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cuentas Corrientes de Clientes';
+) ENGINE=InnoDB AUTO_INCREMENT=2570 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cuentas Corrientes de Clientes';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2229,8 +2229,9 @@ BEGIN
 
     IF v_source_exists = 0 THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'sp_copy_user_rights: usuario origen no existe.';
+		SET MESSAGE_TEXT = 'sp_copy_user_rights: usuario origen no existe.';
     END IF;
+
 
     SELECT COUNT(*)
       INTO v_target_exists
@@ -2239,8 +2240,14 @@ BEGIN
        AND usercodi = p_target_usercodi;
 
     IF v_target_exists = 0 THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'sp_copy_user_rights: usuario destino no existe.';
+          -- Crear usuario destino copiando todos los datos del usuario origen, cambiando emprcodi y usercodi
+          INSERT INTO linauser (
+              emprcodi, usercodi, username, userpass, userremo, user, date, time, oper, prog, wstn, nume
+          )
+          SELECT
+              p_target_emprcodi, p_target_usercodi, username, userpass, userremo, user, date, time, oper, prog, wstn, nume
+          FROM linauser
+          WHERE emprcodi = p_source_emprcodi AND usercodi = p_source_usercodi;
     END IF;
 
     -- Asegura que linasafe tenga combinaciones vigentes antes de copiar permisos.
@@ -2427,6 +2434,181 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_rescta_clies` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_rescta_clies`(
+    IN p_empr       CHAR(2) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_fecini     DATE,
+    IN p_fecfin     DATE,
+    IN p_codiin     INT,
+    IN p_codifi     INT,
+    IN p_saldo_cero TINYINT
+)
+BEGIN
+    -- Fecha inferior efectiva para MV: si p_fecini es NULL usamos la menor fecha posible.
+    -- (linactcl no contiene registros anteriores a cliefesa, así que el riesgo de
+    --  doble-cómputo con cliesala es mínimo, pero la lógica es correcta de todas formas.)
+
+    -- ── Fila SA por cada cliente elegible ─────────────────────
+    SELECT
+        c.cliecodi,
+        c.cliename,
+        'SA'  AS linea_tipo,
+        CASE WHEN p_fecini IS NOT NULL
+             THEN DATE_SUB(p_fecini, INTERVAL 1 DAY)
+             ELSE c.cliefesa
+        END   AS ctclfech,
+        'SALDO ANTERIOR' AS concepto,
+        0.00  AS ctcldebe,
+        0.00  AS ctclhabe,
+        0     AS sort_key,
+        -- saldo_ant: base + compactación de movimientos previos a p_fecini
+        COALESCE(c.cliesala, 0) + CASE
+            WHEN p_fecini IS NOT NULL
+            THEN COALESCE((
+                     SELECT SUM(t2.ctcldebe - t2.ctclhabe)
+                     FROM   linactcl t2
+                     WHERE  t2.emprcodi = p_empr
+                       AND  t2.cliecodi = c.cliecodi
+                       AND  t2.ctclfech < p_fecini
+                 ), 0)
+            ELSE 0
+        END   AS saldo_ant
+
+    FROM linaclie c
+    WHERE c.emprcodi = p_empr
+      AND c.cliecodi BETWEEN p_codiin AND p_codifi
+      -- saldo final != 0  (saldo final = cliesala + TODOS los movs hasta p_fecfin)
+      AND (
+          p_saldo_cero = 1
+          OR ABS(
+              COALESCE(c.cliesala, 0) + COALESCE((
+                  SELECT SUM(t4.ctcldebe - t4.ctclhabe)
+                  FROM   linactcl t4
+                  WHERE  t4.emprcodi = p_empr
+                    AND  t4.cliecodi = c.cliecodi
+                    AND  t4.ctclfech <= p_fecfin
+              ), 0)
+          ) > 0.005
+      )
+      -- tiene saldo inicial != 0 O movimientos en el rango de salida
+      AND (
+          ABS(COALESCE(c.cliesala, 0) + CASE
+              WHEN p_fecini IS NOT NULL
+              THEN COALESCE((
+                       SELECT SUM(t3.ctcldebe - t3.ctclhabe)
+                       FROM   linactcl t3
+                       WHERE  t3.emprcodi = p_empr
+                         AND  t3.cliecodi = c.cliecodi
+                         AND  t3.ctclfech < p_fecini
+                   ), 0)
+              ELSE 0
+          END) > 0.005
+          OR EXISTS (
+              SELECT 1 FROM linactcl te
+              WHERE  te.emprcodi = p_empr
+                AND  te.cliecodi = c.cliecodi
+                AND  te.ctclfech >= CASE WHEN p_fecini IS NULL THEN '1000-01-01' ELSE p_fecini END
+                AND  te.ctclfech <= p_fecfin
+          )
+      )
+
+    UNION ALL
+
+    -- ── Filas MV: movimientos dentro del rango de salida ──────
+    SELECT
+        c2.cliecodi,
+        c2.cliename,
+        'MV'  AS linea_tipo,
+        t.ctclfech,
+        CONCAT(t.codmcodi, ' ', LPAD(t.ctclnumc, 6, '0')) AS concepto,
+        COALESCE(t.ctcldebe, 0) AS ctcldebe,
+        COALESCE(t.ctclhabe, 0) AS ctclhabe,
+        t.ctclid AS sort_key,
+        0.00 AS saldo_ant
+
+    FROM linactcl t
+    JOIN linaclie c2
+      ON c2.emprcodi = t.emprcodi
+     AND c2.cliecodi = t.cliecodi
+    WHERE t.emprcodi = p_empr
+      AND t.cliecodi BETWEEN p_codiin AND p_codifi
+      AND t.ctclfech >= CASE WHEN p_fecini IS NULL THEN '1000-01-01' ELSE p_fecini END
+      AND t.ctclfech <= p_fecfin
+      -- excluir cliente si su saldo final es cero y p_saldo_cero=0
+      AND (
+          p_saldo_cero = 1
+          OR ABS(
+              COALESCE(c2.cliesala, 0) + COALESCE((
+                  SELECT SUM(t5.ctcldebe - t5.ctclhabe)
+                  FROM   linactcl t5
+                  WHERE  t5.emprcodi = p_empr
+                    AND  t5.cliecodi = t.cliecodi
+                    AND  t5.ctclfech <= p_fecfin
+              ), 0)
+          ) > 0.005
+      )
+
+    ORDER BY
+        cliecodi,
+        CASE linea_tipo WHEN 'SA' THEN 0 ELSE 1 END,
+        ctclfech,
+        sort_key;
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_saldo_clies` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_saldo_clies`(
+    IN p_empr   CHAR(2) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_codiin INT,
+    IN p_codifi INT,
+    IN p_fecfin DATE
+)
+BEGIN
+    SELECT
+        c.cliecodi,
+        c.cliename,
+        COALESCE(c.cliesala, 0) + COALESCE((
+            SELECT SUM(t.ctcldebe - t.ctclhabe)
+            FROM   linactcl t
+            WHERE  t.emprcodi = p_empr
+              AND  t.cliecodi = c.cliecodi
+              AND  t.ctclfech <= p_fecfin
+        ), 0) AS saldo
+
+    FROM  linaclie c
+    WHERE c.emprcodi = p_empr
+      AND c.cliecodi BETWEEN p_codiin AND p_codifi
+
+    ORDER BY c.cliecodi;
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_sync_linasafe` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2485,4 +2667,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-24  9:36:01
+-- Dump completed on 2026-03-25 14:00:41
