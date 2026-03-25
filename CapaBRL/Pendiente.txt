@@ -1,3 +1,4 @@
+- lina231 salida en txt campo totales queda chico cuando se listan todos los comprobantes
 - implementar BR-012 y BR-013
 - en todos los menues contextuales sacar el ícono que aparece e la izquierda de la leyenda
 - En seleccion de empresa no actualiza desde linaempr al arranque

@@ -1,0 +1,112 @@
+<!-- ══ MENÚ CONTEXTUAL ══ -->
+<div id="lina25-ctx"
+     style="display:none; position:fixed; z-index:9999; background:#fff;
+            border:1px solid #bbb; border-radius:3px; box-shadow:2px 2px 8px rgba(0,0,0,.25);
+            font-family:Arial; font-size:8.5pt; min-width:130px;">
+  <div id="lina25-ctx-pdf"    class="ctx-item">📄 Ver en PDF</div>
+  <div id="lina25-ctx-txt"    class="ctx-item">📝 Ver en TXT</div>
+  <div style="border-top:1px solid #eee;"></div>
+  <div id="lina25-ctx-anular" class="ctx-item-danger">🗑 Anular</div>
+</div>
+
+<style>
+  #lina25-tbody tr                { background: #fff; }
+  #lina25-tbody tr:nth-child(even){ background: #f7f7f7; }
+  #lina25-tbody tr.row-anulado    { background: #f5e6e6 !important; color: #999; }
+  .ctx-item, .ctx-item-danger     { cursor: pointer; }
+</style>
+
+<!-- ══ RAÍZ ══ -->
+<div id="lina25-root" class="d-flex flex-column h-100"
+     style="background-color:cornsilk; min-height:0; font-family:Arial; font-size:8.5pt;">
+
+  <!-- BARRA SUPERIOR -->
+  <div class="border-bottom px-2 py-1" style="background:#f5f5f5; flex-shrink:0;">
+    <span style="font-weight:bold; font-size:9pt;">Archivo de Recibos de Cobranza</span>
+    <span class="ms-2 text-muted" style="font-size:7.5pt;">LINA25</span>
+  </div>
+
+  <!-- PANEL DE FILTROS -->
+  <div class="px-2 py-2 border-bottom" style="flex-shrink:0; background:#fffff0;">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+
+      <div class="d-flex align-items-center gap-1">
+        <label style="font-size:8pt; white-space:nowrap;">Desde fecha:</label>
+        <input type="date" id="lina25-desde"
+               style="padding:2px 5px; border:1px solid #ccc; border-radius:3px; font-size:8.5pt;">
+      </div>
+
+      <div class="d-flex align-items-center gap-1">
+        <label style="font-size:8pt; white-space:nowrap;">Hasta fecha:</label>
+        <input type="date" id="lina25-hasta"
+               style="padding:2px 5px; border:1px solid #ccc; border-radius:3px; font-size:8.5pt;">
+      </div>
+
+      <div class="d-flex align-items-center gap-1">
+        <label style="font-size:8pt; white-space:nowrap;">Solo nro. Cliente [0=todos] <span style="color:#888;">(F4)</span>:</label>
+        <input type="text" id="lina25-cliecodi" maxlength="4" value="0"
+               data-selector-tabla="linaclie"
+               data-selector-campo-cod="cliecodi"
+               data-selector-campo-desc="cliename"
+               data-selector-titulo="Buscar Cliente"
+               style="width:55px; padding:2px 5px; border:1px solid #ccc;
+                      border-radius:3px; font-size:8.5pt; text-align:right;">
+        <span id="lina25-cliename" style="font-size:8.5pt; color:#555;"></span>
+      </div>
+
+      <button id="lina25-btn-consultar"
+              style="padding:3px 14px; background:#4472C4; color:white; border:none;
+                     border-radius:4px; cursor:pointer; font-size:8.5pt;">
+        Consultar
+      </button>
+
+      <span id="lina25-status" style="font-size:7.5pt; color:#888;"></span>
+    </div>
+  </div>
+
+  <!-- GRILLA -->
+  <div id="lina25-grid-scroll" style="overflow-y:auto; flex:1 1 0; min-height:300px;">
+    <table id="lina25-table"
+           style="width:100%; border-collapse:collapse; font-size:8pt; table-layout:fixed;">
+      <colgroup>
+        <col style="width:48px;">
+        <col style="width:80px;">
+        <col style="width:78px;">
+        <col style="width:44px;">
+        <col style="min-width:140px;">
+        <col style="width:90px;">
+        <col style="width:90px;">
+        <col style="width:100px;">
+      </colgroup>
+      <thead>
+        <tr style="background:#4472C4; color:white; position:sticky; top:0;">
+          <th style="padding:2px 6px;">Cpbt</th>
+          <th style="padding:2px 6px; text-align:right;">Número</th>
+          <th style="padding:2px 6px; text-align:center;">Fecha</th>
+          <th style="padding:2px 6px; text-align:right;">Cta.</th>
+          <th style="padding:2px 6px;">Cliente</th>
+          <th style="padding:2px 6px; text-align:right;">Efectivo</th>
+          <th style="padding:2px 6px; text-align:right;">Transf.</th>
+          <th style="padding:2px 6px; text-align:right;">Total</th>
+        </tr>
+      </thead>
+      <tbody id="lina25-tbody">
+        <tr>
+          <td colspan="8" style="padding:8px; color:#aaa; text-align:center; font-style:italic;">
+            Ingrese los filtros y presione Consultar.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script id="lina25-config" type="application/json">{"hoy": "{{ hoy }}"}</script>
+<script>
+  (function () {
+    var s = document.createElement('script');
+    s.src = '/static/js/lina25.js';
+    document.head.appendChild(s);
+  })();
+</script>

@@ -1,0 +1,76 @@
+<div x-data="{
+  desde:    '',
+  hasta:    '{{ hoy }}',
+  cliecodi: '0',
+  cliename: '',
+  fetchClie() {
+    var cod = parseInt(this.cliecodi) || 0;
+    if (cod <= 0) { this.cliename = ''; return; }
+    fetch('/lina261/clie/info?cliecodi=' + cod)
+      .then(function(r) { return r.json(); })
+      .then(function(d) { this.cliename = d.cliename || ''; }.bind(this))
+      .catch(function() { this.cliename = ''; }.bind(this));
+  },
+  abrir(base) {
+    var p = new URLSearchParams();
+    if (this.desde) p.set('desde', this.desde);
+    p.set('hasta', this.hasta || '{{ hoy }}');
+    var cod = parseInt(this.cliecodi) || 0;
+    if (cod > 0) p.set('cliecodi', cod);
+    (window.top || window).open(base + '?' + p.toString(), '_blank');
+  }
+}" style="font-family:Arial; font-size:9pt; padding:20px;">
+
+  <h3 style="font-size:11pt; margin-bottom:16px;">Listado Resumen de Cobranzas — Selección</h3>
+
+  <div style="display:flex; flex-direction:column; gap:10px; max-width:480px;">
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:160px; font-size:8pt;">Desde fecha:</label>
+      <input type="date" x-model="desde"
+             x-init="$nextTick(() => { $el.focus(); })"
+             style="padding:3px 6px; border:1px solid #ccc; border-radius:3px; font-size:8.5pt;">
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:160px; font-size:8pt;">Hasta fecha:</label>
+      <input type="date" x-model="hasta"
+             style="padding:3px 6px; border:1px solid #ccc; border-radius:3px; font-size:8.5pt;">
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:160px; font-size:8pt;">
+        Solo nro. Cliente [0=todos] <span style="color:#888;">(F4)</span>:
+      </label>
+      <input type="text" x-model="cliecodi" maxlength="4"
+             @change="fetchClie()"
+             data-selector-tabla="linaclie"
+             data-selector-campo-cod="cliecodi"
+             data-selector-campo-desc="cliename"
+             data-selector-titulo="Buscar Cliente"
+             style="width:55px; padding:3px 6px; border:1px solid #ccc;
+                    border-radius:3px; font-size:8.5pt; text-align:right;">
+      <span x-text="cliename" style="font-size:8.5pt; color:#555;"></span>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button type="button" @click="abrir('/lina261/pdf')"
+              style="padding:6px 14px; background:#4472C4; color:white;
+                     border:none; border-radius:4px; cursor:pointer; font-size:8.5pt;">
+        Ver PDF
+      </button>
+      <button type="button" @click="abrir('/lina261/xlsx')"
+              style="padding:6px 14px; background:#217346; color:white;
+                     border:none; border-radius:4px; cursor:pointer; font-size:8.5pt;">
+        Ver XLSX
+      </button>
+      <button type="button" @click="abrir('/lina261/txt')"
+              style="padding:6px 14px; background:#92400e; color:white;
+                     border:none; border-radius:4px; cursor:pointer; font-size:8.5pt;">
+        Ver TXT
+      </button>
+    </div>
+
+  </div>
+
+</div>
