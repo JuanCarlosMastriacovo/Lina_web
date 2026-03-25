@@ -136,7 +136,7 @@
 
       const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
       const focusable = Array.from(document.querySelectorAll(focusableSelector))
-        .filter(el => !el.disabled && el.offsetParent !== null);
+        .filter(el => !el.disabled && el.offsetParent !== null && el.getAttribute('tabindex') !== '-1');
       const index = focusable.indexOf(active);
 
       if (index > -1) {
