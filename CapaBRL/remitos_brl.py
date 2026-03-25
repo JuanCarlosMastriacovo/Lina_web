@@ -48,7 +48,7 @@ def crear_remito_con_cobro(
         codm_reci  — código de movimiento recibo (ej. "RECI").
 
     Retorna:
-        (fvhenume, cohenume)  — cohenume es None si is_ajuste=True.
+        (fvhenume, cohenume)  — cohenume es 0 si is_ajuste=True o si no hubo cobro.
 
     Raises:
         Exception si el cliente no existe o hay error de BD.
@@ -98,56 +98,54 @@ def crear_remito_con_cobro(
             (empr, cliecodi, fvhefech, codm_remi, fvhenume, float(fvhetota)),
         )
 
-        # Cobro (solo si no es ajuste)
-        cohenume = None
+        # Cobro (solo si no es ajuste y se recibió efectivo o transferencia)
+        cohenume = 0
         if not is_ajuste:
-            ctacte = fvhetota - efec - banc
-            if ctacte < 0:
-                ctacte = Decimal(0)
-            efec_f    = float(efec)
-            banc_f    = float(banc)
-            cobrado   = efec + banc
-            cobrado_f = float(cobrado)
+            efec_f  = float(efec)
+            banc_f  = float(banc)
+            cobrado = efec + banc
 
-            # Siguiente número de recibo
-            cur.execute(
-                "SELECT COALESCE(MAX(cohenume), 0) + 1 FROM linacohe WHERE emprcodi=%s AND codmcodi=%s",
-                (empr, codm_reci),
-            )
-            cohenume = cur.fetchone()[0]
-
-            # Cabecera del recibo
-            cur.execute(
-                "INSERT INTO linacohe"
-                "  (emprcodi, codmcodi, cohenume, cohefech, cliecodi,"
-                "   cohetota, coheefec, cohebanc, coheobse)"
-                " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                (empr, codm_reci, cohenume, fvhefech, cliecodi,
-                 cobrado_f, efec_f, banc_f, fvheobse),
-            )
-
-            # Renglones del recibo (descripción del cobro)
-            codereng = 1
-            _insertar_renglon_recibo(
-                cur, empr, codm_reci, cohenume, codereng,
-                f"Recibido con {codm_remi} N° {fvhenume:{FMT_NROCOMP}} $ {cobrado_f:,.0f}",
-                cobrado_f,
-            )
-            if efec > 0:
-                codereng += 1
-                _insertar_renglon_recibo(
-                    cur, empr, codm_reci, cohenume, codereng,
-                    f"{efec_f:,.0f} en Efectivo", 0,
-                )
-            if banc > 0:
-                codereng += 1
-                _insertar_renglon_recibo(
-                    cur, empr, codm_reci, cohenume, codereng,
-                    f"{banc_f:,.0f} en Transf. o Depósito", 0,
-                )
-
-            # Cuenta corriente: HABER (cobro)
             if cobrado > 0:
+                cobrado_f = float(cobrado)
+
+                # Siguiente número de recibo
+                cur.execute(
+                    "SELECT COALESCE(MAX(cohenume), 0) + 1 FROM linacohe WHERE emprcodi=%s AND codmcodi=%s",
+                    (empr, codm_reci),
+                )
+                cohenume = cur.fetchone()[0]
+
+                # Cabecera del recibo
+                cur.execute(
+                    "INSERT INTO linacohe"
+                    "  (emprcodi, codmcodi, cohenume, cohefech, cliecodi,"
+                    "   cohetota, coheefec, cohebanc, coheobse)"
+                    " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (empr, codm_reci, cohenume, fvhefech, cliecodi,
+                     cobrado_f, efec_f, banc_f, fvheobse),
+                )
+
+                # Renglones del recibo (descripción del cobro)
+                codereng = 1
+                _insertar_renglon_recibo(
+                    cur, empr, codm_reci, cohenume, codereng,
+                    f"Recibido con {codm_remi} N° {fvhenume:{FMT_NROCOMP}} $ {cobrado_f:,.0f}",
+                    cobrado_f,
+                )
+                if efec > 0:
+                    codereng += 1
+                    _insertar_renglon_recibo(
+                        cur, empr, codm_reci, cohenume, codereng,
+                        f"{efec_f:,.0f} en Efectivo", 0,
+                    )
+                if banc > 0:
+                    codereng += 1
+                    _insertar_renglon_recibo(
+                        cur, empr, codm_reci, cohenume, codereng,
+                        f"{banc_f:,.0f} en Transf. o Depósito", 0,
+                    )
+
+                # Cuenta corriente: HABER (cobro)
                 cur.execute(
                     "INSERT INTO linactcl"
                     "  (emprcodi, cliecodi, ctclfech, codmcodi, ctclnumc, ctcldebe, ctclhabe)"
@@ -155,32 +153,32 @@ def crear_remito_con_cobro(
                     (empr, cliecodi, fvhefech, codm_reci, cohenume, float(cobrado)),
                 )
 
-            conc = f"RECI Nº {cohenume:{FMT_NROCOMP}}"[:LEN_CONC_CAJA]
+                conc = f"RECI Nº {cohenume:{FMT_NROCOMP}}"[:LEN_CONC_CAJA]
 
-            # Caja (efectivo)
-            if efec > 0:
+                # Caja (efectivo)
+                if efec > 0:
+                    cur.execute(
+                        "INSERT INTO linacaja"
+                        "  (emprcodi, cliecodi, provcodi, cajafech, cajanumc, cajaconc, cajadebe, cajahabe)"
+                        " VALUES (%s, %s, 0, %s, %s, %s, 0, %s)",
+                        (empr, cliecodi, fvhefech, cohenume, conc, efec_f),
+                    )
+
+                # Banco (transferencia)
+                if banc > 0:
+                    cur.execute(
+                        "INSERT INTO linabanc"
+                        "  (emprcodi, cliecodi, provcodi, bancfech, bancnumc, bancconc, bancdebe, banchabe)"
+                        " VALUES (%s, %s, 0, %s, %s, %s, 0, %s)",
+                        (empr, cliecodi, fvhefech, cohenume, conc, banc_f),
+                    )
+
+                # Vincular recibo al remito
                 cur.execute(
-                    "INSERT INTO linacaja"
-                    "  (emprcodi, cliecodi, provcodi, cajafech, cajanumc, cajaconc, cajadebe, cajahabe)"
-                    " VALUES (%s, %s, 0, %s, %s, %s, 0, %s)",
-                    (empr, cliecodi, fvhefech, cohenume, conc, efec_f),
+                    "UPDATE linafvhe SET fvhereci=%s"
+                    " WHERE emprcodi=%s AND codmcodi=%s AND fvhenume=%s",
+                    (cohenume, empr, codm_remi, fvhenume),
                 )
-
-            # Banco (transferencia)
-            if banc > 0:
-                cur.execute(
-                    "INSERT INTO linabanc"
-                    "  (emprcodi, cliecodi, provcodi, bancfech, bancnumc, bancconc, bancdebe, banchabe)"
-                    " VALUES (%s, %s, 0, %s, %s, %s, 0, %s)",
-                    (empr, cliecodi, fvhefech, cohenume, conc, banc_f),
-                )
-
-            # Vincular recibo al remito
-            cur.execute(
-                "UPDATE linafvhe SET fvhereci=%s"
-                " WHERE emprcodi=%s AND codmcodi=%s AND fvhenume=%s",
-                (cohenume, empr, codm_remi, fvhenume),
-            )
 
     finally:
         cur.close()

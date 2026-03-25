@@ -2,7 +2,7 @@
   articodi: '',
   fecha_desde: '',
   fecha_hasta: '{{ hoy }}',
-  abrir() {
+  abrir(fmt) {
     if (!this.articodi.trim()) {
       linaAlert('Debe ingresar un código de artículo.');
       return;
@@ -15,7 +15,7 @@
     params.set('articodi', this.articodi.trim().toUpperCase());
     if (this.fecha_desde) params.set('fecha_desde', this.fecha_desde);
     if (this.fecha_hasta) params.set('fecha_hasta', this.fecha_hasta);
-    (window.top || window).open('/lina1341/pdf?' + params.toString(), '_blank');
+    (window.top || window).open('/lina1341/' + fmt + '?' + params.toString(), '_blank');
   }
 }" style="font-family:Arial; font-size:9pt; padding:20px;">
 
@@ -38,7 +38,7 @@
              maxlength="9"
              style="width:110px; padding:3px 6px; border:1px solid #ccc; border-radius:3px; text-transform:uppercase;"
              @input="articodi = $el.value.toUpperCase()"
-             @keydown.enter="abrir()">
+             @keydown.enter="abrir('pdf')">
     </div>
 
     <div style="display:flex; align-items:center; gap:8px;">
@@ -54,11 +54,21 @@
              style="padding:3px 6px; border:1px solid #ccc; border-radius:3px;">
     </div>
 
-    <div style="margin-top:8px;">
-      <button type="button" @click="abrir()"
+    <div style="margin-top:8px; display:flex; gap:8px;">
+      <button type="button" @click="abrir('pdf')"
               style="padding:6px 14px; background:#4472C4; color:white;
                      border:none; border-radius:4px; cursor:pointer;">
-        Ver PDF
+        PDF
+      </button>
+      <button type="button" @click="abrir('xlsx')"
+              style="padding:6px 14px; background:#217346; color:white;
+                     border:none; border-radius:4px; cursor:pointer;">
+        Excel
+      </button>
+      <button type="button" @click="abrir('txt')"
+              style="padding:6px 14px; background:#92400e; color:white;
+                     border:none; border-radius:4px; cursor:pointer;">
+        TXT
       </button>
     </div>
   </div>

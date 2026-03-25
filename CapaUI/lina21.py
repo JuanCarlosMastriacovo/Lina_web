@@ -166,7 +166,7 @@ async def lina21_save(request: Request):
 
     # ── Validate ────────────────────────────────────────────────────────────
     is_ajuste = (cliecodi == CLIE_AJUSTE)
-    fvhetota  = sum(ln["fvdecant"] * ln["fvdeunit"] for ln in lineas)
+    fvhetota  = Decimal(0) if is_ajuste else sum(ln["fvdecant"] * ln["fvdeunit"] for ln in lineas)
     if not is_ajuste:
         if not lineas or fvhetota <= 0:
             return JSONResponse(

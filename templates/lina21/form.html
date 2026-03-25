@@ -134,7 +134,7 @@
             </td>
             <!-- Cantidad (único campo editable por el operador) -->
             <td style="padding:1px 3px;">
-              <input type="number" id="inp-cant" min="0" step="1" value=""
+              <input type="number" id="inp-cant" step="1" value=""
                      placeholder="Cant."
                      style="width:100%; padding:1px 3px; border:1px solid #aaa;
                             border-radius:2px; font-size:8pt; text-align:right;
@@ -219,7 +219,7 @@
 
 </div><!-- fin root -->
 
-<script id="lina21-config" type="application/json">{"maxLineas": {{ max_lineas }}}</script>
+<script id="lina21-config" type="application/json">{"maxLineas": {{ max_lineas }}, "clieAjuste": {{ clie_ajuste }}}</script>
 <script>
   (function () {
     var s = document.createElement('script');

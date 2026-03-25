@@ -1,8 +1,9 @@
 (function () {
 
   // ── Config inyectada desde el servidor ────────────────────────────────────
-  var _cfg     = JSON.parse(document.getElementById('lina21-config').textContent || '{}');
-  var MAX_LINEAS = _cfg.maxLineas || 40;
+  var _cfg       = JSON.parse(document.getElementById('lina21-config').textContent || '{}');
+  var MAX_LINEAS = _cfg.maxLineas  || 40;
+  var CLIE_AJUSTE = _cfg.clieAjuste || 9000;
 
   // ── Estado ────────────────────────────────────────────────────────────────
   var lineas      = [];          // {reng, articodi, desc, exis, cant, unit}
@@ -50,6 +51,8 @@
     var n = parseFloat(v) || 0;
     return n.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   }
+
+  function isAjuste() { return parseInt(cliecodi) === CLIE_AJUSTE; }
 
   function cerrarCtx() { elCtx.style.display = 'none'; ctxTargetIdx = null; }
 
@@ -172,8 +175,9 @@
           inpDesc.value        = d.artidesc;
           inpExis.textContent  = d.existencia;
           inpExis.style.color  = '#555';
-          inpUnit.textContent  = fmtN(d.artiprec);
-          inpUnit.dataset.val  = d.artiprec;
+          var precio = isAjuste() ? 0 : d.artiprec;
+          inpUnit.textContent  = fmtN(precio);
+          inpUnit.dataset.val  = precio;
           inpSubt.textContent  = '';
           inpCant.value        = '';
           inpCant.focus();
@@ -190,8 +194,8 @@
     var cant  = parseInt(inpCant.value) || 0;
     var unit  = parseFloat(inpUnit.dataset && inpUnit.dataset.val) || 0;
     var exis  = parseInt(inpExis.textContent);
-    inpSubt.textContent = cant > 0 ? fmtN(cant * unit) : '';
-    inpExis.style.color = (!isNaN(exis) && cant > exis) ? '#c00' : '#555';
+    inpSubt.textContent = cant !== 0 ? fmtN(cant * unit) : '';
+    inpExis.style.color = (!isNaN(exis) && cant > 0 && cant > exis) ? '#c00' : '#555';
   }
 
   // ── Confirmar renglón ─────────────────────────────────────────────────────
@@ -200,7 +204,10 @@
     var cant = parseInt(inpCant.value) || 0;
     var unit = parseFloat(inpUnit.dataset && inpUnit.dataset.val) || 0;
     if (!cod)  { alert('Ingrese el código de artículo.'); inpArti.focus(); return; }
-    if (cant <= 0) { alert('La cantidad debe ser mayor a cero.'); inpCant.focus(); return; }
+    if (isAjuste() ? cant === 0 : cant <= 0) {
+      alert(isAjuste() ? 'La cantidad no puede ser cero.' : 'La cantidad debe ser mayor a cero.');
+      inpCant.focus(); return;
+    }
     if (lineas.length >= MAX_LINEAS && editingIdx === null) {
       alert('Se alcanzó el máximo de ' + MAX_LINEAS + ' renglones.'); return;
     }
@@ -341,6 +348,7 @@
       } else {
         alert('Error: ' + (d.error || 'desconocido'));
         elBtnConf.disabled = false;
+        if (lineas.length > 0) { elBtnG.disabled = false; elBtnG.style.opacity = '1'; }
       }
     })
     .catch(function(err) {
@@ -384,11 +392,23 @@
   // Fase 2 — cantidad
   inpCant.addEventListener('input',   actualizarSubtotal);
   inpCant.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') { e.preventDefault(); confirmarRenglon(); }
+    if (e.key === 'Enter' || e.code === 'NumpadAdd') {
+      e.preventDefault();
+      confirmarRenglon();
+    }
   });
 
   // Fase 2 — botón Guardar Remito → ir a pago
-  elBtnG.addEventListener('click', function() { if (!elBtnG.disabled) irPago(); });
+  elBtnG.addEventListener('click', function() {
+    if (!elBtnG.disabled) {
+      if (isAjuste()) {
+        elBtnG.disabled = true; elBtnG.style.opacity = '0.5';
+        guardarRemito();
+      } else {
+        irPago();
+      }
+    }
+  });
 
   // Fase 3 — botones
   elBtnConf.addEventListener('click', guardarRemito);
