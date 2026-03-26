@@ -1,0 +1,91 @@
+Voy a explorar la estructura del proyecto antes de hacer el análisis completo.
+
+Listed directory lina_web
+Listed directory CapaBRL
+Listed directory CapaDAL
+Listed directory CapaUI
+Listed directory miscelaneas
+Listed directory static
+Listed directory templates
+Listed directory DbLinaSQLs
+Listed directory css
+Listed directory js
+Listed directory fragments
+Listed directory partials
+
+Ahora voy a leer los archivos clave de cada capa en paralelo:
+
+Viewed linabase.py:1-217
+Viewed tablebase.py:1-800
+Viewed config.py:1-64
+Viewed config.py:1-3
+Viewed dataconn.py:1-147
+Viewed validador_base.py:1-90
+Viewed formatters.py:1-4
+Viewed lina0.py:1-727
+Viewed cpbte_brl.py:1-480
+
+Ahora voy a analizar algunos módulos BRL y UI representativos para detectar duplicación entre capas similares:
+
+Viewed remitos_brl.py:1-257
+Viewed recibos_brl.py:1-195
+Viewed compras_brl.py:1-156
+Viewed pagos_brl.py:1-197
+
+Ahora voy a revisar algunos módulos UI para detectar sus patrones, especialmente los que son "parejas" (lina21/lina31, lina24/lina34):
+
+Viewed lina21.py:1-216
+Viewed lina31.py:1-203
+Viewed lina41.py:1-397
+Viewed lina43.py:1-397
+
+Ahora tengo suficiente evidencia. Voy a revisar algunos archivos más para completar el informe:
+
+Searched for "def _get_empr"
+Searched for "def _get_fecha_sesion"
+Searched for "def _parse_params"
+Searched for "def _build_subtitulo"
+Searched for "from CapaDAL.config import"
+Searched for "get_table_ui_metadata"
+Searched for "set_prog_code"
+Searched for "DeepSeek API-KEY"
+Viewed stock_brl.py:1-113
+Viewed cardex_brl.py:1-123
+Searched for "lina-secret-key"
+Searched for "print(f"CapaDAL Error"
+Viewed tablebase.py:800-881
+Viewed lina111.py:1-329
+
+Tengo suficiente información para generar el informe completo. Voy a crearlo ahora:
+
+Created informe_calidad_lina_web.md
+
+Aquí está el informe completo. No se modificó ningún archivo del proyecto.
+
+---
+
+## Resumen del análisis
+
+Analicé toda la estructura de `lina_web` — las tres capas (DAL/BRL/UI), los módulos auxiliares, configuración, seguridad y templates. Los hallazgos más importantes son:
+
+### 🔴 Críticos
+1. **Duplicación masiva de helpers en CapaUI**: Las funciones [_get_empr()](cci:1://file:///d:/desarrollo_web/lina_web/CapaUI/lina21.py:36:0-38:46) y [_get_fecha_sesion()](cci:1://file:///d:/desarrollo_web/lina_web/CapaUI/lina31.py:41:0-49:23) están copiadas literalmente en 6–11 módulos. Son candidatas obvias a ir en [linabase](cci:2://file:///d:/desarrollo_web/lina_web/CapaBRL/linabase.py:13:0-215:9) o un `ui_utils.py`.
+
+2. **Módulos de listados casi idénticos en pares**: [lina41](cci:1://file:///d:/desarrollo_web/lina_web/CapaUI/lina41.py:194:0-246:5)/[lina43](cci:1://file:///d:/desarrollo_web/lina_web/CapaUI/lina43.py:194:0-246:5) (Caja/Banco) son el mismo archivo con ~350 líneas cada uno, y varios pares más (231/331, 261/361, 271/371, 272/372). La lógica de generación PDF/XLSX/TXT podría extraerse a un generador paramétrico.
+
+3. **[get_table_ui_metadata](cci:1://file:///d:/desarrollo_web/lina_web/CapaDAL/tablebase.py:17:4-28:13) existe en DAL Y BRL**: Duplicación directa entre capas, con el mismo resultado.
+
+4. **Secret key hardcoded** (`"lina-secret-key-not-final"`) y fallback de password de BD en [config.py](cci:7://file:///d:/desarrollo_web/lina_web/CapaDAL/config.py:0:0-0:0).
+
+### 🟠 Medios
+5. **Layer crossing**: 19 módulos UI importan `APP_CONFIG` directamente de `CapaDAL` en vez de `CapaBRL`. Además, [tablebase.py](cci:7://file:///d:/desarrollo_web/lina_web/CapaDAL/tablebase.py:0:0-0:0) (DAL) importa `SELECTOR_MAX_ROWS` de `CapaBRL`, invirtiendo la dependencia correcta.
+
+6. **[row_get()](cci:1://file:///d:/desarrollo_web/lina_web/CapaDAL/tablebase.py:425:4-448:55) solicita conexión `readonly=False`** para una lectura simple. Derroche de pool.
+
+7. **[set_prog_code()](cci:1://file:///d:/desarrollo_web/lina_web/CapaBRL/linabase.py:51:4-54:28) llamado en cada endpoint** del mismo módulo — es un setter de clase compartido y potencialmente sujeto a race condition en entorno async.
+
+### 🟡 Menores
+8. `DeepSeek API-KEY.txt` dentro del árbol de código fuente.
+9. Clases vacías `class LinaXXX(linabase): pass` en ~30 módulos.
+10. `print()` como logging en toda la app.
+11. `__import__("datetime")` inline en expresión (lina41/lina43) siendo que `datetime` ya está importado.
