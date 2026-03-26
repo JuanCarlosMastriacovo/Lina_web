@@ -1,0 +1,85 @@
+<div x-data="{
+  hasta:    '{{ hoy }}',
+  codiin:   '0',
+  codifi:   '9999',
+  provin:   '',
+  provfi:   '',
+  fetchProv(campo, target) {
+    var cod = parseInt(this[campo]) || 0;
+    if (cod <= 0) { this[target] = ''; return; }
+    fetch('/lina372/prov/info?provcodi=' + cod)
+      .then(function(r) { return r.json(); })
+      .then(function(d) { this[target] = d.provname || ''; }.bind(this))
+      .catch(function() { this[target] = ''; }.bind(this));
+  },
+  abrir(base) {
+    var p = new URLSearchParams();
+    p.set('hasta',  this.hasta  || '{{ hoy }}');
+    p.set('codiin', this.codiin || '0');
+    p.set('codifi', this.codifi || '9999');
+    (window.top || window).open(base + '?' + p.toString(), '_blank');
+  }
+}" style="font-family:Arial; font-size:9pt; padding:20px;">
+
+  <h3 style="font-size:11pt; margin-bottom:16px;">Listado de Saldos de Proveedores — Selección</h3>
+
+  <div style="display:flex; flex-direction:column; gap:10px; max-width:520px;">
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:170px; font-size:8pt;">Saldos a fecha:</label>
+      <input type="date" x-model="hasta"
+             x-init="$nextTick(() => { $el.focus(); })"
+             style="padding:3px 6px; border:1px solid #ccc; border-radius:3px; font-size:8.5pt;">
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:170px; font-size:8pt;">
+        Proveedor Desde [0=todos] <span style="color:#888;">(F4)</span>:
+      </label>
+      <input type="text" x-model="codiin" maxlength="4"
+             @change="fetchProv('codiin', 'provin')"
+             data-selector-tabla="linaprov"
+             data-selector-campo-cod="provcodi"
+             data-selector-campo-desc="provname"
+             data-selector-titulo="Buscar Proveedor (Desde)"
+             style="width:55px; padding:3px 6px; border:1px solid #ccc;
+                    border-radius:3px; font-size:8.5pt; text-align:right;">
+      <span x-text="provin" style="font-size:8.5pt; color:#555;"></span>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:170px; font-size:8pt;">
+        Proveedor Hasta <span style="color:#888;">(F4)</span>:
+      </label>
+      <input type="text" x-model="codifi" maxlength="4"
+             @change="fetchProv('codifi', 'provfi')"
+             data-selector-tabla="linaprov"
+             data-selector-campo-cod="provcodi"
+             data-selector-campo-desc="provname"
+             data-selector-titulo="Buscar Proveedor (Hasta)"
+             style="width:55px; padding:3px 6px; border:1px solid #ccc;
+                    border-radius:3px; font-size:8.5pt; text-align:right;">
+      <span x-text="provfi" style="font-size:8.5pt; color:#555;"></span>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button type="button" @click="abrir('/lina372/pdf')"
+              style="padding:6px 14px; background:#4472C4; color:white;
+                     border:none; border-radius:4px; cursor:pointer; font-size:8.5pt;">
+        Ver PDF
+      </button>
+      <button type="button" @click="abrir('/lina372/xlsx')"
+              style="padding:6px 14px; background:#217346; color:white;
+                     border:none; border-radius:4px; cursor:pointer; font-size:8.5pt;">
+        Ver XLSX
+      </button>
+      <button type="button" @click="abrir('/lina372/txt')"
+              style="padding:6px 14px; background:#92400e; color:white;
+                     border:none; border-radius:4px; cursor:pointer; font-size:8.5pt;">
+        Ver TXT
+      </button>
+    </div>
+
+  </div>
+
+</div>

@@ -152,3 +152,11 @@ JS embebido
 Capas cruzadas
 Hardcode parametrizable hacerlo
 Hardcode no parametrizable todo junto a config.py
+
+******
+BR-015
+******
+    En Compras: registración de remitos(facturas) recibidos van al haber y los recibos(pagos hechos por nosotros) al debe
+    En Compras: registración de remitos el precio unitario se toma del operador, no de linaarti
+    Al registrar remitos de compra el total del remito va al haber del proveedor, no pide pago, va todo a cta. cte. y no genera     recibo
+    Los comprobantes de compras no se imprimen, salvo que sea a pedido desde lina32 o lina35

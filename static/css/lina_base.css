@@ -307,6 +307,20 @@ u { text-decoration: underline; }
   font-size: 8.25pt;
 }
 
+/* Fecha de sesión ≠ hoy: aviso visual */
+#btn-fecha.btn-fecha-otro {
+  background-color: #e65100 !important;
+  color: #fff !important;
+  font-weight: bold !important;
+  border-color: #bf360c !important;
+}
+#btn-fecha.btn-fecha-otro:hover,
+#btn-fecha.btn-fecha-otro:focus {
+  background-color: #bf360c !important;
+  color: #fff !important;
+  border-color: #8f2700 !important;
+}
+
 .btn-ctx:hover,
 .btn-ctx:focus {
   background-color: #fff !important;

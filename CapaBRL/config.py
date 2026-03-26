@@ -25,9 +25,14 @@ CODM_REMI   = "REMI"   # Código de movimiento: Remitos de venta
 CODM_RECI   = "RECI"   # Código de movimiento: Recibos de cobro
 CLIE_AJUSTE = 9000     # Cliente especial para ajustes de stock (precio unitario = 0)
 
+CODM_FCHE   = "FCHE"   # Código de movimiento: Facturas de compra
+CODM_PAGO   = "RECI"   # Código de movimiento: Recibos/Pagos a proveedores (linacodm clpr=P, decr=D)
+
 # Límites operativos
 MAX_LINEAS_REMITO = 40   # Máximo de renglones en un remito de venta
 MAX_LINEAS_RECIBO = 40   # Máximo de renglones en un recibo de cobranza
+MAX_LINEAS_FCHE   = 40   # Máximo de renglones en una factura de compra
+MAX_LINEAS_PAGO   = 40   # Máximo de renglones en un pago a proveedor
 SELECTOR_MAX_ROWS = 200  # Máximo de filas devueltas por el selector modal
 
 # Formato de numeración de comprobantes (f"{nro:{FMT_NROCOMP}}")

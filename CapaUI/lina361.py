@@ -23,10 +23,10 @@ from CapaUI.xlsx_styles import (
 # ==================== CONSTANTES Y ROUTER ====================
 
 router     = APIRouter()
-PROG_CODE  = "LINA231"
-ROUTE_BASE = "/lina231"
+PROG_CODE  = "LINA361"
+ROUTE_BASE = "/lina361"
 
-LinaClie = get_table_model("linaclie")
+LinaProv = get_table_model("linaprov")
 
 pdf_templates_dir = Path(__file__).parent.parent / "templates"
 pdf_jinja_env     = Environment(loader=FileSystemLoader(str(pdf_templates_dir)))
@@ -34,8 +34,8 @@ pdf_jinja_env     = Environment(loader=FileSystemLoader(str(pdf_templates_dir)))
 
 # ==================== CLASE PRINCIPAL ====================
 
-class Lina231(linabase):
-    """Listado Resumen de Ventas (LINA231)."""
+class Lina361(linabase):
+    """Listado Resumen de Pagos (LINA361)."""
     pass
 
 
@@ -53,48 +53,48 @@ def _parse_fechas(desde_str: str, hasta_str: str):
     return fecha_desde, fecha_hasta
 
 
-def _build_subtitulo(fecha_desde, fecha_hasta: date, cliecodi: int) -> str:
+def _build_subtitulo(fecha_desde, fecha_hasta: date, provcodi: int) -> str:
     if fecha_desde:
         s = f"Del {fecha_desde.strftime('%d/%m/%Y')} al {fecha_hasta.strftime('%d/%m/%Y')}"
     else:
         s = f"Hasta el {fecha_hasta.strftime('%d/%m/%Y')}"
-    if cliecodi > 0:
-        s += f" — Cliente: {cliecodi:04d}"
+    if provcodi > 0:
+        s += f" — Proveedor: {provcodi:04d}"
     return s
 
 
-def _get_filas(empr: str, fecha_desde, fecha_hasta: date, cliecodi: int) -> list:
+def _get_filas(empr: str, fecha_desde, fecha_hasta: date, provcodi: int) -> list:
     """
-    Retorna lista de [codm, nro, fecha_str, cta_str, cliente, importe_float].
-    Ordenado por fecha ASC, nro ASC (igual que el reporte FoxPro).
+    Retorna lista de [codm, nro, fecha_str, cta_str, proveedor, efec, banc, total].
+    Ordenado por fecha ASC, nro ASC.
     """
     conn = sess_conns.get_conn(readonly=True)
     try:
         cur = conn.cursor(dictionary=True)
 
         params = [empr]
-        where  = ["fvhe.emprcodi = %s"]
+        where  = ["pahe.emprcodi = %s"]
 
         if fecha_desde:
-            where.append("fvhe.fvhefech >= %s")
+            where.append("pahe.pahefech >= %s")
             params.append(fecha_desde)
-        where.append("fvhe.fvhefech <= %s")
+        where.append("pahe.pahefech <= %s")
         params.append(fecha_hasta)
 
-        if cliecodi > 0:
-            where.append("fvhe.cliecodi = %s")
-            params.append(cliecodi)
+        if provcodi > 0:
+            where.append("pahe.provcodi = %s")
+            params.append(provcodi)
 
         sql = (
-            "SELECT fvhe.codmcodi, fvhe.fvhenume, fvhe.fvhefech,"
-            "       fvhe.cliecodi, fvhe.fvhetota, fvhe.fvheobse,"
-            "       COALESCE(clie.cliename, '') AS cliename"
-            "  FROM linafvhe fvhe"
-            "  LEFT JOIN linaclie clie"
-            "         ON clie.emprcodi = fvhe.emprcodi"
-            "        AND clie.cliecodi = fvhe.cliecodi"
+            "SELECT pahe.codmcodi, pahe.pahenume, pahe.pahefech,"
+            "       pahe.provcodi, pahe.paheefec, pahe.pahebanc, pahe.pahetota, pahe.paheobse,"
+            "       COALESCE(prov.provname, '') AS provname"
+            "  FROM linapahe pahe"
+            "  LEFT JOIN linaprov prov"
+            "         ON prov.emprcodi = pahe.emprcodi"
+            "        AND prov.provcodi = pahe.provcodi"
             " WHERE " + " AND ".join(where) +
-            " ORDER BY fvhe.fvhefech ASC, fvhe.fvhenume ASC"
+            " ORDER BY pahe.pahefech ASC, pahe.pahenume ASC"
         )
         cur.execute(sql, params)
         rows_raw = cur.fetchall()
@@ -104,18 +104,20 @@ def _get_filas(empr: str, fecha_desde, fecha_hasta: date, cliecodi: int) -> list
 
     filas = []
     for r in rows_raw:
-        obse    = str(r.get("fvheobse") or "").strip()
-        anulado = obse.startswith("*** ANULAD")
-        cliente = obse if anulado else str(r.get("cliename") or "").strip()
-        fvhefech = r.get("fvhefech")
-        fecha_str = fvhefech.strftime("%d/%m/%Y") if hasattr(fvhefech, "strftime") else str(fvhefech or "")
+        obse      = str(r.get("paheobse") or "").strip()
+        anulado   = obse.startswith("*** ANULAD")
+        proveedor = obse if anulado else str(r.get("provname") or "").strip()
+        pahefech  = r.get("pahefech")
+        fecha_str = pahefech.strftime("%d/%m/%Y") if hasattr(pahefech, "strftime") else str(pahefech or "")
         filas.append([
             str(r.get("codmcodi") or ""),
-            int(r.get("fvhenume") or 0),
+            int(r.get("pahenume") or 0),
             fecha_str,
-            str(int(r.get("cliecodi") or 0)).zfill(4),
-            cliente,
-            float(r.get("fvhetota") or 0),
+            str(int(r.get("provcodi") or 0)).zfill(4),
+            proveedor,
+            float(r.get("paheefec") or 0),
+            float(r.get("pahebanc") or 0),
+            float(r.get("pahetota") or 0),
         ])
     return filas
 
@@ -123,55 +125,58 @@ def _get_filas(empr: str, fecha_desde, fecha_hasta: date, cliecodi: int) -> list
 # ==================== RUTAS ====================
 
 @router.get("/", response_class=HTMLResponse)
-async def lina231_index(request: Request):
-    Lina231.set_prog_code(PROG_CODE)
-    user = Lina231.get_current_user(request)
+async def lina361_index(request: Request):
+    Lina361.set_prog_code(PROG_CODE)
+    user = Lina361.get_current_user(request)
     if not user:
         return RedirectResponse("/login")
-    return Lina231.templates.TemplateResponse(
-        "lina231/seleccion.html",
+    return Lina361.templates.TemplateResponse(
+        "lina361/seleccion.html",
         {"request": request, "hoy": date.today().isoformat()},
     )
 
 
-@router.get("/clie/info")
-async def lina231_clie_info(cliecodi: str = Query(default="")):
+@router.get("/prov/info")
+async def lina361_prov_info(provcodi: str = Query(default="")):
     empr = ctx_empr.get() or DEFAULT_EMPR_CODE
     try:
-        cod = int(cliecodi)
+        cod = int(provcodi)
     except (ValueError, TypeError):
-        return JSONResponse({"ok": False, "cliename": ""})
-    rec = LinaClie.row_get({"emprcodi": empr, "cliecodi": cod})
+        return JSONResponse({"ok": False, "provname": ""})
+    rec = LinaProv.row_get({"emprcodi": empr, "provcodi": cod})
     if not rec:
-        return JSONResponse({"ok": False, "cliename": ""})
-    return JSONResponse({"ok": True, "cliename": str(rec.get("cliename") or "").strip()})
+        return JSONResponse({"ok": False, "provname": ""})
+    return JSONResponse({"ok": True, "provname": str(rec.get("provname") or "").strip()})
 
 
 @router.get("/pdf")
-async def lina231_pdf(
+async def lina361_pdf(
     request:  Request,
     desde:    str = Query(default=""),
     hasta:    str = Query(default=""),
-    cliecodi: int = Query(default=0),
+    provcodi: int = Query(default=0),
 ):
-    Lina231.set_prog_code(PROG_CODE)
-    user = Lina231.get_current_user(request)
+    Lina361.set_prog_code(PROG_CODE)
+    user = Lina361.get_current_user(request)
     if not user:
         return RedirectResponse("/login")
 
-    empr_code, empr_name = Lina231.get_empr_info()
+    empr_code, empr_name = Lina361.get_empr_info()
     empr = ctx_empr.get() or DEFAULT_EMPR_CODE
     fecha_desde, fecha_hasta = _parse_fechas(desde, hasta)
 
-    filas      = _get_filas(empr, fecha_desde, fecha_hasta, cliecodi)
-    total_impo = sum(f[5] for f in filas)
+    filas       = _get_filas(empr, fecha_desde, fecha_hasta, provcodi)
+    total_efec  = sum(f[5] for f in filas)
+    total_banc  = sum(f[6] for f in filas)
+    total_impo  = sum(f[7] for f in filas)
 
     filas_pdf = [
-        [f[0], str(f[1]).zfill(6), f[2], f[3], f[4], fmt_money(f[5])]
+        [f[0], str(f[1]).zfill(6), f[2], f[3], f[4],
+         fmt_money(f[5]), fmt_money(f[6]), fmt_money(f[7])]
         for f in filas
     ]
 
-    template = pdf_jinja_env.get_template("lina231/main.html")
+    template = pdf_jinja_env.get_template("lina361/main.html")
     html_str = template.render(
         app_name        = APP_CONFIG.get("app_name", ""),
         app_description = APP_CONFIG.get("app_description", ""),
@@ -179,11 +184,13 @@ async def lina231_pdf(
         empr_code       = empr_code,
         empr_name       = empr_name,
         usuario         = user,
-        titulo          = "Listado Resumen de Ventas",
-        subtitulo       = _build_subtitulo(fecha_desde, fecha_hasta, cliecodi),
+        titulo          = "Listado Resumen de Pagos",
+        subtitulo       = _build_subtitulo(fecha_desde, fecha_hasta, provcodi),
         fecha           = date.today().strftime("%d/%m/%Y"),
         hora            = datetime.now().strftime("%H:%M"),
         filas           = filas_pdf,
+        total_efec      = fmt_money(total_efec),
+        total_banc      = fmt_money(total_banc),
         total_importe   = fmt_money(total_impo),
     )
 
@@ -191,50 +198,52 @@ async def lina231_pdf(
     return Response(
         content    = pdf,
         media_type = "application/pdf",
-        headers    = {"Content-Disposition": "inline; filename=resumen_ventas.pdf"},
+        headers    = {"Content-Disposition": "inline; filename=resumen_pagos.pdf"},
     )
 
 
 @router.get("/xlsx")
-async def lina231_xlsx(
+async def lina361_xlsx(
     request:  Request,
     desde:    str = Query(default=""),
     hasta:    str = Query(default=""),
-    cliecodi: int = Query(default=0),
+    provcodi: int = Query(default=0),
 ):
-    Lina231.set_prog_code(PROG_CODE)
-    user = Lina231.get_current_user(request)
+    Lina361.set_prog_code(PROG_CODE)
+    user = Lina361.get_current_user(request)
     if not user:
         return RedirectResponse("/login")
 
-    empr_code, empr_name = Lina231.get_empr_info()
+    empr_code, empr_name = Lina361.get_empr_info()
     empr = ctx_empr.get() or DEFAULT_EMPR_CODE
     fecha_desde, fecha_hasta = _parse_fechas(desde, hasta)
 
-    filas      = _get_filas(empr, fecha_desde, fecha_hasta, cliecodi)
-    total_impo = sum(f[5] for f in filas)
-    subtitulo  = _build_subtitulo(fecha_desde, fecha_hasta, cliecodi)
+    filas       = _get_filas(empr, fecha_desde, fecha_hasta, provcodi)
+    total_efec  = sum(f[5] for f in filas)
+    total_banc  = sum(f[6] for f in filas)
+    total_impo  = sum(f[7] for f in filas)
+    subtitulo   = _build_subtitulo(fecha_desde, fecha_hasta, provcodi)
 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Resumen Ventas"
+    ws.title = "Resumen Pagos"
 
-    ws.merge_cells("A1:F1")
-    ws["A1"]      = "Listado Resumen de Ventas"
+    ws.merge_cells("A1:H1")
+    ws["A1"]      = "Listado Resumen de Pagos"
     ws["A1"].font = TITLE_FONT
 
-    ws.merge_cells("A2:F2")
+    ws.merge_cells("A2:H2")
     ws["A2"]      = f"{APP_CONFIG.get('app_name', '')} — {empr_code} {empr_name}"
     ws["A2"].font = SUBTITLE_FONT
 
-    ws.merge_cells("A3:F3")
+    ws.merge_cells("A3:H3")
     ws["A3"]      = (f"{subtitulo} — Usuario: {user} — "
                      f"{date.today().strftime('%d/%m/%Y')} {datetime.now().strftime('%H:%M')}")
     ws["A3"].font = SUBTITLE_FONT
 
-    ws.append([])  # fila 4 vacía
+    ws.append([])
 
-    headers = ["Cpbt", "Número", "Fecha", "Cta.", "Cliente", "Importe"]
+    headers = ["Cpbt", "Número", "Fecha", "Cta.", "Proveedor", "Efectivo", "Banco", "Total"]
     ws.append(headers)
     for cell in ws[5]:
         cell.font      = HEADER_FONT
@@ -250,21 +259,27 @@ async def lina231_xlsx(
             fila[3],
             fila[4],
             fila[5],
+            fila[6],
+            fila[7],
         ])
-        ws.cell(row=ws.max_row, column=6).number_format = CURRENCY_FORMAT
+        for col_idx in (6, 7, 8):
+            ws.cell(row=ws.max_row, column=col_idx).number_format = CURRENCY_FORMAT
 
     total_row = DATA_START + len(filas)
-    ws.append(["", "", "", "", "TOTAL", total_impo])
+    ws.append(["", "", "", "", "TOTAL", total_efec, total_banc, total_impo])
     for cell in ws[total_row]:
         cell.font = TOTAL_FONT
-    ws.cell(row=total_row, column=6).number_format = CURRENCY_FORMAT
+    for col_idx in (6, 7, 8):
+        ws.cell(row=total_row, column=col_idx).number_format = CURRENCY_FORMAT
 
     ws.column_dimensions["A"].width = 6
     ws.column_dimensions["B"].width = 10
     ws.column_dimensions["C"].width = 12
     ws.column_dimensions["D"].width = 6
-    ws.column_dimensions["E"].width = 42
-    ws.column_dimensions["F"].width = 14
+    ws.column_dimensions["E"].width = 36
+    ws.column_dimensions["F"].width = 13
+    ws.column_dimensions["G"].width = 13
+    ws.column_dimensions["H"].width = 13
 
     buffer = BytesIO()
     wb.save(buffer)
@@ -273,48 +288,54 @@ async def lina231_xlsx(
     return Response(
         content    = buffer.read(),
         media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers    = {"Content-Disposition": "attachment; filename=resumen_ventas.xlsx"},
+        headers    = {"Content-Disposition": "attachment; filename=resumen_pagos.xlsx"},
     )
 
 
 _COLUMNAS_TXT = [
-    txt_col("Cpbt",    5,  "L"),
-    txt_col("Número",  8,  "R"),
-    txt_col("Fecha",   10, "C"),
-    txt_col("Cta.",    5,  "R"),
-    txt_col("Cliente", 38, "L"),
-    txt_col("Importe", 15, "R"),
+    txt_col("Cpbt",      5,  "L"),
+    txt_col("Número",    8,  "R"),
+    txt_col("Fecha",     10, "C"),
+    txt_col("Cta.",      5,  "R"),
+    txt_col("Proveedor", 32, "L"),
+    txt_col("Efectivo",  12, "R"),
+    txt_col("Banco",     12, "R"),
+    txt_col("Total",     12, "R"),
 ]
 
 
 @router.get("/txt")
-async def lina231_txt(
+async def lina361_txt(
     request:  Request,
     desde:    str = Query(default=""),
     hasta:    str = Query(default=""),
-    cliecodi: int = Query(default=0),
+    provcodi: int = Query(default=0),
 ):
-    Lina231.set_prog_code(PROG_CODE)
-    user = Lina231.get_current_user(request)
+    Lina361.set_prog_code(PROG_CODE)
+    user = Lina361.get_current_user(request)
     if not user:
         return RedirectResponse("/login")
 
-    empr_code, empr_name = Lina231.get_empr_info()
+    empr_code, empr_name = Lina361.get_empr_info()
     empr = ctx_empr.get() or DEFAULT_EMPR_CODE
     fecha_desde, fecha_hasta = _parse_fechas(desde, hasta)
 
-    filas      = _get_filas(empr, fecha_desde, fecha_hasta, cliecodi)
-    total_impo = sum(f[5] for f in filas)
+    filas       = _get_filas(empr, fecha_desde, fecha_hasta, provcodi)
+    total_efec  = sum(f[5] for f in filas)
+    total_banc  = sum(f[6] for f in filas)
+    total_impo  = sum(f[7] for f in filas)
 
     filas_txt = [
-        [f[0], str(f[1]).zfill(6), f[2], f[3], f[4], fmt_money(f[5])]
+        [f[0], str(f[1]).zfill(6), f[2], f[3], f[4],
+         fmt_money(f[5]), fmt_money(f[6]), fmt_money(f[7])]
         for f in filas
     ]
-    totales_txt = ["", "", "", "", "TOTAL", fmt_money(total_impo)]
+    totales_txt = ["", "", "", "", "TOTAL",
+                   fmt_money(total_efec), fmt_money(total_banc), fmt_money(total_impo)]
 
     txt = generar_txt(
-        titulo    = "Listado Resumen de Ventas",
-        subtitulo = _build_subtitulo(fecha_desde, fecha_hasta, cliecodi),
+        titulo    = "Listado Resumen de Pagos",
+        subtitulo = _build_subtitulo(fecha_desde, fecha_hasta, provcodi),
         columnas  = _COLUMNAS_TXT,
         filas     = filas_txt,
         app_name  = APP_CONFIG.get("app_name", ""),
@@ -329,5 +350,5 @@ async def lina231_txt(
     return Response(
         content    = txt.encode("utf-8"),
         media_type = "text/plain; charset=utf-8",
-        headers    = {"Content-Disposition": "inline; filename=resumen_ventas.txt"},
+        headers    = {"Content-Disposition": "inline; filename=resumen_pagos.txt"},
     )

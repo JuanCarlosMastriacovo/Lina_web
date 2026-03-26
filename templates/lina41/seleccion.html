@@ -1,0 +1,49 @@
+<div x-data="{
+  desde: '',
+  hasta: '{{ hoy }}',
+  abrir(base) {
+    var p = new URLSearchParams();
+    if (this.desde) p.set('desde', this.desde);
+    p.set('hasta', this.hasta || '{{ hoy }}');
+    (window.top || window).open(base + '?' + p.toString(), '_blank');
+  }
+}" style="font-family:Arial; font-size:9pt; padding:20px;">
+
+  <h3 style="font-size:11pt; margin-bottom:16px;">Movimientos de Caja — Selección</h3>
+
+  <div style="display:flex; flex-direction:column; gap:10px; max-width:400px;">
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:130px; font-size:8pt;">Desde fecha:</label>
+      <input type="date" x-model="desde"
+             x-init="$nextTick(() => { $el.focus(); })"
+             style="padding:3px 6px; border:1px solid #ccc; border-radius:3px; font-size:8.5pt;">
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:130px; font-size:8pt;">Hasta fecha:</label>
+      <input type="date" x-model="hasta"
+             style="padding:3px 6px; border:1px solid #ccc; border-radius:3px; font-size:8.5pt;">
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button type="button" @click="abrir('/lina41/pdf')"
+              style="padding:6px 14px; background:#4472C4; color:white;
+                     border:none; border-radius:4px; cursor:pointer; font-size:8.5pt;">
+        Ver PDF
+      </button>
+      <button type="button" @click="abrir('/lina41/xlsx')"
+              style="padding:6px 14px; background:#217346; color:white;
+                     border:none; border-radius:4px; cursor:pointer; font-size:8.5pt;">
+        Ver XLSX
+      </button>
+      <button type="button" @click="abrir('/lina41/txt')"
+              style="padding:6px 14px; background:#92400e; color:white;
+                     border:none; border-radius:4px; cursor:pointer; font-size:8.5pt;">
+        Ver TXT
+      </button>
+    </div>
+
+  </div>
+
+</div>

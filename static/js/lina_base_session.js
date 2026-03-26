@@ -30,7 +30,10 @@
 
     // Botones de fecha de sesión.
     const btnFecha = document.getElementById('btn-fecha');
-    if (btnFecha) btnFecha.addEventListener('click', linaToggleSessionDatePicker);
+    if (btnFecha) {
+      btnFecha.addEventListener('click', linaToggleSessionDatePicker);
+      _actualizarEstiloFecha(btnFecha);
+    }
     const btnFechaApply = document.getElementById('btn-fecha-apply');
     if (btnFechaApply) btnFechaApply.addEventListener('click', linaApplySessionDate);
     const btnFechaCancel = document.getElementById('btn-fecha-cancel');
@@ -54,6 +57,22 @@
       });
     }
   });
+
+
+  /* ── Estilo del botón de fecha según sea hoy o no ── */
+
+  function _hoyLocal() {
+    var d = new Date();
+    return d.getFullYear() + '-' +
+           String(d.getMonth() + 1).padStart(2, '0') + '-' +
+           String(d.getDate()).padStart(2, '0');
+  }
+
+  function _actualizarEstiloFecha(btn) {
+    if (!btn) return;
+    var sesion = (btn.dataset.dateIso || '').trim();
+    btn.classList.toggle('btn-fecha-otro', sesion !== _hoyLocal());
+  }
 
 
   /* ── Cierre de paneles al hacer clic fuera ── */
@@ -280,6 +299,7 @@
       btn.textContent      = payload.session_date_display || sessionDate;
       btn.dataset.dateIso  = payload.session_date || sessionDate;
       input.value          = payload.session_date || sessionDate;
+      _actualizarEstiloFecha(btn);
       linaCloseSessionDatePicker(true);
     } catch (_err) {
       linaAlert('No se pudo actualizar la fecha de sesión.', 'error');

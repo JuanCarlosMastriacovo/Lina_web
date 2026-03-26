@@ -13,8 +13,8 @@ TABLAS_PERMITIDAS = {
     "linaclie",
     "linaempr",
     "linaarti",
-    "linaartr"
-    # agregar más tablas según se necesite
+    "linaartr",
+    "linaprov",
 }
 
 
