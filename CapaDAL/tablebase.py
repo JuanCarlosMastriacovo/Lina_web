@@ -17,31 +17,31 @@ class TableBase:
     """
     @classmethod
     def get_table_ui_metadata(cls, conn=None) -> dict:
-            """
-            Devuelve metadatos útiles para UI: tooltips de campos y descripción de tabla.
-            """
-            field_tooltips = cls.get_column_comments(conn=conn)
-            # Aquí se pueden agregar tooltips literales para campos calculados/no de tabla si se requiere
-            table_description = cls.get_table_comment(conn=conn)
-            return {
-                "field_tooltips": field_tooltips,
-                "table_description": table_description,
-            }
+        """
+        Devuelve metadatos útiles para UI: tooltips de campos y descripción de tabla.
+        """
+        field_tooltips = cls.get_column_comments(conn=conn)
+        # Aquí se pueden agregar tooltips literales para campos calculados/no de tabla si se requiere
+        table_description = cls.get_table_comment(conn=conn)
+        return {
+            "field_tooltips": field_tooltips,
+            "table_description": table_description,
+        }
 
     @classmethod
     def get_code_label_fields(cls) -> tuple[str, str]:
-            """
-            Devuelve (campo_codigo, campo_etiqueta) recomendados para selector.
-            """
-            selector = cls.get_selector_fields()
-            return selector[0], selector[1] if len(selector) > 1 else selector[0]
+        """
+        Devuelve (campo_codigo, campo_etiqueta) recomendados para selector.
+        """
+        selector = cls.get_selector_fields()
+        return selector[0], selector[1] if len(selector) > 1 else selector[0]
 
     @classmethod
     def get_company_and_key_fields(cls) -> tuple[str, str]:
-            """
-            Devuelve (campo_empresa, campo_clave_negocio) para uso en restricciones y queries.
-            """
-            return cls.get_company_field_required(), cls.get_business_key_field()
+        """
+        Devuelve (campo_empresa, campo_clave_negocio) para uso en restricciones y queries.
+        """
+        return cls.get_company_field_required(), cls.get_business_key_field()
     @classmethod
     def row_get_case_insensitive(cls, field: str, value: str, conn=None) -> dict:
         """Obtiene un registro por un campo, ignorando mayúsculas/minúsculas."""
@@ -427,7 +427,7 @@ class TableBase:
     def row_get(cls, pk_values: Dict[str, Any], conn=None) -> Dict[str, Any]:
         """Obtiene un registro por su PK completa."""
         pk_values = pk_values.copy()
-        _conn = conn or sess_conns.get_conn(readonly=False)
+        _conn = conn or sess_conns.get_conn(readonly=True)
         try:
             if not cls._ensure_metadata(conn=_conn):
                 raise ValueError(f"No se pudo cargar metadata para {cls.TABLE_NAME}")

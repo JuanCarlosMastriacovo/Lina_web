@@ -11,7 +11,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 
 from CapaBRL.linabase import linabase
 from CapaBRL.cardex_brl import get_cardex
-from CapaDAL.config import APP_CONFIG
+from CapaBRL.config import APP_CONFIG
 from CapaUI.xlsx_styles import (
     TITLE_FONT, SUBTITLE_FONT, HEADER_FONT, HEADER_FILL, HEADER_ALIGN,
 )

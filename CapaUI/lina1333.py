@@ -13,7 +13,7 @@ from CapaBRL.formatters import fmt_money
 from CapaBRL.stock_brl import get_existencias_batch
 from CapaBRL.txt_brl import generar_txt, col as txt_col
 from CapaDAL.tablebase import get_table_model
-from CapaDAL.config import APP_CONFIG
+from CapaBRL.config import APP_CONFIG
 from CapaUI.xlsx_styles import (
     TITLE_FONT, SUBTITLE_FONT, HEADER_FONT, HEADER_FILL, HEADER_ALIGN,
     TOTAL_FONT, CURRENCY_FORMAT,

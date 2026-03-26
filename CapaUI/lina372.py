@@ -13,7 +13,7 @@ from CapaBRL.linabase import linabase
 from CapaBRL.formatters import fmt_money
 from CapaDAL.dataconn import sess_conns, ctx_empr, ctx_date
 from CapaDAL.tablebase import get_table_model
-from CapaDAL.config import APP_CONFIG
+from CapaBRL.config import APP_CONFIG
 from CapaBRL.config import DEFAULT_EMPR_CODE
 from CapaUI.xlsx_styles import (
     TITLE_FONT, SUBTITLE_FONT, HEADER_FONT, HEADER_FILL, HEADER_ALIGN,

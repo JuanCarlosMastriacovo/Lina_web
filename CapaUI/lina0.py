@@ -392,13 +392,11 @@ async def login_form(request: Request) -> HTMLResponse:
 @app.post("/login", response_class=HTMLResponse)
 async def login_submit(
     request: Request,
-    user_code:       str = Form(""),
-    user_pass:       str = Form(""),
     login_user_code: str = Form(""),
     login_user_pass: str = Form(""),
 ) -> HTMLResponse:
-    submitted_user_code = (login_user_code or user_code or "").strip()
-    submitted_user_pass = (login_user_pass or user_pass or "").strip()
+    submitted_user_code = login_user_code.strip()
+    submitted_user_pass = login_user_pass.strip()
 
     def login_error_response(message: str, status_code: int = 400) -> HTMLResponse:
         response = templates.TemplateResponse(

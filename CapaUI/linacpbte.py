@@ -23,7 +23,7 @@ from CapaBRL.cpbte_brl import get_cpbte, generar_cpbte_txt
 from CapaBRL.formatters import fmt_money
 from CapaBRL.config import FMT_NROCOMP
 from CapaBRL.linabase import linabase
-from CapaDAL.config import APP_CONFIG
+from CapaBRL.config import APP_CONFIG
 
 router = APIRouter()
 

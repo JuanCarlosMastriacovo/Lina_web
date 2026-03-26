@@ -3,7 +3,7 @@ from fastapi.responses import Response, HTMLResponse, RedirectResponse
 from weasyprint import HTML
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from io import BytesIO
 
 import openpyxl
@@ -12,7 +12,7 @@ from openpyxl.styles import PatternFill, Font, Alignment
 from CapaBRL.linabase import linabase
 from CapaBRL.formatters import fmt_money
 from CapaDAL.dataconn import sess_conns, ctx_empr, ctx_date
-from CapaDAL.config import APP_CONFIG
+from CapaBRL.config import APP_CONFIG
 from CapaBRL.config import DEFAULT_EMPR_CODE
 from CapaUI.xlsx_styles import (
     TITLE_FONT, SUBTITLE_FONT, HEADER_FONT, HEADER_FILL, HEADER_ALIGN, CURRENCY_FORMAT,
@@ -126,7 +126,7 @@ def _get_movimientos(empr: str, fecini, fecfin: date) -> list:
 
     # Fila de saldo anterior
     if abs(saldo_ant) > 0.005:
-        fecha_sa = (fecini - __import__("datetime").timedelta(days=1)).strftime("%d/%m/%Y") if fecini else ""
+        fecha_sa = (fecini - timedelta(days=1)).strftime("%d/%m/%Y") if fecini else ""
         movimientos.append({
             "tipo":     "SA",
             "fecha":    fecha_sa,
