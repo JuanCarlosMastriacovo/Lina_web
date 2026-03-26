@@ -155,7 +155,7 @@ CREATE TABLE `linabanc` (
   KEY `fk_banc_prov` (`emprcodi`,`provcodi`),
   CONSTRAINT `fk_banc_clie` FOREIGN KEY (`emprcodi`, `cliecodi`) REFERENCES `linaclie` (`emprcodi`, `cliecodi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_banc_prov` FOREIGN KEY (`emprcodi`, `provcodi`) REFERENCES `linaprov` (`emprcodi`, `provcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=158 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Movimientos de Bancos';
+) ENGINE=InnoDB AUTO_INCREMENT=160 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Movimientos de Bancos';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -233,7 +233,7 @@ CREATE TABLE `linacaja` (
   KEY `fk_caja_prov` (`emprcodi`,`provcodi`),
   CONSTRAINT `fk_caja_clie` FOREIGN KEY (`emprcodi`, `cliecodi`) REFERENCES `linaclie` (`emprcodi`, `cliecodi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_caja_prov` FOREIGN KEY (`emprcodi`, `provcodi`) REFERENCES `linaprov` (`emprcodi`, `provcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1306 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Movimientos de Caja';
+) ENGINE=InnoDB AUTO_INCREMENT=1311 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Movimientos de Caja';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -439,7 +439,6 @@ CREATE TABLE `linacodm` (
   `codmdecr` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Es <D>ébito ó <C>rédito',
   `codmcodi` char(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Codigo de Movimiento',
   `codmdesc` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'Descripcion',
-  `codmultn` int NOT NULL DEFAULT '0' COMMENT 'Ultimo Numero Usado',
   `user` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `date` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `time` char(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
@@ -676,7 +675,7 @@ CREATE TABLE `linactpr` (
   PRIMARY KEY (`ctprid`),
   KEY `fk_ctpr_prov` (`emprcodi`,`provcodi`),
   CONSTRAINT `fk_ctpr_prov` FOREIGN KEY (`emprcodi`, `provcodi`) REFERENCES `linaprov` (`emprcodi`, `provcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=421 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cuentas Corrientes de Proveedores';
+) ENGINE=InnoDB AUTO_INCREMENT=423 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cuentas Corrientes de Proveedores';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2569,6 +2568,138 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_rescta_provs` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_rescta_provs`(
+    IN p_empr       CHAR(2) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_fecini     DATE,
+    IN p_fecfin     DATE,
+    IN p_codiin     INT,
+    IN p_codifi     INT,
+    IN p_saldo_cero TINYINT
+)
+BEGIN
+
+    -- ── Fila SA por cada proveedor elegible ───────────────────
+    SELECT
+        p.provcodi,
+        p.provname,
+        'SA'  AS linea_tipo,
+        CASE WHEN p_fecini IS NOT NULL
+             THEN DATE_SUB(p_fecini, INTERVAL 1 DAY)
+             ELSE p.provfesa
+        END   AS ctprfech,
+        'SALDO ANTERIOR' AS concepto,
+        0.00  AS ctprdebe,
+        0.00  AS ctprhabe,
+        0     AS sort_key,
+        -- saldo_ant: base + compactación de movimientos previos a p_fecini
+        COALESCE(p.provsala, 0) + CASE
+            WHEN p_fecini IS NOT NULL
+            THEN COALESCE((
+                     SELECT SUM(t2.ctprhabe - t2.ctprdebe)
+                     FROM   linactpr t2
+                     WHERE  t2.emprcodi = p_empr
+                       AND  t2.provcodi = p.provcodi
+                       AND  t2.ctprfech < p_fecini
+                 ), 0)
+            ELSE 0
+        END   AS saldo_ant
+
+    FROM linaprov p
+    WHERE p.emprcodi = p_empr
+      AND p.provcodi BETWEEN p_codiin AND p_codifi
+      -- saldo final != 0 (saldo final = provsala + TODOS los movs hasta p_fecfin)
+      AND (
+          p_saldo_cero = 1
+          OR ABS(
+              COALESCE(p.provsala, 0) + COALESCE((
+                  SELECT SUM(t4.ctprhabe - t4.ctprdebe)
+                  FROM   linactpr t4
+                  WHERE  t4.emprcodi = p_empr
+                    AND  t4.provcodi = p.provcodi
+                    AND  t4.ctprfech <= p_fecfin
+              ), 0)
+          ) > 0.005
+      )
+      -- tiene saldo inicial != 0 O movimientos en el rango de salida
+      AND (
+          ABS(COALESCE(p.provsala, 0) + CASE
+              WHEN p_fecini IS NOT NULL
+              THEN COALESCE((
+                       SELECT SUM(t3.ctprhabe - t3.ctprdebe)
+                       FROM   linactpr t3
+                       WHERE  t3.emprcodi = p_empr
+                         AND  t3.provcodi = p.provcodi
+                         AND  t3.ctprfech < p_fecini
+                   ), 0)
+              ELSE 0
+          END) > 0.005
+          OR EXISTS (
+              SELECT 1 FROM linactpr te
+              WHERE  te.emprcodi = p_empr
+                AND  te.provcodi = p.provcodi
+                AND  te.ctprfech >= CASE WHEN p_fecini IS NULL THEN '1000-01-01' ELSE p_fecini END
+                AND  te.ctprfech <= p_fecfin
+          )
+      )
+
+    UNION ALL
+
+    -- ── Filas MV: movimientos dentro del rango de salida ──────
+    SELECT
+        p2.provcodi,
+        p2.provname,
+        'MV'  AS linea_tipo,
+        t.ctprfech,
+        CONCAT(t.codmcodi, ' ', LPAD(t.ctprnumc, 6, '0')) AS concepto,
+        COALESCE(t.ctprdebe, 0) AS ctprdebe,
+        COALESCE(t.ctprhabe, 0) AS ctprhabe,
+        t.ctprid AS sort_key,
+        0.00 AS saldo_ant
+
+    FROM linactpr t
+    JOIN linaprov p2
+      ON p2.emprcodi = t.emprcodi
+     AND p2.provcodi = t.provcodi
+    WHERE t.emprcodi = p_empr
+      AND t.provcodi BETWEEN p_codiin AND p_codifi
+      AND t.ctprfech >= CASE WHEN p_fecini IS NULL THEN '1000-01-01' ELSE p_fecini END
+      AND t.ctprfech <= p_fecfin
+      -- excluir proveedor si su saldo final es cero y p_saldo_cero=0
+      AND (
+          p_saldo_cero = 1
+          OR ABS(
+              COALESCE(p2.provsala, 0) + COALESCE((
+                  SELECT SUM(t5.ctprhabe - t5.ctprdebe)
+                  FROM   linactpr t5
+                  WHERE  t5.emprcodi = p_empr
+                    AND  t5.provcodi = t.provcodi
+                    AND  t5.ctprfech <= p_fecfin
+              ), 0)
+          ) > 0.005
+      )
+
+    ORDER BY
+        provcodi,
+        CASE linea_tipo WHEN 'SA' THEN 0 ELSE 1 END,
+        ctprfech,
+        sort_key;
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_saldo_clies` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2602,6 +2733,46 @@ BEGIN
       AND c.cliecodi BETWEEN p_codiin AND p_codifi
 
     ORDER BY c.cliecodi;
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_saldo_provs` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_saldo_provs`(
+    IN p_empr   CHAR(2) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_codiin INT,
+    IN p_codifi INT,
+    IN p_fecfin DATE
+)
+BEGIN
+    SELECT
+        p.provcodi,
+        p.provname,
+        COALESCE(p.provsala, 0) + COALESCE((
+            SELECT SUM(t.ctprhabe - t.ctprdebe)
+            FROM   linactpr t
+            WHERE  t.emprcodi = p_empr
+              AND  t.provcodi = p.provcodi
+              AND  t.ctprfech <= p_fecfin
+        ), 0) AS saldo
+
+    FROM  linaprov p
+    WHERE p.emprcodi = p_empr
+      AND p.provcodi BETWEEN p_codiin AND p_codifi
+
+    ORDER BY p.provcodi;
 
 END ;;
 DELIMITER ;
@@ -2667,4 +2838,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-25 14:00:41
+-- Dump completed on 2026-03-25 21:31:01
