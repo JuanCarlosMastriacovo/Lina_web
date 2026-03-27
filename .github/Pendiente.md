@@ -1,4 +1,4 @@
-- Generar un Procedimiento en Claude para renombrar un programa
+Probar elp rocedimiento hecho por Claude para renombrar un programa
 - Usar la barra de mensajes
 - Que ocurrio con .venv en la migracion. ¿conviene recrearlo?
 *HECHO* Listados
@@ -74,3 +74,4 @@ DESCARTADO Validaciones de campos en CapaDAL y localmente para el prog en CapaUI
             Lina1342.py Por Rubro (blanco=todos)
             Lina1343.py Por Proveedor (0=todos) y Fecha Ultima Compra(blanco=todas)
 *HECHO*lina231 salida en txt campo totales queda chico cuando se listan todos los comprobantes
+*HECHO* Generar un Procedimiento en Claude para renombrar un programa
