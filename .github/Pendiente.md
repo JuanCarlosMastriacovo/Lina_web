@@ -1,4 +1,4 @@
-Probar elp rocedimiento hecho por Claude para renombrar un programa
+- Probar el procedimiento hecho por Claude para renombrar un programa
 - Usar la barra de mensajes
 - Que ocurrio con .venv en la migracion. ¿conviene recrearlo?
 *HECHO* Listados
