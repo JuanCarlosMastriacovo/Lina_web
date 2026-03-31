@@ -1,0 +1,294 @@
+<div x-data="{
+  orig: { empr: '', user: '', userName: '' },
+  dest: { empr: '', user: '', userName: '' },
+  lookup: { visible: false, side: '', items: [], filter: '' },
+  confirmando: false,
+  ejecutando:  false,
+  resultado:   null,
+  errorMsg:    '',
+
+  options: {{ options | tojson }},
+
+  async fetchUsers(empr, side) {
+    if (!empr) return;
+    const resp  = await fetch('/lina543/users?emprcodi=' + encodeURIComponent(empr));
+    const items = await resp.json().catch(() => []);
+    this.lookup = { visible: true, side, items, filter: '' };
+    this.$nextTick(() => {
+      const el = this.$root.querySelector('.lookup-filter');
+      if (el) el.focus();
+    });
+  },
+
+  filteredItems() {
+    const q = this.lookup.filter.trim().toLowerCase();
+    if (!q) return this.lookup.items;
+    return this.lookup.items.filter(i =>
+      i.code.toLowerCase().includes(q) || i.name.toLowerCase().includes(q)
+    );
+  },
+
+  selectUser(item) {
+    const s = this[this.lookup.side];
+    s.user     = item.code;
+    s.userName = item.name;
+    this.hideLookup();
+  },
+
+  hideLookup() {
+    this.lookup.visible = false;
+  },
+
+  onEmprChange(side) {
+    this[side].user     = '';
+    this[side].userName = '';
+  },
+
+  get puedeEjecutar() {
+    return this.orig.empr && this.orig.user && this.dest.empr && this.dest.user && !this.ejecutando;
+  },
+
+  solicitarConfirmacion() {
+    this.errorMsg = '';
+    this.confirmando = true;
+  },
+
+  cancelar() {
+    this.confirmando = false;
+  },
+
+  async ejecutar() {
+    this.confirmando = false;
+    this.ejecutando  = true;
+    this.errorMsg    = '';
+    this.resultado   = null;
+    try {
+      const form = new FormData();
+      form.append('orig_empr', this.orig.empr);
+      form.append('orig_user', this.orig.user);
+      form.append('dest_empr', this.dest.empr);
+      form.append('dest_user', this.dest.user);
+      form.append('_tab',      '{{ tab_id }}');
+
+      const resp    = await fetch('/lina543/ejecutar', { method: 'POST', body: form });
+      const payload = await resp.json().catch(() => ({}));
+      if (!resp.ok || !payload.ok) {
+        this.errorMsg = payload.error || 'Error al ejecutar.';
+      } else {
+        this.resultado = payload.message;
+      }
+    } catch (_err) {
+      this.errorMsg = 'Error de comunicación con el servidor.';
+    } finally {
+      this.ejecutando = false;
+    }
+  }
+}"
+@keydown.escape.window="hideLookup()"
+@click.outside="hideLookup()"
+style="font-family: Arial; font-size: 9pt; padding: 20px; max-width: 560px;">
+
+  <h3 style="font-size: 11pt; margin-bottom: 16px;">Copia de Permisos</h3>
+
+  {% if not perms or not perms.modi %}
+  <p style="color: #b45309; font-size: 8pt;">Sin permiso de modificación para ejecutar esta operación.</p>
+  {% else %}
+
+  <!-- Resultado -->
+  <template x-if="resultado">
+    <div style="background: #d1fae5; border: 1px solid #10b981; border-radius: 4px;
+                padding: 12px 16px; font-size: 8.5pt; color: #065f46;"
+         x-text="resultado">
+    </div>
+  </template>
+
+  <template x-if="!resultado">
+    <div>
+
+      <!-- ── ORIGEN ───────────────────────────────────────────── -->
+      <fieldset style="border: 1px solid #d1d5db; border-radius: 4px; padding: 12px 16px; margin-bottom: 14px;">
+        <legend style="font-weight: bold; font-size: 8.5pt; padding: 0 4px;">Origen</legend>
+
+        <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+          <!-- Empresa origen -->
+          <div>
+            <label style="display: block; font-size: 8pt; margin-bottom: 3px;">Empresa</label>
+            <select x-model="orig.empr" @change="onEmprChange('orig')"
+                    style="padding: 4px 6px; border: 1px solid #d1d5db; border-radius: 4px;
+                           font-size: 9pt; min-width: 140px;">
+              <option value="">— elegir —</option>
+              <template x-for="o in options" :key="o.code">
+                <option :value="o.code" x-text="o.code + ' · ' + o.name"></option>
+              </template>
+            </select>
+          </div>
+
+          <!-- Usuario origen -->
+          <div style="position: relative;">
+            <label style="display: block; font-size: 8pt; margin-bottom: 3px;">
+              Usuario
+              <span style="color: #9ca3af; font-size: 7.5pt;">[F4 lookup]</span>
+            </label>
+            <div style="display: flex; gap: 4px;">
+              <input type="text" x-model="orig.user"
+                     :disabled="!orig.empr"
+                     @keydown.f4.prevent="fetchUsers(orig.empr, 'orig')"
+                     @input="orig.userName = ''"
+                     autocomplete="off"
+                     style="width: 18ch; padding: 4px 6px; border: 1px solid #d1d5db;
+                            border-radius: 4px; font-size: 9pt; text-transform: uppercase;"
+                     @input.debounce.50ms="orig.user = orig.user.toUpperCase()">
+              <button type="button" tabindex="-1"
+                      :disabled="!orig.empr"
+                      @click="fetchUsers(orig.empr, 'orig')"
+                      style="padding: 3px 7px; border: 1px solid #d1d5db; border-radius: 4px;
+                             background: #f9fafb; cursor: pointer; font-size: 8pt;"
+                      title="Abrir lookup (F4)">▼</button>
+            </div>
+            <div style="font-size: 7.5pt; color: #6b7280; min-height: 14px; margin-top: 2px;"
+                 x-text="orig.userName"></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- ── DESTINO ──────────────────────────────────────────── -->
+      <fieldset style="border: 1px solid #d1d5db; border-radius: 4px; padding: 12px 16px; margin-bottom: 14px;">
+        <legend style="font-weight: bold; font-size: 8.5pt; padding: 0 4px;">Destino</legend>
+
+        <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+          <!-- Empresa destino -->
+          <div>
+            <label style="display: block; font-size: 8pt; margin-bottom: 3px;">Empresa</label>
+            <select x-model="dest.empr" @change="onEmprChange('dest')"
+                    style="padding: 4px 6px; border: 1px solid #d1d5db; border-radius: 4px;
+                           font-size: 9pt; min-width: 140px;">
+              <option value="">— elegir —</option>
+              <template x-for="o in options" :key="o.code">
+                <option :value="o.code" x-text="o.code + ' · ' + o.name"></option>
+              </template>
+            </select>
+          </div>
+
+          <!-- Usuario destino -->
+          <div style="position: relative;">
+            <label style="display: block; font-size: 8pt; margin-bottom: 3px;">
+              Usuario
+              <span style="color: #9ca3af; font-size: 7.5pt;">[F4 lookup]</span>
+            </label>
+            <div style="display: flex; gap: 4px;">
+              <input type="text" x-model="dest.user"
+                     :disabled="!dest.empr"
+                     @keydown.f4.prevent="fetchUsers(dest.empr, 'dest')"
+                     @input="dest.userName = ''"
+                     autocomplete="off"
+                     style="width: 18ch; padding: 4px 6px; border: 1px solid #d1d5db;
+                            border-radius: 4px; font-size: 9pt; text-transform: uppercase;"
+                     @input.debounce.50ms="dest.user = dest.user.toUpperCase()">
+              <button type="button" tabindex="-1"
+                      :disabled="!dest.empr"
+                      @click="fetchUsers(dest.empr, 'dest')"
+                      style="padding: 3px 7px; border: 1px solid #d1d5db; border-radius: 4px;
+                             background: #f9fafb; cursor: pointer; font-size: 8pt;"
+                      title="Abrir lookup (F4)">▼</button>
+            </div>
+            <div style="font-size: 7.5pt; color: #6b7280; min-height: 14px; margin-top: 2px;"
+                 x-text="dest.userName"></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- ── PANEL LOOKUP ─────────────────────────────────────── -->
+      <template x-if="lookup.visible">
+        <div style="position: fixed; z-index: 9999; background: white;
+                    border: 1px solid #9ca3af; border-radius: 4px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+                    min-width: 280px; max-height: 260px;
+                    display: flex; flex-direction: column;"
+             x-anchor.bottom-start="$root.querySelector('.lookup-anchor-' + lookup.side)">
+          <div style="padding: 6px 8px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0;">
+            <input type="text" x-model="lookup.filter"
+                   class="lookup-filter"
+                   placeholder="Filtrar..."
+                   autocomplete="off"
+                   style="width: 100%; padding: 3px 6px; border: 1px solid #d1d5db;
+                          border-radius: 3px; font-size: 8.5pt;"
+                   @keydown.escape.prevent="hideLookup()"
+                   @keydown.enter.prevent="filteredItems().length === 1 && selectUser(filteredItems()[0])">
+          </div>
+          <div style="overflow-y: auto; flex-grow: 1;">
+            <template x-if="filteredItems().length === 0">
+              <div style="padding: 8px 12px; color: #9ca3af; font-size: 8pt;">Sin resultados.</div>
+            </template>
+            <template x-for="item in filteredItems()" :key="item.code">
+              <div @click="selectUser(item)"
+                   style="padding: 5px 10px; cursor: pointer; font-size: 8.5pt; border-bottom: 1px solid #f3f4f6;"
+                   @mouseenter="$el.style.background='#eff6ff'"
+                   @mouseleave="$el.style.background=''">
+                <span style="font-weight: bold;" x-text="item.code"></span>
+                <span style="color: #6b7280; margin-left: 6px;" x-text="item.name"></span>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <!-- Anclas para posicionar el lookup -->
+      <span class="lookup-anchor-orig" style="display:none;"></span>
+      <span class="lookup-anchor-dest" style="display:none;"></span>
+
+      <!-- ── CONFIRMACIÓN ─────────────────────────────────────── -->
+      <template x-if="confirmando">
+        <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 4px;
+                    padding: 10px 14px; margin-bottom: 12px; font-size: 8.5pt;">
+          <strong>¿Confirma copiar los permisos?</strong><br>
+          <span style="color: #374151;">
+            De: <strong x-text="orig.user"></strong>
+            (<span x-text="orig.empr"></span>)
+            →
+            A: <strong x-text="dest.user"></strong>
+            (<span x-text="dest.empr"></span>)
+          </span>
+          <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button type="button" @click="ejecutar()"
+                    style="padding: 5px 14px; background: #2563eb; color: white;
+                           border: none; border-radius: 4px; cursor: pointer; font-size: 8.5pt;">
+              Confirmar
+            </button>
+            <button type="button" @click="cancelar()"
+                    style="padding: 5px 14px; background: #6b7280; color: white;
+                           border: none; border-radius: 4px; cursor: pointer; font-size: 8.5pt;">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <!-- ── ERROR ────────────────────────────────────────────── -->
+      <template x-if="errorMsg">
+        <div style="background: #fee2e2; border: 1px solid #ef4444; border-radius: 4px;
+                    padding: 8px 12px; margin-bottom: 12px; font-size: 8.5pt; color: #991b1b;"
+             x-text="errorMsg">
+        </div>
+      </template>
+
+      <!-- ── BOTÓN PRINCIPAL ──────────────────────────────────── -->
+      <template x-if="!confirmando">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" @click="solicitarConfirmacion()"
+                  :disabled="!puedeEjecutar"
+                  style="padding: 6px 18px; background: #2563eb; color: white;
+                         border: none; border-radius: 4px; cursor: pointer; font-size: 9pt;"
+                  :style="!puedeEjecutar ? 'opacity:0.5; cursor:not-allowed;' : ''">
+            Copiar permisos
+          </button>
+          <span x-show="ejecutando" style="color: #6b7280; font-style: italic; font-size: 8.5pt;">
+            Procesando...
+          </span>
+        </div>
+      </template>
+
+    </div>
+  </template>
+
+  {% endif %}
+</div>

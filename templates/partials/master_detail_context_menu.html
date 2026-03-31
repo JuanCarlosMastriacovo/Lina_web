@@ -4,9 +4,11 @@
     <button type="button" class="selector-context-menu-item" @click="openContextDetail()">
         Editar
     </button>
+    {% if allow_recode is not defined or allow_recode %}
     <button type="button" class="selector-context-menu-item" @click="invokeDetailAction('recode')">
         Cambiar codigo
     </button>
+    {% endif %}
     <button type="button" class="selector-context-menu-item selector-context-menu-item-danger" @click="invokeDetailAction('delete')">
         Eliminar
     </button>

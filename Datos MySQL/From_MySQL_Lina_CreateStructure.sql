@@ -233,7 +233,7 @@ CREATE TABLE `linacaja` (
   KEY `fk_caja_prov` (`emprcodi`,`provcodi`),
   CONSTRAINT `fk_caja_clie` FOREIGN KEY (`emprcodi`, `cliecodi`) REFERENCES `linaclie` (`emprcodi`, `cliecodi`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_caja_prov` FOREIGN KEY (`emprcodi`, `provcodi`) REFERENCES `linaprov` (`emprcodi`, `provcodi`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1311 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Movimientos de Caja';
+) ENGINE=InnoDB AUTO_INCREMENT=1313 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Movimientos de Caja';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1689,6 +1689,23 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `tr_linauser_insert` AFTER INSERT ON `linauser` FOR EACH ROW BEGIN
+    CALL sp_sync_linasafe();
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
 /*!50003 CREATE*/ /*!50017 DEFINER=`lina`@`%`*/ /*!50003 TRIGGER `tr_linauser_audit_update` BEFORE UPDATE ON `linauser` FOR EACH ROW BEGIN
                     SET NEW.user = IFNULL(@lina_user, 'SYSTEM');
                     SET NEW.date = DATE_FORMAT(NOW(), '%Y%m%d');
@@ -1735,7 +1752,9 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`lina`@`%`*/ /*!50003 TRIGGER `tr_linauser_delete` AFTER DELETE ON `linauser` FOR EACH ROW BEGIN CALL sp_sync_linasafe(); END */;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `tr_linauser_delete` AFTER DELETE ON `linauser` FOR EACH ROW BEGIN
+    CALL sp_sync_linasafe();
+END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -2359,6 +2378,63 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_create_user_by_empr` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_create_user_by_empr`(
+    IN p_emprcodi CHAR(2)     CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_usercodi CHAR(32)    CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_username VARCHAR(40) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_userpass CHAR(64)    CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci
+)
+    MODIFIES SQL DATA
+BEGIN
+    INSERT IGNORE INTO linauser (emprcodi, usercodi, username, userpass, userremo)
+    SELECT e.emprcodi, p_usercodi, p_username, p_userpass, 0
+    FROM linaempr e
+    WHERE e.emprcodi <> p_emprcodi
+      AND NOT EXISTS (
+          SELECT 1 FROM linauser u
+          WHERE u.emprcodi = e.emprcodi AND u.usercodi = p_usercodi
+      );
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_delete_user_by_empr` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_delete_user_by_empr`(
+    IN p_emprcodi CHAR(2)  CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_usercodi CHAR(32) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci
+)
+    MODIFIES SQL DATA
+BEGIN
+    DELETE FROM linauser
+    WHERE usercodi = p_usercodi
+      AND emprcodi <> p_emprcodi;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_InsertRow` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2838,4 +2914,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-25 21:31:01
+-- Dump completed on 2026-03-31 10:42:01

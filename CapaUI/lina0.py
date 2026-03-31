@@ -277,6 +277,16 @@ def get_session_date_iso_global() -> str:
     return ctx_date.get() or date.today().isoformat()
 
 
+def get_user_modi_lina51_global() -> bool:
+    """Devuelve True si el usuario activo tiene permiso de modificación en LINA51."""
+    user = ctx_user.get()
+    if not user:
+        return False
+    perms = permisos_por_usuario(user)
+    p = perms.get("LINA51")
+    return bool(p and p.modi)
+
+
 def parse_hotkey(title: str):
     """Extrae la hotkey (carácter tras \\<) y formatea el título con <u> para el navbar."""
     if "\\<" in title:
@@ -294,6 +304,7 @@ templates.env.globals["get_empr_info"]        = get_empr_info_global
 templates.env.globals["get_empr_options"]     = get_empr_options_global
 templates.env.globals["get_session_date"]     = get_session_date_global
 templates.env.globals["get_session_date_iso"] = get_session_date_iso_global
+templates.env.globals["get_user_modi_lina51"] = get_user_modi_lina51_global
 templates.env.globals["parse_hotkey"]         = parse_hotkey
 templates.env.globals["MIN_VIEWPORT_CONFIG"]  = linabase.get_frontend_viewport_config()
 

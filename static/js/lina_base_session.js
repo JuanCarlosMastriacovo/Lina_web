@@ -190,25 +190,15 @@
     if (evt) { evt.preventDefault(); evt.stopPropagation(); }
     linaCloseSessionDatePicker(false);
 
-    const panel = document.getElementById('session-company-panel');
-    const btn   = document.getElementById('btn-empr');
-    const input = document.getElementById('session-company-input');
-    if (!(panel && btn && input)) return;
-
-    const willOpen = !panel.classList.contains('visible');
-    if (willOpen) {
-      const mgr = window.linaTabsManager;
-      if (mgr && mgr.tabs && mgr.tabs.length > 0) {
+    const mgr = window.linaTabsManager;
+    if (mgr && mgr.tabs) {
+      const otherTabs = mgr.tabs.filter(t => t.code !== 'LINA52');
+      if (otherTabs.length > 0) {
         linaAlert('Cierre todas las pestañas antes de cambiar la empresa activa.', 'warn');
         return;
       }
     }
-    panel.classList.toggle('visible', willOpen);
-    btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-    if (willOpen) {
-      input.value = btn.dataset.emprCode || input.value || '';
-      setTimeout(() => input.focus(), 0);
-    }
+    if (mgr) mgr.openTab('LINA52', 'Cambio de Empresa', '/lina52/');
   };
 
   window.linaCloseCompanyPicker = function (focusButton) {
@@ -250,28 +240,22 @@
     if (evt) { evt.preventDefault(); evt.stopPropagation(); }
     linaCloseCompanyPicker(false);
 
-    const panel = document.getElementById('session-date-panel');
-    const btn   = document.getElementById('btn-fecha');
-    const input = document.getElementById('session-date-input');
-    if (!(panel && btn && input)) return;
+    const btn = document.getElementById('btn-fecha');
+    if (!btn) return;
 
-    const willOpen = !panel.classList.contains('visible');
-    if (willOpen) {
+    if (btn.dataset.lina51Modi === 'true') {
       const mgr = window.linaTabsManager;
-      if (mgr && mgr.tabs && mgr.tabs.length > 0) {
-        linaAlert('Cierre todas las pestañas antes de cambiar la fecha de sesión.', 'warn');
-        return;
+      if (mgr && mgr.tabs) {
+        const otherTabs = mgr.tabs.filter(t => t.code !== 'LINA51');
+        if (otherTabs.length > 0) {
+          linaAlert('Cierre todas las pestañas antes de cambiar la fecha de sesión.', 'warn');
+          return;
+        }
       }
+      if (mgr) mgr.openTab('LINA51', 'Cambio de Fecha de Sesión', '/prog/LINA51');
+      return;
     }
-    panel.classList.toggle('visible', willOpen);
-    btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-    if (willOpen) {
-      input.value = btn.dataset.dateIso || input.value || '';
-      setTimeout(() => {
-        input.focus();
-        try { if (typeof input.showPicker === 'function') input.showPicker(); } catch (_err) { /* navegador no lo soporta */ }
-      }, 0);
-    }
+    // Sin permiso: no se permite cambiar la fecha
   };
 
   window.linaCloseSessionDatePicker = function (focusButton) {
@@ -305,5 +289,33 @@
       linaAlert('No se pudo actualizar la fecha de sesión.', 'error');
     }
   };
+
+
+  /* ── Sincronización navbar cuando lina51 cambia la fecha ── */
+
+  window.addEventListener('lina:session-date-changed', function (e) {
+    const btn   = document.getElementById('btn-fecha');
+    const input = document.getElementById('session-date-input');
+    if (!btn) return;
+    const detail = e.detail || {};
+    if (detail.session_date_display) btn.textContent     = detail.session_date_display;
+    if (detail.session_date)         btn.dataset.dateIso = detail.session_date;
+    _actualizarEstiloFecha(btn);
+    if (input && detail.session_date) input.value = detail.session_date;
+  });
+
+
+  /* ── Sincronización navbar cuando lina52 cambia la empresa ── */
+
+  window.addEventListener('lina:session-company-changed', function (e) {
+    const btn   = document.getElementById('btn-empr');
+    const input = document.getElementById('session-company-input');
+    if (!btn) return;
+    const detail = e.detail || {};
+    if (detail.empr_display) btn.textContent      = detail.empr_display;
+    if (detail.empr_code)    btn.dataset.emprCode  = detail.empr_code;
+    if (detail.empr_name)    btn.dataset.emprName  = detail.empr_name;
+    if (input && detail.empr_code) input.value = detail.empr_code;
+  });
 
 })();

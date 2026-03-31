@@ -111,7 +111,8 @@
                 <span class="ctx-picker-wrap ms-1">
                   <button id="btn-fecha" type="button" class="btn-ctx"
                           data-date-iso="{{ get_session_date_iso() }}"
-                          title="Fecha de sesión (F3)"
+                          data-lina51-modi="{{ 'true' if get_user_modi_lina51() else 'false' }}"
+                          title="Fecha de sesión"
                           aria-expanded="false">
                     {{ get_session_date() }}
                   </button>

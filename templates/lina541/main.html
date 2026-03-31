@@ -1,0 +1,16 @@
+{% extends "master_detail_base.html" %}
+
+{% block list_title %}Usuarios{% endblock %}
+{% block route_new %}/users/new{% endblock %}
+{% block route_list %}/users/list{% endblock %}
+
+{% block grid_content %}
+{% set items = users %}
+{% set code_field = 'usercodi' %}
+{% set label_field = 'username' %}
+{% set code_label = 'Usuario' %}
+{% set label_column = 'Nombre' %}
+{% set detail_url_base = '/users/detail' %}
+{% set route_list = '/users/list' %}
+{% include "partials/master_detail_entity_grid.html" %}
+{% endblock %}

@@ -35,34 +35,8 @@ BR-005
 ******
 Regla de negocio para id de usuario y pwd
 
-******
-BR-010
-******
-Solo utilizamos recursos gnu gratis permanentemente
 
 
-username (usercodi)
-Longitud: 8 a 32.
-Permitidos: letras, números, guion bajo, espacios, punto.
-Case-insensitive para login, pero guardar en mayúsculas normalizadas.
-Unicidad por empresa (emprcodi + usercodi).
-Sugerencias: que la pantalla login no recuerde ni sugiera las ultimas id usuario
-userpass
-Longitud mínima: 8 (ideal 12+).
-Debe incluir al menos 3 de 4 grupos: mayúscula, minúscula, número, símbolo.
-Visibilidad: como opcion de configuracion puede aparecer el visualizador de pwd al ingersarla
-Bloquear contraseñas obvias: nombre de usuario, secuencias (123456, abcdef), repetidas.
-Historial: no reutilizar últimas 3.
-Rotación: 90 días (si aplica política corporativa).
-Bloqueo temporal: 5 intentos fallidos -> 15 minutos.
-Guardado: hash sha2, nunca texto plano. Ante una apliacion nueva considerar Argon2id o bcrypt
-Auditoria:
-agregar a tabla user 
-    userpdat, datetime (ultimo update de userpas)
-    userfail, int (numero de intentos fallidos)
-    userlock, datetime (bloqueado hasta fecha-hora)
-    userplog, char(96) (últimos 3 hash, 3*32)
-    userbloq, char(1) (condición de Bloqueo, a definir)
 
 ******
 BR-006
@@ -160,3 +134,42 @@ BR-015
     En Compras: registración de remitos el precio unitario se toma del operador, no de linaarti
     Al registrar remitos de compra el total del remito va al haber del proveedor, no pide pago, va todo a cta. cte. y no genera     recibo
     Los comprobantes de compras no se imprimen, salvo que sea a pedido desde lina32 o lina35
+
+******
+BR-016
+******
+Solo utilizamos recursos gnu gratis permanentemente
+
+******
+BR-017
+******
+-- usercodi
+Longitud: 8 a 32.
+Permitidos: letras, números, guion bajo, espacios, punto.
+Case-insensitive para login, pero guardar en mayúsculas normalizadas.
+Unicidad por empresa (emprcodi + usercodi).
+Sugerencias: que la pantalla login no recuerde ni sugiera las ultimas id usuario
+-- userpass
+Longitud mínima: 8 (ideal 12+).
+Debe incluir al menos 3 de 4 grupos: mayúscula, minúscula, número, símbolo.
+Visibilidad: como opcion de configuracion puede aparecer el visualizador de pwd al ingersarla
+Bloquear contraseñas obvias: nombre de usuario, secuencias (123456, abcdef), repetidas.
+Historial: no reutilizar últimas 3.
+Rotación: 90 días (si aplica política corporativa).
+Bloqueo temporal: 5 intentos fallidos -> 15 minutos.
+Guardado: hash sha2, nunca texto plano. Ante una apliacion nueva considerar Argon2id o bcrypt
+Auditoria:
+agregar a tabla user 
+    userpdat, datetime (ultimo update de userpas)
+    userfail, int (numero de intentos fallidos)
+    userlock, datetime (bloqueado hasta fecha-hora)
+    userplog, char(96) (últimos 3 hash, 3*32)
+    userbloq, char(1) (condición de Bloqueo, a definir)
+
+******
+BR-018
+******
+1. Cuando se crea un usuario debe darse de alta en todas las empresas de linaempr con mismo id, nombre y pwd. Descargamos la tarea en un sp para dispararlo por after_insert en lina541 (no en el trigger). Llamemoslo sp_create_user_by_empr.
+2. Cuando se elimina un usuario debe darse de baja en todas las empresas de linaempr.
+Descargamos la tarea en un sp para dispararlo por after_delete en lina541 (no en el trigger). Llamemoslo sp_delete_user_by_empr.
+3. Ante un cambio de pwd, la nueva contraseña se propaga a todos los registros de este usuario en todas las empresas. Avisar "La contraseña se ha cambiado para todas las empresas" siempre que count(*)>1 en linaempr

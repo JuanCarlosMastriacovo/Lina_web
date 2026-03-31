@@ -1,0 +1,154 @@
+<div x-data="{
+  fecha: '',
+  hoy: '{{ hoy_iso }}',
+  ejecutando: false,
+  confirmando: false,
+  resultado: null,
+  errorMsg: '',
+
+  fechaValida() {
+    return this.fecha && this.fecha < this.hoy;
+  },
+
+  solicitarConfirmacion() {
+    if (!this.fechaValida()) {
+      linaAlert('Ingrese una fecha anterior a hoy.', 'warn');
+      return;
+    }
+    this.confirmando = true;
+  },
+
+  cancelar() {
+    this.confirmando = false;
+  },
+
+  async ejecutar() {
+    this.confirmando = false;
+    this.ejecutando  = true;
+    this.resultado   = null;
+    this.errorMsg    = '';
+    try {
+      const resp    = await fetch('/lina531/ejecutar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fecha_hasta: this.fecha }),
+      });
+      const payload = await resp.json().catch(() => ({}));
+      if (!resp.ok || !payload.ok) {
+        this.errorMsg = payload.error || 'Error al ejecutar la limpieza.';
+      } else {
+        this.resultado = payload.steps;
+      }
+    } catch (_err) {
+      this.errorMsg = 'Error de comunicación con el servidor.';
+    } finally {
+      this.ejecutando = false;
+    }
+  }
+}" style="font-family:Arial; font-size:9pt; padding:20px; max-width:600px;">
+
+  <h3 style="font-size:11pt; margin-bottom:12px;">Limpieza de Archivos</h3>
+
+  <!-- Aviso -->
+  <div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:4px;
+              padding:12px 16px; margin-bottom:16px; font-size:8.5pt; line-height:1.6;">
+    <strong style="color:#92400e;">¡ATENCIÓN!</strong><br>
+    Se eliminarán los movimientos de fecha anterior a la indicada.<br>
+    Los movimientos administrativos (Caja, Bancos) se compactarán en un Saldo Anterior.<br>
+    Las facturas y su detalle <strong>se perderán en forma definitiva</strong>.<br>
+    <span style="color:#b91c1c; font-weight:bold;">
+      Previo a este proceso debe realizarse un RESPALDO GENERAL de archivos.
+    </span>
+  </div>
+
+  {% if not perms or not perms.modi %}
+  <p style="color:#b45309; font-size:8pt;">Sin permiso de modificación para ejecutar esta operación.</p>
+  {% else %}
+
+  <!-- Formulario de selección -->
+  <template x-if="!resultado">
+    <div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+        <label style="width:220px;">Eliminar movimientos anteriores al:</label>
+        <input type="date" x-model="fecha"
+               :max="hoy"
+               x-init="$nextTick(() => { $el.focus(); })"
+               style="padding:3px 6px; border:1px solid #ccc; border-radius:3px;">
+      </div>
+
+      <!-- Confirmación inline -->
+      <template x-if="confirmando">
+        <div style="background:#fee2e2; border:1px solid #ef4444; border-radius:4px;
+                    padding:10px 14px; margin-bottom:12px; font-size:8.5pt;">
+          <strong>¿Confirma la eliminación definitiva de todos los movimientos anteriores a
+            <span x-text="fecha"></span>?</strong><br>
+          Esta operación no puede deshacerse.
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button type="button" @click="ejecutar()"
+                    style="padding:5px 14px; background:#dc2626; color:white;
+                           border:none; border-radius:4px; cursor:pointer;">
+              Sí, ejecutar
+            </button>
+            <button type="button" @click="cancelar()"
+                    style="padding:5px 14px; background:#6b7280; color:white;
+                           border:none; border-radius:4px; cursor:pointer;">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <template x-if="!confirmando">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button type="button" @click="solicitarConfirmacion()"
+                  :disabled="!fechaValida() || ejecutando"
+                  style="padding:6px 16px; background:#dc2626; color:white;
+                         border:none; border-radius:4px; cursor:pointer;
+                         opacity: (!fechaValida() || ejecutando) ? 0.5 : 1;">
+            Ejecutar Limpieza
+          </button>
+          <span x-show="ejecutando" style="color:#6b7280; font-style:italic;">
+            Procesando...
+          </span>
+        </div>
+      </template>
+
+      <!-- Error -->
+      <template x-if="errorMsg">
+        <div style="margin-top:12px; color:#dc2626; font-size:8.5pt;"
+             x-text="'Error: ' + errorMsg"></div>
+      </template>
+    </div>
+  </template>
+
+  <!-- Resultado -->
+  <template x-if="resultado">
+    <div>
+      <div style="background:#d1fae5; border:1px solid #10b981; border-radius:4px;
+                  padding:10px 14px; margin-bottom:12px; font-size:8.5pt;">
+        <strong style="color:#065f46;">Limpieza completada correctamente.</strong>
+      </div>
+      <table style="border-collapse:collapse; width:100%; font-size:8.5pt;">
+        <thead>
+          <tr style="background:#f3f4f6;">
+            <th style="text-align:left; padding:5px 8px; border:1px solid #e5e7eb;">Proceso</th>
+            <th style="text-align:left; padding:5px 8px; border:1px solid #e5e7eb;">Resultado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="step in resultado" :key="step.nombre">
+            <tr>
+              <td style="padding:4px 8px; border:1px solid #e5e7eb; white-space:nowrap;"
+                  x-text="step.nombre"></td>
+              <td style="padding:4px 8px; border:1px solid #e5e7eb;"
+                  x-text="step.detalle"></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </template>
+
+  {% endif %}
+
+</div>

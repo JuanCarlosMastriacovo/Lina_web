@@ -21,6 +21,8 @@ DROP TRIGGER IF EXISTS tr_linaprog_insert;
 DROP TRIGGER IF EXISTS tr_linaprog_delete;
 DROP TRIGGER IF EXISTS tr_linaprog_update;
 
+DROP PROCEDURE IF EXISTS sp_create_user_by_empr;
+DROP PROCEDURE IF EXISTS sp_delete_user_by_empr;
 DROP PROCEDURE IF EXISTS sp_copy_user_rights;
 DROP PROCEDURE IF EXISTS sp_sync_linasafe;
 
@@ -120,10 +122,47 @@ BEGIN
        AND t.usercodi = p_target_usercodi;
 END$$
 
+CREATE PROCEDURE sp_create_user_by_empr(
+    IN p_emprcodi CHAR(2)    CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_usercodi CHAR(32)   CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_username VARCHAR(40) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_userpass CHAR(64)   CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci
+)
+    MODIFIES SQL DATA
+BEGIN
+    -- Replica el usuario en todas las empresas donde aún no existe.
+    -- INSERT IGNORE corta la recursión: cuando el AFTER INSERT dispara este SP
+    -- para las filas recién creadas, no encuentra empresas nuevas y no inserta.
+    -- tr_linauser_hash_bi detecta que el hash ya es SHA256 hex y no lo re-hashea.
+    INSERT IGNORE INTO linauser (emprcodi, usercodi, username, userpass, userremo)
+    SELECT e.emprcodi, p_usercodi, p_username, p_userpass, 0
+    FROM linaempr e
+    WHERE e.emprcodi <> p_emprcodi
+      AND NOT EXISTS (
+          SELECT 1 FROM linauser u
+          WHERE u.emprcodi = e.emprcodi AND u.usercodi = p_usercodi
+      );
+END$$
+
+CREATE PROCEDURE sp_delete_user_by_empr(
+    IN p_emprcodi CHAR(2)  CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_usercodi CHAR(32) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci
+)
+    MODIFIES SQL DATA
+BEGIN
+    -- Elimina el usuario del resto de empresas.
+    -- Los AFTER DELETE recursivos no encuentran más filas → se detienen solos.
+    DELETE FROM linauser
+    WHERE usercodi = p_usercodi
+      AND emprcodi <> p_emprcodi;
+END$$
+
 CREATE TRIGGER tr_linauser_insert
 AFTER INSERT ON linauser
 FOR EACH ROW
 BEGIN
+    -- La propagación multi-empresa se maneja desde la aplicación (lina541).
+    -- El trigger solo mantiene sincronizado linasafe.
     CALL sp_sync_linasafe();
 END$$
 
@@ -163,7 +202,7 @@ DELIMITER ;
 CALL sp_sync_linasafe();
 
 -- Verificación rápida
-SHOW PROCEDURE STATUS WHERE Db = DATABASE() AND Name IN ('sp_sync_linasafe', 'sp_copy_user_rights');
+SHOW PROCEDURE STATUS WHERE Db = DATABASE() AND Name IN ('sp_sync_linasafe', 'sp_copy_user_rights', 'sp_create_user_by_empr', 'sp_delete_user_by_empr');
 SHOW TRIGGERS LIKE 'linauser';
 SHOW TRIGGERS LIKE 'linaprog';
 

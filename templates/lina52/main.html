@@ -1,0 +1,62 @@
+<div x-data="{
+  empr: '{{ current_code }}',
+  guardando: false,
+  async aplicar() {
+    if (!this.empr) { linaAlert('Debe seleccionar una empresa.', 'warn'); return; }
+    this.guardando = true;
+    try {
+      const resp = await fetch('/api/session/company', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ empr_code: this.empr }),
+      });
+      const payload = await resp.json().catch(() => ({}));
+      if (!resp.ok || !payload.ok) {
+        linaAlert(payload.error || 'No se pudo actualizar la empresa activa.', 'error');
+        return;
+      }
+      window.dispatchEvent(new CustomEvent('lina:session-company-changed', {
+        detail: {
+          empr_code:    payload.empr_code,
+          empr_name:    payload.empr_name,
+          empr_display: payload.empr_display,
+        }
+      }));
+      {% if tab_id %}
+      const mgr = window.linaTabsManager;
+      if (mgr) mgr.closeTab('{{ tab_id }}');
+      {% endif %}
+    } catch (_err) {
+      linaAlert('No se pudo actualizar la empresa activa.', 'error');
+    } finally {
+      this.guardando = false;
+    }
+  }
+}" style="font-family:Arial; font-size:9pt; padding:20px;">
+
+  <h3 style="font-size:11pt; margin-bottom:16px;">Cambio de Empresa Activa</h3>
+
+  <div style="display:flex; flex-direction:column; gap:10px; max-width:360px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:80px;">Empresa:</label>
+      <select x-model="empr"
+              x-init="$nextTick(() => { $el.focus(); })"
+              style="flex:1; padding:3px 6px; border:1px solid #ccc; border-radius:3px;">
+        {% for option in options %}
+        <option value="{{ option.code }}"
+                {% if option.code == current_code %}selected{% endif %}>
+          {{ option.code }} · {{ option.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button type="button" @click="aplicar()" :disabled="guardando"
+              style="padding:6px 14px; background:#4472C4; color:white;
+                     border:none; border-radius:4px; cursor:pointer;">
+        Aplicar
+      </button>
+    </div>
+  </div>
+
+</div>

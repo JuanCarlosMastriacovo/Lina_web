@@ -1,0 +1,63 @@
+<div x-data="{
+  fecha: '{{ session_date_iso }}',
+  guardando: false,
+  async aplicar() {
+    if (!this.fecha) { linaAlert('Debe seleccionar una fecha.', 'warn'); return; }
+    this.guardando = true;
+    try {
+      const resp = await fetch('/api/session/date', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_date: this.fecha }),
+      });
+      const payload = await resp.json().catch(() => ({}));
+      if (!resp.ok || !payload.ok) {
+        linaAlert(payload.error || 'No se pudo actualizar la fecha de sesión.', 'error');
+        return;
+      }
+      window.dispatchEvent(new CustomEvent('lina:session-date-changed', {
+        detail: {
+          session_date:         payload.session_date,
+          session_date_display: payload.session_date_display,
+        }
+      }));
+      {% if tab_id %}
+      const mgr = window.linaTabsManager;
+      if (mgr) mgr.closeTab('{{ tab_id }}');
+      {% endif %}
+    } catch (_err) {
+      linaAlert('No se pudo actualizar la fecha de sesión.', 'error');
+    } finally {
+      this.guardando = false;
+    }
+  }
+}" style="font-family:Arial; font-size:9pt; padding:20px;">
+
+  <h3 style="font-size:11pt; margin-bottom:16px;">Cambio de Fecha de Sesión</h3>
+
+  {% if not perms or not perms.modi %}
+  <p style="color:#b45309; font-size:8pt; margin-bottom:12px;">
+    Solo tiene permiso de consulta. No puede modificar la fecha de sesión.
+  </p>
+  {% endif %}
+
+  <div style="display:flex; flex-direction:column; gap:10px; max-width:280px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <label style="width:120px;">Fecha de Sesión:</label>
+      <input type="date" x-model="fecha"
+             {% if not perms or not perms.modi %}disabled{% endif %}
+             x-init="$nextTick(() => { $el.focus(); })"
+             style="padding:3px 6px; border:1px solid #ccc; border-radius:3px;">
+    </div>
+    {% if perms and perms.modi %}
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button type="button" @click="aplicar()" :disabled="guardando"
+              style="padding:6px 14px; background:#4472C4; color:white;
+                     border:none; border-radius:4px; cursor:pointer;">
+        Aplicar
+      </button>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
