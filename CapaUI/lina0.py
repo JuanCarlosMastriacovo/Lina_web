@@ -75,6 +75,13 @@ class Permisos:
 
 # ==================== SEGURIDAD: FUNCIONES ====================
 
+def _perm_bool(val) -> bool:
+    """Cualquier valor no nulo y no vacío = permiso habilitado."""
+    if val is None:
+        return False
+    return str(val).strip() != ""
+
+
 def permisos_por_usuario(user: str) -> Dict[str, Permisos]:
     """Devuelve un diccionario PROGCODI -> Permisos para el usuario y empresa activa."""
     try:
@@ -88,10 +95,11 @@ def permisos_por_usuario(user: str) -> Dict[str, Permisos]:
             prog = str(rec.get(SAFE_PROG_FIELD) or "").strip()
             if not prog:
                 continue
-            alta = (str(rec.get(SAFE_ALTA_FIELD) or "").strip().upper() == "X")
-            baja = (str(rec.get(SAFE_BAJA_FIELD) or "").strip().upper() == "X")
-            modi = (str(rec.get(SAFE_MODI_FIELD) or "").strip().upper() == "X")
-            cons = (str(rec.get(SAFE_CONS_FIELD) or "").strip().upper() == "X")
+            alta = _perm_bool(rec.get(SAFE_ALTA_FIELD))
+            baja = _perm_bool(rec.get(SAFE_BAJA_FIELD))
+            modi = _perm_bool(rec.get(SAFE_MODI_FIELD))
+            cons = _perm_bool(rec.get(SAFE_CONS_FIELD))
+            
             perms[prog] = Permisos(alta=alta, baja=baja, modi=modi, cons=cons)
         return perms
     except Exception as e:
@@ -390,9 +398,11 @@ linabase.set_permisos_por_usuario(permisos_por_usuario)
 async def login_form(request: Request) -> HTMLResponse:
     if get_current_user(request):
         return RedirectResponse(url="/", status_code=302)  # type: ignore
+    from CapaBRL.config import APP_CONFIG
     response = templates.TemplateResponse(
         "login.html",
-        {"request": request, "error": None},
+        {"request": request, "error": None,
+         "app_description": APP_CONFIG.get("app_description", "")},
     )
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"]        = "no-cache"
@@ -409,13 +419,17 @@ async def login_submit(
     submitted_user_code = login_user_code.strip()
     submitted_user_pass = login_user_pass.strip()
 
+    from CapaBRL.config import APP_CONFIG as _APP_CONFIG
+    _app_desc = _APP_CONFIG.get("app_description", "")
+
     def login_error_response(message: str, status_code: int = 400) -> HTMLResponse:
         response = templates.TemplateResponse(
             "login.html",
             {
-                "request":        request,
-                "error":          message,
+                "request":         request,
+                "error":           message,
                 "login_user_code": submitted_user_code,
+                "app_description": _app_desc,
             },
             status_code=status_code,
         )
@@ -734,3 +748,4 @@ async def ejecutar_programa(request: Request, code: str) -> HTMLResponse:
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)
+    #uvicorn.run(app, host="192.168.1.9", port=5000)

@@ -13,7 +13,7 @@ MYSQL_CONFIG = {
 
 APP_CONFIG = {
     "app_name":        "LINA_WEB",
-    "app_description": "Literatura N.A.",
+    "app_description": "Literatura Narcóticos Anónimos",
     "version":         "1.0.0",
 }
 

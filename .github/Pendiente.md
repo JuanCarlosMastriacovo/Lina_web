@@ -1,4 +1,4 @@
-- Probar el procedimiento hecho por Claude para renombrar un programa
+- Instalar sistema en pc local accesible LAN y WAN
 - Usar la barra de mensajes
 - Que ocurrio con .venv en la migracion. ¿conviene recrearlo?
 *HECHO* Listados
@@ -75,3 +75,5 @@ DESCARTADO Validaciones de campos en CapaDAL y localmente para el prog en CapaUI
             Lina1343.py Por Proveedor (0=todos) y Fecha Ultima Compra(blanco=todas)
 *HECHO*lina231 salida en txt campo totales queda chico cuando se listan todos los comprobantes
 *HECHO* Generar un Procedimiento en Claude para renombrar un programa
+
+*HECHO* Probar el procedimiento hecho por Claude para renombrar un programa

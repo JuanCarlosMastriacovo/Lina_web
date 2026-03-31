@@ -15,6 +15,7 @@ TABLAS_PERMITIDAS = {
     "linaarti",
     "linaartr",
     "linaprov",
+    "linauser",
 }
 
 

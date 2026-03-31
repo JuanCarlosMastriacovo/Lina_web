@@ -1,157 +1,248 @@
 <div x-data="{
-  passActual:   '',
-  passNueva:    '',
-  passConfirma: '',
-  showPass:     false,
-  enviando:     false,
-  resultado:    null,
-  errorMsg:     '',
-
-  get confirmaMismatch() {
-    return this.passConfirma && this.passNueva && this.passConfirma !== this.passNueva;
-  },
-
-  get puedeEnviar() {
-    return this.passActual && this.passNueva && this.passConfirma
-           && !this.confirmaMismatch && !this.enviando;
-  },
-
-  async cambiar() {
-    this.enviando  = true;
+  tabId:    '{{ tab_id }}',
+  usercodi: '',
+  buscando: false,
+  usuario:  null,
+  userError: '',
+  rows:     [],
+  original: null,
+  guardando: false,
+  errorMsg: '',
+  async buscarUsuario() {
+    this.userError = '';
+    this.usuario   = null;
+    this.rows      = [];
+    this.original  = null;
     this.errorMsg  = '';
-    this.resultado = null;
+    const uc = this.usercodi.trim().toUpperCase();
+    if (!uc) return;
+    this.usercodi = uc;
+    this.buscando = true;
     try {
-      const form = new FormData();
-      form.append('pass_actual',   this.passActual);
-      form.append('pass_nueva',    this.passNueva);
-      form.append('pass_confirma', this.passConfirma);
-      form.append('_tab',          '{{ tab_id }}');
-
-      const resp    = await fetch('/lina542/change', { method: 'POST', body: form });
-      const payload = await resp.json().catch(() => ({}));
-      if (!resp.ok || !payload.ok) {
-        this.errorMsg = payload.error || 'Error al cambiar la contraseña.';
+      const url  = '/lina542/permisos?usercodi=' + encodeURIComponent(uc)
+                 + '&_tab=' + encodeURIComponent(this.tabId);
+      const resp = await fetch(url);
+      const data = await resp.json().catch(() => ({}));
+      if (!data.ok) {
+        this.userError = data.error || 'Error al buscar usuario.';
+        this.$nextTick(() => { if (this.$refs.inputUser) this.$refs.inputUser.focus(); });
       } else {
-        this.resultado   = payload.message;
-        this.passActual  = '';
-        this.passNueva   = '';
-        this.passConfirma = '';
+        this.usuario  = { usercodi: uc, username: data.username };
+        this.rows     = data.permisos;
+        this.original = JSON.stringify(data.permisos);
+        this.$nextTick(() => {
+          const c = this.$root.querySelector('.perm-cell');
+          if (c) c.focus();
+        });
       }
-    } catch (_err) {
-      this.errorMsg = 'Error de comunicación con el servidor.';
+    } catch(_e) {
+      this.userError = 'Error de comunicacion con el servidor.';
     } finally {
-      this.enviando = false;
+      this.buscando = false;
     }
-  }
-}" style="font-family: Arial; font-size: 9pt; padding: 20px; max-width: 480px;">
+  },
 
-  <h3 style="font-size: 11pt; margin-bottom: 16px;">Cambio de Contraseña</h3>
-  <div style="font-size: 8pt; color: #6b7280; margin-bottom: 16px;">
-    Usuario: <strong>{{ user }}</strong>
+  toggle(idx, field) {
+    this.rows[idx][field] = !this.rows[idx][field];
+  },
+
+  cellKey(e, idx, field) {
+    if (e.key === 'x' || e.key === 'X')                { e.preventDefault(); this.rows[idx][field] = true;  return; }
+    if (e.key === 'Delete' || e.key === 'Backspace')   { e.preventDefault(); this.rows[idx][field] = false; return; }
+    if (e.key === ' ' || e.key === 'Enter')            { e.preventDefault(); this.toggle(idx, field); }
+  },
+
+  escapeEnGrid(e) {
+    e.stopPropagation();
+    this.$nextTick(() => { if (this.$refs.btnGuardar) this.$refs.btnGuardar.focus(); });
+  },
+
+  async guardar() {
+    this.guardando = true;
+    this.errorMsg  = '';
+    try {
+      const resp = await fetch('/lina542/guardar', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Tab-Id': this.tabId },
+        body:    JSON.stringify({ usercodi: this.usuario.usercodi, rows: this.rows }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!data.ok) {
+        this.errorMsg = data.error || 'Error al guardar.';
+        this.$nextTick(() => { if (this.$refs.btnGuardar) this.$refs.btnGuardar.focus(); });
+      } else {
+        this.original = JSON.stringify(this.rows);
+        this.$nextTick(() => {
+          const c = this.$root.querySelector('.perm-cell');
+          if (c) c.focus();
+        });
+      }
+    } catch(_e) {
+      this.errorMsg = 'Error de comunicacion con el servidor.';
+    } finally {
+      this.guardando = false;
+    }
+  },
+
+  corregir() {
+    this.errorMsg = '';
+    this.$nextTick(() => {
+      const c = this.$root.querySelector('.perm-cell');
+      if (c) c.focus();
+    });
+  },
+
+  cancelar() {
+    if (!this.hayCambios) {
+      const mgr = window.linaTabsManager;
+      if (mgr) mgr.closeTab(this.tabId);
+      return;
+    }
+    if (this.original !== null) this.rows = JSON.parse(this.original);
+    this.errorMsg = '';
+    this.$nextTick(() => {
+      const c = this.$root.querySelector('.perm-cell');
+      if (c) c.focus();
+    });
+  },
+
+  get hayDatos()   { return this.usuario !== null; },
+  get hayCambios() { return this.original !== null && JSON.stringify(this.rows) !== this.original; }
+}"
+style="font-family: Arial; font-size: 9pt; padding: 16px 20px; display: flex; flex-direction: column; height: 100%; box-sizing: border-box;">
+
+  <h3 style="font-size: 11pt; margin: 0 0 12px;">Editar Permisos</h3>
+
+  {% if not perms or not perms.cons %}
+  <p style="color: #b45309; font-size: 8pt;">Sin permiso de consulta.</p>
+  {% else %}
+
+  <!-- ── BUSCAR USUARIO ── -->
+  <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+    <label style="font-size: 8pt; white-space: nowrap;">
+      Usuario <span style="color:#9ca3af;font-size:7.5pt;">(F4)</span>
+    </label>
+    <input type="text" x-ref="inputUser" x-model="usercodi"
+           @keydown.enter.prevent="buscarUsuario()"
+           @keydown.escape="if(!hayDatos){ $event.stopPropagation(); }"
+           @change="buscarUsuario()"
+           autocomplete="off" maxlength="32"
+           data-selector-tabla="linauser"
+           data-selector-campo-cod="usercodi"
+           data-selector-campo-desc="username"
+           data-selector-titulo="Buscar Usuario"
+           style="width: 32ch; padding: 3px 6px; border: 1px solid #d1d5db;
+                  border-radius: 4px; font-size: 9pt; text-transform: uppercase;">
+    <span x-show="usuario" style="font-size: 8.5pt; color: #374151;"
+          x-text="usuario ? usuario.username : ''"></span>
   </div>
+  <div x-show="userError" style="font-size: 8pt; color: #b91c1c; margin-bottom: 6px;"
+       x-text="userError"></div>
 
-  {# Trampa para autorrelleno del navegador #}
-  <input type="text"     style="display:none" tabindex="-1" autocomplete="username">
-  <input type="password" style="display:none" tabindex="-1" autocomplete="current-password">
+  <!-- ── GRILLA ── -->
+  <template x-if="hayDatos">
+    <div style="display: flex; flex-direction: column; flex: 1; min-height: 0; margin-top: 8px; max-width: 560px;">
 
-  <!-- Resultado exitoso -->
-  <template x-if="resultado">
-    <div style="background: #d1fae5; border: 1px solid #10b981; border-radius: 4px;
-                padding: 12px 16px; font-size: 8.5pt; color: #065f46;"
-         x-text="resultado">
-    </div>
-  </template>
-
-  <!-- Formulario -->
-  <template x-if="!resultado">
-    <div>
-      <!-- Contraseña actual -->
-      <div style="margin-bottom: 12px;">
-        <label style="display: block; font-weight: bold; margin-bottom: 4px;">
-          Contraseña actual
-        </label>
-        <input :type="showPass ? 'text' : 'password'"
-               x-model="passActual"
-               maxlength="64"
-               autocomplete="current-password"
-               data-lpignore="true"
-               style="width: calc(30ch + 1.5rem); padding: 4px 6px; border: 1px solid #d1d5db;
-                      border-radius: 4px; font-size: 9pt;">
+      <!-- cabecera fija -->
+      <div style="display: grid;
+                  grid-template-columns: 9ch 1fr 4.5ch 4.5ch 4.5ch 4.5ch;
+                  background: #374151; color: white; font-size: 8pt; font-weight: bold;
+                  border-radius: 4px 4px 0 0; padding: 4px 0;">
+        <div style="padding: 0 6px;">Código</div>
+        <div style="padding: 0 6px;">Descripción</div>
+        <div style="text-align: center;">Alta</div>
+        <div style="text-align: center;">Baja</div>
+        <div style="text-align: center;">Modi</div>
+        <div style="text-align: center;">Cons</div>
       </div>
 
-      <div style="border-top: 1px solid #e5e7eb; margin: 14px 0 12px;"></div>
-
-      <!-- Nueva contraseña -->
-      <div style="margin-bottom: 12px;">
-        <label style="display: block; font-weight: bold; margin-bottom: 4px;">
-          Nueva contraseña
-        </label>
-        <div style="display: flex; gap: 6px; align-items: center;">
-          <input :type="showPass ? 'text' : 'password'"
-                 x-model="passNueva"
-                 maxlength="64"
-                 autocomplete="new-password"
-                 data-lpignore="true"
-                 style="width: calc(30ch + 1.5rem); padding: 4px 6px; border: 1px solid #d1d5db;
-                        border-radius: 4px; font-size: 9pt;">
-          <button type="button" tabindex="-1"
-                  @click="showPass = !showPass"
-                  style="padding: 3px 8px; border: 1px solid #d1d5db; border-radius: 4px;
-                         background: white; cursor: pointer; font-size: 8pt;"
-                  :title="showPass ? 'Ocultar contraseñas' : 'Mostrar contraseñas'">
-            <span x-text="showPass ? '🙈' : '👁'"></span>
-          </button>
-        </div>
-        <div style="font-size: 7.5pt; color: #6b7280; margin-top: 4px; line-height: 1.5;">
-          Mínimo 8 caracteres · Al menos 3 de 4 grupos: mayúsculas, minúsculas, números, símbolos
-          · No puede ser igual al código de usuario
-        </div>
-      </div>
-
-      <!-- Confirmar nueva contraseña -->
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; font-weight: bold; margin-bottom: 4px;">
-          Confirmar nueva contraseña
-        </label>
-        <input :type="showPass ? 'text' : 'password'"
-               x-model="passConfirma"
-               maxlength="64"
-               autocomplete="new-password"
-               data-lpignore="true"
-               style="width: calc(30ch + 1.5rem); padding: 4px 6px;
-                      border-radius: 4px; font-size: 9pt;"
-               :style="confirmaMismatch
-                 ? 'border: 1px solid #ef4444;'
-                 : 'border: 1px solid #d1d5db;'">
-        <template x-if="confirmaMismatch">
-          <div style="font-size: 7.5pt; color: #dc2626; margin-top: 3px;">
-            Las contraseñas no coinciden.
+      <!-- cuerpo scroll -->
+      <div style="overflow-y: auto; flex: 1; border: 1px solid #d1d5db; border-top: none;
+                  border-radius: 0 0 4px 4px;"
+           @keydown.escape="escapeEnGrid($event)">
+        <template x-for="(row, idx) in rows" :key="row.progcodi">
+          <div :style="`display:grid;grid-template-columns:9ch 1fr 4.5ch 4.5ch 4.5ch 4.5ch;background:${idx%2===0?'#fff':'#f9fafb'}`">
+            <div style="padding: 3px 6px; font-size: 8pt; border-right: 1px solid #e5e7eb;"
+                 x-text="row.progcodi"></div>
+            <div style="padding: 3px 6px; font-size: 8pt; border-right: 1px solid #e5e7eb;
+                        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                 x-text="row.progdesc"></div>
+            <div class="perm-cell" tabindex="0"
+                 @click="toggle(idx, 'safealta')"
+                 @keydown="cellKey($event, idx, 'safealta')"
+                 style="text-align: center; padding: 3px 0; cursor: pointer;
+                        border-right: 1px solid #e5e7eb; font-size: 9pt; font-weight: bold; outline: none;"
+                 :style="row.safealta ? 'color:#16a34a' : 'color:transparent'"
+                 @focus="$el.style.outline='2px solid #3b82f6'"
+                 @blur="$el.style.outline='none'"
+                 x-text="row.safealta ? 'X' : '-'"></div>
+            <div class="perm-cell" tabindex="0"
+                 @click="toggle(idx, 'safebaja')"
+                 @keydown="cellKey($event, idx, 'safebaja')"
+                 style="text-align: center; padding: 3px 0; cursor: pointer;
+                        border-right: 1px solid #e5e7eb; font-size: 9pt; font-weight: bold; outline: none;"
+                 :style="row.safebaja ? 'color:#16a34a' : 'color:transparent'"
+                 @focus="$el.style.outline='2px solid #3b82f6'"
+                 @blur="$el.style.outline='none'"
+                 x-text="row.safebaja ? 'X' : '-'"></div>
+            <div class="perm-cell" tabindex="0"
+                 @click="toggle(idx, 'safemodi')"
+                 @keydown="cellKey($event, idx, 'safemodi')"
+                 style="text-align: center; padding: 3px 0; cursor: pointer;
+                        border-right: 1px solid #e5e7eb; font-size: 9pt; font-weight: bold; outline: none;"
+                 :style="row.safemodi ? 'color:#16a34a' : 'color:transparent'"
+                 @focus="$el.style.outline='2px solid #3b82f6'"
+                 @blur="$el.style.outline='none'"
+                 x-text="row.safemodi ? 'X' : '-'"></div>
+            <div class="perm-cell" tabindex="0"
+                 @click="toggle(idx, 'safecons')"
+                 @keydown="cellKey($event, idx, 'safecons')"
+                 style="text-align: center; padding: 3px 0; cursor: pointer;
+                        font-size: 9pt; font-weight: bold; outline: none;"
+                 :style="row.safecons ? 'color:#16a34a' : 'color:transparent'"
+                 @focus="$el.style.outline='2px solid #3b82f6'"
+                 @blur="$el.style.outline='none'"
+                 x-text="row.safecons ? 'X' : '-'"></div>
           </div>
         </template>
       </div>
 
-      <!-- Error -->
-      <template x-if="errorMsg">
-        <div style="background: #fee2e2; border: 1px solid #ef4444; border-radius: 4px;
-                    padding: 8px 12px; margin-bottom: 12px; font-size: 8.5pt; color: #991b1b;"
-             x-text="errorMsg">
-        </div>
-      </template>
-
-      <!-- Botones -->
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <button type="button" @click="cambiar()"
-                :disabled="!puedeEnviar"
-                style="padding: 6px 18px; background: #2563eb; color: white;
+      <!-- ── BOTONES ── -->
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
+        {% if perms and perms.modi %}
+        <button type="button" x-ref="btnGuardar" @click="guardar()" :disabled="guardando"
+                style="padding: 5px 16px; background: #2563eb; color: white;
                        border: none; border-radius: 4px; cursor: pointer; font-size: 9pt;"
-                :style="!puedeEnviar ? 'opacity:0.5; cursor:not-allowed;' : ''">
-          Cambiar contraseña
+                :style="guardando ? 'opacity:.6;cursor:not-allowed' : ''">
+          Guardar
         </button>
-        <span x-show="enviando" style="color: #6b7280; font-style: italic; font-size: 8.5pt;">
-          Procesando...
+        {% endif %}
+        <button type="button" @click="corregir()"
+                style="padding: 5px 16px; background: #6b7280; color: white;
+                       border: none; border-radius: 4px; cursor: pointer; font-size: 9pt;">
+          Corregir
+        </button>
+        <button type="button" @click="cancelar()"
+                style="padding: 5px 16px; background: #6b7280; color: white;
+                       border: none; border-radius: 4px; cursor: pointer; font-size: 9pt;">
+          Cancelar
+        </button>
+        <span x-show="hayCambios && !guardando"
+              style="font-size: 7.5pt; color: #b45309; font-style: italic;">
+          Hay cambios sin guardar
+        </span>
+        <span x-show="guardando"
+              style="font-size: 7.5pt; color: #6b7280; font-style: italic;">
+          Guardando...
         </span>
       </div>
+
+      <!-- error -->
+      <div x-show="errorMsg" style="margin-top: 6px; font-size: 8pt; color: #b91c1c;"
+           x-text="errorMsg"></div>
+
     </div>
   </template>
 
+  {% endif %}
 </div>

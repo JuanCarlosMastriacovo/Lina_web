@@ -25,8 +25,6 @@ Qué hace:
        LinaXX  → LinaYY  (CamelCase: nombre de clase Python)
        LINAX   → LINAYY  (mayúsculas: PROG_CODE, constantes)
   6. Imprime las sentencias SQL necesarias para actualizar linaprog y linasafe.
-
-El script NO modifica la base de datos; ejecutar el SQL manualmente.
 En --dry-run solo muestra los cambios sin aplicarlos.
 """
 
@@ -93,7 +91,7 @@ def _replace_in_file(path: Path,
 
 def _rename(src: Path, dst: Path, dry_run: bool) -> None:
     tag = "[DRY-RUN] " if dry_run else ""
-    print(f"  {tag}[renombrar] {src.relative_to(ROOT)}  →  {dst.relative_to(ROOT)}")
+    print(f"  {tag}[renombrar] {src.relative_to(ROOT)}  ->  {dst.relative_to(ROOT)}")
     if not dry_run:
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(str(src), str(dst))
@@ -130,7 +128,7 @@ def main() -> None:
         print(f"ERROR: ya existe {dst_py.relative_to(ROOT)} — renombrado abortado.")
         sys.exit(1)
 
-    print(f"\n{'[DRY-RUN] ' if dry_run else ''}Renombrando {src_upper} → {dst_upper}\n")
+    print(f"\n{'[DRY-RUN] ' if dry_run else ''}Renombrando {src_upper} -> {dst_upper}\n")
 
     # Orden de reemplazo: primero más específico (CamelCase > UPPER > lower)
     # para evitar sustituciones parciales incorrectas

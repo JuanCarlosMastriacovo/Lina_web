@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Request, Query, Form
+from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from typing import Dict, Any
 
 from CapaBRL.linabase import linabase
+from CapaBRL.password_rules import hash_password, verify_password, validate_password
 from CapaDAL.tablebase import get_table_model
-from CapaDAL.dataconn import sess_conns
+from CapaDAL.dataconn import sess_conns, ctx_empr
 
 
 # ==================== CONSTANTES Y ROUTER ====================
@@ -20,153 +20,98 @@ LinaEmpr = get_table_model("linaempr")
 # ==================== CLASE PRINCIPAL ====================
 
 class Lina543(linabase):
-    """Copia de permisos entre usuarios (LINA543)."""
-
-    @classmethod
-    def get_permisos_por_usuario(cls, user: str) -> Dict[str, Any]:
-        if cls.permisos_por_usuario_func:
-            return cls.permisos_por_usuario_func(user)
-        return {}
-
-
-# ==================== FUNCIONES AUXILIARES ====================
-
-def _get_empr_options(conn) -> list:
-    rows = LinaEmpr.list_all(
-        order_by="emprcodi",
-        fields=["emprcodi", "emprname"],
-        skip_company_filter=True,
-        conn=conn,
-    )
-    return [
-        {"code": str(r.get("emprcodi") or "").strip(),
-         "name": str(r.get("emprname") or "").strip()}
-        for r in rows
-        if str(r.get("emprcodi") or "").strip()
-    ]
-
-
-def _get_users_for_empr(emprcodi: str, conn) -> list:
-    rows = LinaUser.list_all(
-        order_by="usercodi",
-        fields=["usercodi", "username"],
-        skip_company_filter=True,
-        conn=conn,
-    )
-    # list_all puede no filtrar por empr cuando skip_company_filter; filtramos aquí
-    return [
-        {"code": str(r.get("usercodi") or "").strip(),
-         "name": str(r.get("username") or "").strip()}
-        for r in rows
-        if str(r.get("emprcodi") or "").strip() == emprcodi
-        and str(r.get("usercodi") or "").strip()
-    ]
+    """Cambio de contraseña propia (LINA543). Acceso solo al usuario de sesión."""
 
 
 # ==================== RUTAS ====================
 
 @router.get("/", response_class=HTMLResponse)
-async def lina543_main(request: Request, _tab: str = Query(default="")):
+async def lina543_main(request: Request):
     Lina543.set_prog_code(PROG_CODE)
     user = Lina543.get_current_user(request)
     if not user:
         return RedirectResponse("/login")
 
-    perms = Lina543.get_permisos_por_usuario(user).get(Lina543.prog_code)
-    if not perms or not perms.cons:
-        from fastapi import HTTPException
-        raise HTTPException(403, "Sin permisos de consulta")
-
-    conn    = Lina543.get_task_conn(request, readonly=True)
-    options = _get_empr_options(conn)
-
+    # Sin verificación de linasafe: cualquier usuario autenticado puede
+    # cambiar su propia contraseña.
+    tab_id = Lina543.get_tab_id(request)
     return Lina543.templates.TemplateResponse(
         "lina543/main.html",
-        {
-            "request": request,
-            "user":    user,
-            "perms":   perms,
-            "options": options,
-            "tab_id":  _tab,
-        },
+        {"request": request, "user": user, "tab_id": tab_id},
     )
 
 
-@router.get("/users", response_class=JSONResponse)
-async def lina543_users(request: Request, emprcodi: str = Query(...)):
-    """Devuelve la lista de usuarios de una empresa para el lookup F4."""
-    conn  = Lina543.get_task_conn(request, readonly=True)
-    users = _get_users_for_empr(emprcodi.strip(), conn)
-    return JSONResponse(users)
-
-
-@router.post("/ejecutar", response_class=JSONResponse)
-async def lina543_ejecutar(
-    request:      Request,
-    orig_empr:    str = Form(...),
-    orig_user:    str = Form(...),
-    dest_empr:    str = Form(...),
-    dest_user:    str = Form(...),
-    tab_id:       str = Form(default="", alias="_tab"),
+@router.post("/change", response_class=JSONResponse)
+async def lina543_change(
+    request:         Request,
+    pass_actual:     str = Form(...),
+    pass_nueva:      str = Form(...),
+    pass_confirma:   str = Form(...),
+    tab_id:          str = Form(default="", alias="_tab"),
 ):
     user = Lina543.get_current_user(request)
     if not user:
         return JSONResponse({"ok": False, "error": "Sesión expirada."}, status_code=401)
 
-    perms = Lina543.get_permisos_por_usuario(user).get(PROG_CODE)
-    if not perms or not perms.modi:
-        return JSONResponse({"ok": False, "error": "Sin permisos de modificación."}, status_code=403)
+    pass_actual_raw  = pass_actual.strip()
+    pass_nueva_raw   = pass_nueva.strip()
+    pass_confirma_raw = pass_confirma.strip()
 
-    orig_empr = orig_empr.strip()
-    orig_user = orig_user.strip()
-    dest_empr = dest_empr.strip()
-    dest_user = dest_user.strip()
+    # ── Validaciones previas ─────────────────────────────────────
+    if not pass_actual_raw:
+        return JSONResponse({"ok": False, "error": "Ingrese su contraseña actual."}, status_code=409)
 
-    if not all([orig_empr, orig_user, dest_empr, dest_user]):
-        return JSONResponse({"ok": False, "error": "Todos los campos son obligatorios."}, status_code=409)
+    if pass_nueva_raw != pass_confirma_raw:
+        return JSONResponse({"ok": False, "error": "Las contraseñas nuevas no coinciden."}, status_code=409)
 
-    if orig_empr == dest_empr and orig_user == dest_user:
-        return JSONResponse({"ok": False, "error": "El origen y el destino no pueden ser el mismo usuario."}, status_code=409)
+    err = validate_password(pass_nueva_raw, user)
+    if err:
+        return JSONResponse({"ok": False, "error": err}, status_code=409)
 
     conn      = sess_conns.get_conn(readonly=False, user_override=user)
     owns_conn = True
     try:
-        # Validar existencia origen
-        if not LinaUser.row_get({"emprcodi": orig_empr, "usercodi": orig_user}, conn=conn):
-            return JSONResponse(
-                {"ok": False, "error": f"Usuario origen '{orig_user}' no existe en empresa '{orig_empr}'."},
-                status_code=409,
-            )
+        # ── Verificar contraseña actual ──────────────────────────
+        row = LinaUser.row_get(
+            {"emprcodi": ctx_empr.get(), "usercodi": user},
+            conn=conn,
+        )
+        if not row:
+            return JSONResponse({"ok": False, "error": "Usuario no encontrado."}, status_code=404)
 
-        # Validar existencia destino
-        if not LinaUser.row_get({"emprcodi": dest_empr, "usercodi": dest_user}, conn=conn):
-            return JSONResponse(
-                {"ok": False, "error": f"Usuario destino '{dest_user}' no existe en empresa '{dest_empr}'."},
-                status_code=409,
-            )
+        if not verify_password(pass_actual_raw, row["userpass"]):
+            return JSONResponse({"ok": False, "error": "La contraseña actual es incorrecta."}, status_code=409)
 
-        # Llamar al SP dentro de la misma transacción
+        # ── Actualizar en TODAS las empresas (transacción única) ─
+        nuevo_hash = hash_password(pass_nueva_raw)
         cur = conn.cursor()
         try:
             cur.execute(
-                "CALL sp_copy_user_rights(%s, %s, %s, %s)",
-                (orig_empr, orig_user, dest_empr, dest_user),
+                "UPDATE linauser SET userpass = %s WHERE usercodi = %s",
+                (nuevo_hash, user),
             )
+            filas_actualizadas = cur.rowcount
         finally:
             cur.close()
 
+        # ── Determinar si hay más de una empresa ─────────────────
+        cur2 = conn.cursor()
+        try:
+            cur2.execute("SELECT COUNT(*) FROM linaempr")
+            total_empresas = cur2.fetchone()[0]
+        finally:
+            cur2.close()
+
         conn.commit()
 
-        return JSONResponse({
-            "ok":      True,
-            "message": (
-                f"Permisos copiados de '{orig_user}' ({orig_empr}) "
-                f"a '{dest_user}' ({dest_empr}) correctamente."
-            ),
-        })
+        msg = "Contraseña actualizada correctamente."
+        if total_empresas > 1:
+            msg += f" La contraseña se ha cambiado para todas las empresas ({filas_actualizadas} registros)."
+
+        return JSONResponse({"ok": True, "message": msg})
 
     except Exception as e:
         conn.rollback()
-        return JSONResponse({"ok": False, "error": f"Error al copiar permisos: {e}"}, status_code=500)
+        return JSONResponse({"ok": False, "error": f"Error al cambiar la contraseña: {e}"}, status_code=500)
     finally:
         sess_conns.release_conn(conn)
