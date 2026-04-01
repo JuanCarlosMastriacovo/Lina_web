@@ -11,6 +11,11 @@ MYSQL_CONFIG = {
     "pool_name": os.getenv("LINA_MYSQL_POOL_NAME", "lina_pool"),
 }
 
+HOST_SERVICE = {
+    "host": os.getenv("LINA_HOST", "0.0.0.0"),
+    "port": int(os.getenv("LINA_PORT", "8000")),
+}
+
 APP_CONFIG = {
     "app_name":        "LINA_WEB",
     "app_description": "Literatura Narcóticos Anónimos",
